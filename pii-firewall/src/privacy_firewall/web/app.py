@@ -7,6 +7,7 @@ Frontend is served separately by pii-web-next (Next.js app).
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 import os
 from typing import Dict
 
@@ -18,6 +19,8 @@ from ..llm import MockLLMClient
 from ..vault import InMemoryMappingVault
 from ..firewall import PrivacyFirewall, create_firewall
 from ..resolver import ContextualEntityResolver
+
+_logger = logging.getLogger("privacy_firewall")
 
 
 class RunRequest(BaseModel):
@@ -86,6 +89,17 @@ def create_app(firewall: PrivacyFirewall | None = None) -> FastAPI:
     Returns:
         FastAPI application instance
     """
+    # Ensure privacy_firewall logs are visible at INFO level in the server console.
+    # Uvicorn's dictConfig only wires up uvicorn.* loggers; we must attach our own
+    # handler so the privacy_firewall namespace actually reaches stdout.
+    pf_logger = logging.getLogger("privacy_firewall")
+    pf_logger.setLevel(logging.INFO)
+    if not pf_logger.handlers:
+        _handler = logging.StreamHandler()
+        _handler.setFormatter(logging.Formatter("%(levelname)s: [pii] %(message)s"))
+        pf_logger.addHandler(_handler)
+        pf_logger.propagate = False  # avoid double-printing via uvicorn root handler
+
     runtime_factory = RuntimeFactory()
     static_fw = firewall
     required_api_key = os.getenv("PII_FIREWALL_API_KEY")
@@ -159,6 +173,11 @@ def create_app(firewall: PrivacyFirewall | None = None) -> FastAPI:
     def run_pipeline(req: RunRequest, x_api_key: str | None = Header(default=None)) -> dict:
         """Run the privacy firewall pipeline on input text."""
         validate_api_key(x_api_key)
+        _logger.info(
+            "[/api/run] profile=%s backend=%s lang=%s text=%r",
+            req.profile, req.detector_backend, req.language or "auto",
+            req.text[:120] + ("..." if len(req.text) > 120 else ""),
+        )
         try:
             fw = static_fw or runtime_factory.get(req)
             context = {

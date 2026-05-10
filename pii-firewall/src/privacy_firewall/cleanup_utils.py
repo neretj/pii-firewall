@@ -28,7 +28,7 @@ def apply_residual_cleanup(text: str) -> tuple[str, list[dict]]:
         matches.append((m.start(), m.end(), m.group(0), "PHONE_NUMBER"))
 
     for start, end, original, entity_type in sorted(matches, key=lambda x: x[0], reverse=True):
-        replacement = f"<{entity_type}>"
+        replacement = f"[{entity_type}]"
         cleaned = cleaned[:start] + replacement + cleaned[end:]
         replacements.append(
             {

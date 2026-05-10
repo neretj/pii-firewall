@@ -75,14 +75,14 @@ firewall = create_firewall("healthcare")
 ```
 
 ### Finance
-Preserves transaction details while protecting PII:
+Protects customer PII and financial identifiers. Amounts and transaction context pass through without detection (not regulated PII):
 ```python
 firewall = create_firewall("finance")
 
-# Keeps: transaction amounts, account types, credit scores
-# Redacts: medical information, customer PII
-# Masks: credit cards (4111...1111)
-# Pseudonymizes: account numbers (reversible)
+# Keeps: company names, transaction context (amounts pass through as non-PII)
+# Masks: credit card numbers (4111...1111)
+# Pseudonymizes: account numbers, IBANs, tax IDs (reversible)
+# Redacts: customer PII (names, addresses) and medical data
 ```
 
 ### Legal
@@ -90,10 +90,11 @@ High anonymity for legal documents:
 ```python
 firewall = create_firewall("legal")
 
-# Keeps: case numbers, statutes, legal references
+# Keeps: company/firm names (courts, agencies — public record)
+# Note: statutes, case numbers, legal citations are public record and pass through
 # Pseudonymizes: party names (reversible for case management)
-# Generalizes: all dates to year only
-# Redacts: all strong identifiers
+# Generalizes: all dates to month/year
+# Redacts: strong identifiers and cross-domain medical data
 ```
 
 ## 🌍 Multi-Language Support
@@ -292,10 +293,7 @@ firewall = create_firewall("healthcare", detector_backend="transformers", transf
 | General | multilingual | `Davlan/xlm-roberta-base-ner-hrl` |
 | General | `fr` | `Jean-Baptiste/camembert-ner` |
 | Medical | `en` | `d4data/biomedical-ner-all` |
-| Medical | `en` (clinical) | `emilyalsentzer/Bio_ClinicalBERT` |
 | Medical | `es` | `PlanTL-GOB-ES/bsc-bio-ehr-es` |
-| Financial | `en` | `ProsusAI/finbert` |
-| Legal | `en` | `nlpaueb/legal-bert-base-uncased` |
 
 #### Run on GPU
 
@@ -483,7 +481,7 @@ src/privacy_firewall/
 │   └── recognizers.py    # Custom recognizers
 ├── transformers_ner/     # Domain-specific models
 │   ├── engine.py         # TransformerNEREngine
-│   └── models.py         # BioBERT, FinBERT, etc.
+│   └── models.py         # Biomedical NER model catalog
 ├── unified_detector.py   # Multi-backend orchestration
 ├── anonymization_engine.py  # Disposition-based anonymization
 ├── firewall.py        # Next-gen PrivacyFirewall
@@ -499,7 +497,7 @@ src/privacy_firewall/
 | **Multi-language** | ✅ 55+ auto-detect | ✅ Manual | ❌ English only | ✅ Some |
 | **Locale patterns** | ✅ Per-country | ❌ | ❌ | ❌ |
 | **Multiple dispositions** | ✅ | ❌ Basic | ❌ | ❌ |
-| **Transformers** | ✅ BioBERT, FinBERT | ❌ | ❌ | ✅ Proprietary |
+| **Transformers** | ✅ BioBERT, biomedical NER | ❌ | ❌ | ✅ Proprietary |
 | **Reversibility** | ✅ Vault | ❌ | ❌ | ❌ |
 | **Custom patterns** | ✅ Runtime | ⚠️ Code | ⚠️ Code | ❌ |
 | **Thread caching** | ✅ 0ms after first | ❌ | ❌ | N/A |

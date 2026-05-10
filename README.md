@@ -31,7 +31,7 @@ User text  ──→  [ PII Firewall ]  ──→  Sanitized prompt  ──→  
 | Feature | Details |
 |---|---|
 | **Domain profiles** | Built-in presets for Healthcare, Finance, and Legal; fully customizable |
-| **Domain-aware keep rules** | Medical terms, transaction amounts, legal references, etc. are *kept* — not redacted |
+| **Domain-aware keep rules** | Medical terms (diagnoses, medications, procedures) are *kept* — not redacted — in healthcare and related profiles |
 | **7 disposition actions** | Keep, Redact, Pseudonymize, Generalize, Mask, Hash, Suppress |
 | **Reversible pseudonymization** | Secure vault stores the original→token mapping for rehydration |
 | **55+ language auto-detection** | Thread-level caching adds zero latency after the first call |
@@ -172,7 +172,7 @@ Locale-specific patterns are applied automatically: Spanish DNI/NIE, US SSN/EIN,
 |---|---|---|---|
 | `regex` | *(none)* | Structured IDs, emails, phones | < 1 ms |
 | `presidio` | `[presidio,langdetect]` | Named entities (persons, orgs) — best balance | 50–200 ms |
-| `transformers` | `[transformers]` | Domain NER (BioBERT, FinBERT) — highest accuracy | 100–500 ms |
+| `transformers` | `[transformers]` | Biomedical NER (`d4data`, BC5CDR) — highest accuracy for medical entities | 100–500 ms |
 | `gliner` | `[gliner]` | Zero-shot NER, no fine-tuning needed | 100–400 ms |
 | `hybrid` | `[presidio,langdetect]` | Regex + Presidio combined for max coverage | 50–250 ms |
 
@@ -252,7 +252,7 @@ firewall = create_firewall("healthcare", detector_backend="transformers",
                            transformer_device=0)  # 0 = GPU, -1 = CPU
 ```
 
-Available catalog entries: `("general", "en")`, `("medical", "en")`, `("medical", "es")`, `("financial", "en")`, `("legal", "en")`, and multilingual.
+Available catalog entries: `("general", "en")`, `("medical", "en")`, `("medical", "es")`, and multilingual.
 
 ---
 

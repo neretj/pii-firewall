@@ -532,17 +532,20 @@ firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"
       <div class="card card-yellow-border">
         <h4>💼 finance</h4>
         <ul>
-          <li><strong>Keeps:</strong> amounts, account types, credit scores</li>
-          <li><strong>Masks:</strong> credit cards (4111...1111)</li>
-          <li><strong>Pseudonymizes:</strong> account numbers (reversible)</li>
+          <li><strong>Keeps:</strong> company names — amounts/rates pass through as non-PII</li>
+          <li><strong>Masks:</strong> credit card numbers (4111...1111)</li>
+          <li><strong>Pseudonymizes:</strong> account numbers, IBANs, tax IDs (reversible)</li>
+          <li><strong>Redacts:</strong> customer PII and cross-domain medical data</li>
         </ul>
       </div>
       <div class="card card-accent-border">
         <h4>⚖️ legal</h4>
         <ul>
-          <li><strong>Keeps:</strong> case numbers, statutes</li>
-          <li><strong>Pseudonymizes:</strong> party names</li>
-          <li><strong>Generalizes:</strong> all dates to year only</li>
+          <li><strong>Keeps:</strong> company/firm names (courts, agencies — public record)</li>
+          <li><strong>Note:</strong> statutes, case numbers and citations are public record — not detected</li>
+          <li><strong>Pseudonymizes:</strong> party names (reversible)</li>
+          <li><strong>Generalizes:</strong> dates to month/year</li>
+          <li><strong>Redacts:</strong> strong identifiers and cross-domain medical data</li>
         </ul>
       </div>
       <div class="card card-green-border">
@@ -608,7 +611,7 @@ firewall = <span class="fn">create_firewall</span>(<span class="st">"generic"</s
         <tr>
           <td><code>transformers</code></td>
           <td><code>[transformers]</code></td>
-          <td>Domain NER (BioBERT, FinBERT). Highest accuracy.</td>
+          <td>Biomedical NER (<code>d4data</code>, BC5CDR). Highest accuracy for medical entities.</td>
           <td>100–500 ms</td>
         </tr>
         <tr>
@@ -1055,10 +1058,7 @@ firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"
         <tr><td>General</td><td>multilingual</td><td><code>Davlan/xlm-roberta-base-ner-hrl</code></td></tr>
         <tr><td>General</td><td><code>fr</code></td><td><code>Jean-Baptiste/camembert-ner</code></td></tr>
         <tr><td>Medical</td><td><code>en</code></td><td><code>d4data/biomedical-ner-all</code></td></tr>
-        <tr><td>Medical</td><td><code>en</code> (clinical)</td><td><code>emilyalsentzer/Bio_ClinicalBERT</code></td></tr>
         <tr><td>Medical</td><td><code>es</code></td><td><code>PlanTL-GOB-ES/bsc-bio-ehr-es</code></td></tr>
-        <tr><td>Financial</td><td><code>en</code></td><td><code>ProsusAI/finbert</code></td></tr>
-        <tr><td>Legal</td><td><code>en</code></td><td><code>nlpaueb/legal-bert-base-uncased</code></td></tr>
       </tbody>
     </table>
 

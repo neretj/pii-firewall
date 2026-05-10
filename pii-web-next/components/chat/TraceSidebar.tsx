@@ -75,13 +75,13 @@ export function TraceSidebar({ selectedTurn, continuity }: TraceSidebarProps) {
             ) : (
               <div className="space-y-1.5">
                 {selectedTurn.response.steps.detected_entities.map((entity: any, idx: number) => (
-                  <div key={`${entity.text}-${idx}`} className="flex items-center gap-2 rounded-md border bg-card px-2.5 py-2 text-xs min-w-0">
+                    <div key={`${entity.text}-${idx}`} className="flex items-center gap-2 rounded-md border bg-card px-2.5 py-2 text-xs min-w-0">
                     <Badge variant="accent" className="flex-shrink-0 text-[10px]">{entity.entity_type}</Badge>
-                    <span className="font-medium truncate flex-1">{entity.text}</span>
-                    <span className="text-[10px] text-muted-fg bg-muted px-1.5 py-0.5 rounded flex-shrink-0">
+                    <span className="font-medium min-w-0 flex-1">{entity.text}</span>
+                    <span className="text-[10px] text-muted-fg bg-muted px-1.5 py-0.5 rounded flex-shrink-0 whitespace-nowrap truncate max-w-[90px]" title={entity.source}>
                       {entity.source}
                     </span>
-                  </div>
+                    </div>
                 ))}
               </div>
             )}

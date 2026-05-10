@@ -263,31 +263,15 @@ FINANCE_PROFILE = DomainProfile(
             description="Tax IDs (reversible for compliance)",
         ),
 
-        # Domain-specific: keep financial context entities
-        "TRANSACTION_AMOUNT": EntityDisposition(
-            entity_type="TRANSACTION_AMOUNT",
-            action=DispositionAction.KEEP,
-            description="Transaction amounts and currencies",
-        ),
+        # Domain-specific: keep company names (detected by general NER as ORG)
+        # Structured financial identifiers (IBAN, ACCOUNT_NUMBER, TAX_ID) are
+        # handled by the universal dispositions above.
+        # Transaction amounts, currencies, and percentages are not regulated PII
+        # and are not anonymized.
         "COMPANY_NAME": EntityDisposition(
             entity_type="COMPANY_NAME",
             action=DispositionAction.KEEP,
-            description="Company and organization names",
-        ),
-        "TRANSACTION_TYPE": EntityDisposition(
-            entity_type="TRANSACTION_TYPE",
-            action=DispositionAction.KEEP,
-            description="Transaction categories (transfer, payment, etc.)",
-        ),
-        "CURRENCY": EntityDisposition(
-            entity_type="CURRENCY",
-            action=DispositionAction.KEEP,
-            description="Currency codes",
-        ),
-        "PERCENTAGE": EntityDisposition(
-            entity_type="PERCENTAGE",
-            action=DispositionAction.KEEP,
-            description="Interest rates, margins, and percentage figures",
+            description="Company and organization names (public record, not PII)",
         ),
 
         # Redact medical data (out of domain for finance)
@@ -345,44 +329,36 @@ LEGAL_PROFILE = DomainProfile(
             description="Credit card numbers",
         ),
 
-        # Domain-specific: keep legal reference entities
-        "CASE_NUMBER": EntityDisposition(
-            entity_type="CASE_NUMBER",
-            action=DispositionAction.KEEP,
-            description="Case identifiers and docket numbers",
-        ),
-        "STATUTE": EntityDisposition(
-            entity_type="STATUTE",
-            action=DispositionAction.KEEP,
-            description="Legal statutes and regulations",
-        ),
-        "LEGAL_CITATION": EntityDisposition(
-            entity_type="LEGAL_CITATION",
-            action=DispositionAction.KEEP,
-            description="Case law citations",
-        ),
+        # Domain-specific: keep company names (courts, firms) detected by general NER.
+        # Legal statutes ("Article 6 GDPR"), case citations ("Smith v. Jones"),
+        # and case numbers are public record — not regulated PII, never anonymized.
         "COMPANY_NAME": EntityDisposition(
             entity_type="COMPANY_NAME",
             action=DispositionAction.KEEP,
-            description="Organizations (non-natural persons, public record)",
+            description="Organizations — courts, firms, agencies (public record, not PII)",
         ),
 
         # Cross-domain medical leakage — legal documents routinely contain
         # medical information (injury cases, malpractice, insurance disputes)
         # that must be anonymized to protect parties.
+        # Biomedical NER models (d4data) produce lower confidence scores than
+        # rule-based detectors, so use a relaxed threshold of 0.45.
         "DIAGNOSIS": EntityDisposition(
             entity_type="DIAGNOSIS",
             action=DispositionAction.REDACT,
+            confidence_threshold=0.45,
             description="Medical diagnoses (injury/malpractice cross-domain leakage)",
         ),
         "DRUG": EntityDisposition(
             entity_type="DRUG",
             action=DispositionAction.REDACT,
+            confidence_threshold=0.45,
             description="Medication names (cross-domain leakage)",
         ),
         "PROCEDURE": EntityDisposition(
             entity_type="PROCEDURE",
             action=DispositionAction.REDACT,
+            confidence_threshold=0.45,
             description="Medical procedures (cross-domain leakage)",
         ),
         "MEDICAL_RECORD": EntityDisposition(

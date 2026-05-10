@@ -1,13 +1,17 @@
 """Transformer-based NER backend (HuggingFace).
 
-This module provides infrastructure for using transformer models as an alternative
-to spaCy for NER. Key benefits:
-- Better accuracy for non-English languages
-- Domain-specific models (BioBERT, FinBERT, LegalBERT)
-- Multilingual models (XLM-RoBERTa)
+Provides two engines:
 
-Note: This adds significant dependencies and model size (~500MB per model).
-Use only when spaCy models are insufficient.
+- :class:`TransformerNEREngine` — wraps any HuggingFace token-classification
+  pipeline and maps its labels to canonical entity type constants.
+- :class:`DomainTransformerNEREngine` — subclass that applies domain-aware
+  label normalisation (currently ``"medical"``).
+
+Active model stack:
+- ``dslim/bert-base-NER`` (420 MB) — general CoNLL-2003 NER (PERSON/ORG/LOC).
+- ``d4data/biomedical-ner-all`` (265 MB) — 43-class biomedical NER.
+- ``Davlan/xlm-roberta-base-ner-hrl`` — multilingual fallback.
+- Language-specific models for FR, DE, ES (see ``models.py``).
 """
 
 from .engine import TransformerNEREngine, DomainTransformerNEREngine

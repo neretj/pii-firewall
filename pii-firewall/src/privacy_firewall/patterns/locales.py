@@ -55,6 +55,27 @@ GLOBAL_CREDIT_CARD = EntityPattern(
     description="Credit card numbers (Luhn validation recommended)",
 )
 
+# Spanish DNI / NIE registered globally at lower confidence so they are
+# caught even when the detected language is not Spanish.  The ES-locale
+# variants (confidence=1.0) take precedence when the locale IS Spanish.
+GLOBAL_DNI = EntityPattern(
+    entity_type=ET.NATIONAL_ID,
+    locale="GLOBAL",
+    pattern=re.compile(r"\b\d{8}[A-Z]\b"),
+    confidence=0.85,
+    context_words=("dni", "id", "identifier", "documento"),
+    description="Spanish DNI (8 digits + letter) — global fallback",
+)
+
+GLOBAL_NIE = EntityPattern(
+    entity_type=ET.NATIONAL_ID,
+    locale="GLOBAL",
+    pattern=re.compile(r"\b[XYZ]\d{7}[A-Z]\b"),
+    confidence=0.85,
+    context_words=("nie", "id", "identifier", "extranjero"),
+    description="Spanish NIE (X/Y/Z + 7 digits + letter) — global fallback",
+)
+
 
 # =============================================================================
 # SPANISH PATTERNS (ES)
@@ -383,6 +404,8 @@ LOCALE_PATTERNS: list[EntityPattern] = [
     GLOBAL_IP_V4,
     GLOBAL_IP_V6,
     GLOBAL_CREDIT_CARD,
+    GLOBAL_DNI,
+    GLOBAL_NIE,
     
     # Spanish (ES)
     ES_DNI,

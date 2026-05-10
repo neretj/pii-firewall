@@ -1,8 +1,4 @@
-"""Transformer NER engine using HuggingFace models.
-
-This is the foundation for transformer-based entity recognition.
-Full implementation would use transformers.pipeline with NER models.
-"""
+"""Transformer NER engine using HuggingFace pipelines."""
 
 from __future__ import annotations
 
@@ -18,33 +14,29 @@ _logger = logging.getLogger(__name__)
 
 @dataclass
 class TransformerNEREngine:
-    """NER engine using HuggingFace transformer models.
-    
-    Supports:
-    - General NER models (dslim/bert-base-NER, xlm-roberta-large-finetuned-conll03)
-    - Domain-specific models (BioBERT, FinBERT, LegalBERT)
-    - Multilingual models (XLM-RoBERTa)
-    
+    """NER engine backed by a HuggingFace token-classification pipeline.
+
+    Supports general CoNLL NER models and domain-specific biomedical models.
+    The pipeline is lazy-loaded on the first call to :meth:`analyze`.
+
     Attributes:
-        model_name: HuggingFace model identifier
-        aggregation_strategy: How to aggregate subword tokens ("simple", "first", "average", "max")
-        device: Device to run on (-1 for CPU, 0 for GPU)
-        use_fast_tokenizer: Use fast Rust-based tokenizer
+        model_name: HuggingFace model identifier.
+        aggregation_strategy: Subword aggregation strategy passed to the
+            pipeline (``"first"`` merges fragments using the first token's
+            label — recommended for all current models).
+        device: Torch device index (``-1`` = CPU, ``0`` = first GPU).
+        use_fast_tokenizer: Use the Rust-backed fast tokenizer when available.
     """
     
     model_name: str
-    aggregation_strategy: str = "first"  # "first" avoids wordpiece fragment leakage
+    aggregation_strategy: str = "first"  # merges subword tokens into word spans
     device: int = -1  # CPU by default
     use_fast_tokenizer: bool = True
-    min_confidence: float = 0.50  # drop predictions below this threshold
-    min_word_length: int = 2     # drop single-character / pure-punctuation spans
     
     _pipeline: Any = field(default=None, init=False, repr=False)
     
     def __post_init__(self) -> None:
-        """Initialize transformer pipeline (lazy loading)."""
-        # Don't load model in __post_init__ - wait for first use
-        pass
+        pass  # pipeline is loaded lazily on first analyze() call
     
     def _ensure_pipeline(self) -> None:
         """Lazy load the NER pipeline."""
@@ -81,26 +73,27 @@ class TransformerNEREngine:
         _logger.info("Transformer model loaded: %s", self.model_name)
     
     def analyze(self, text: str) -> list[Entity]:
-        """Detect entities in text using transformer model.
+        """Detect entities in text.
 
-        At DEBUG log level this method emits two lines per call:
-          1. Raw pipeline output (entity_group, score, word) before normalisation.
-          2. Final Entity list after normalisation.
-        This lets you quickly audit what each model actually recognises without
-        touching production log levels.
+        At DEBUG log level emits raw pipeline predictions before normalisation
+        and the final entity list, useful for auditing model behaviour.
 
         Args:
-            text: Input text
+            text: Input text.
 
         Returns:
-            List of Entity objects
+            List of :class:`~privacy_firewall.types.Entity` objects.
         """
         self._ensure_pipeline()
 
+        _logger.info("[transformer:%s] analyzing %d chars: %r",
+                     self.model_name, len(text),
+                     text[:100] + ("..." if len(text) > 100 else ""))
+
         results = self._pipeline(text)
 
-        _logger.debug(
-            "[%s] raw predictions (%d): %s",
+        _logger.info(
+            "[transformer:%s] raw predictions (%d): %s",
             self.model_name,
             len(results),
             [(r["entity_group"], round(r["score"], 3), r["word"]) for r in results],
@@ -112,39 +105,14 @@ class TransformerNEREngine:
             word = item["word"]
             score = float(item["score"])
 
-            # --- Post-processing filters ---
-            # 1. Drop BPE artifact spans: any token starting with ## is a subword
-            #    fragment that aggregation_strategy='first' should prevent, but keep
-            #    as a safety net for edge cases.
-            if word.startswith("##"):
-                _logger.debug("  SKIP wordpiece fragment: %r", word)
-                continue
-
-            # 2. Drop spans that are too short to be informative after stripping
-            #    leading/trailing whitespace and punctuation.
-            stripped = word.strip()
-            if len(stripped) < self.min_word_length:
-                _logger.debug("  SKIP too-short span: %r", word)
-                continue
-
-            # 3. Drop low-confidence predictions.
-            if score < self.min_confidence:
-                _logger.debug("  SKIP low-confidence %.3f span: %r", score, word)
-                continue
-
             normalized = self._normalize_entity_type(raw_label)
-            _logger.debug(
-                "  label %r -> %r  score=%.3f  span=%d:%d  word=%r",
-                raw_label,
-                normalized,
-                score,
-                item["start"],
-                item["end"],
-                word,
+            _logger.info(
+                "  [transformer:%s] label %r -> %r  score=%.3f  word=%r",
+                self.model_name, raw_label, normalized, score, word,
             )
             entities.append(
                 Entity(
-                    text=stripped,
+                    text=word.strip(),
                     entity_type=normalized,
                     start=item["start"],
                     end=item["end"],
@@ -153,19 +121,19 @@ class TransformerNEREngine:
                 )
             )
 
-        _logger.debug(
-            "[%s] produced %d entities: %s",
+        _logger.info(
+            "[transformer:%s] => %d entities emitted: %s",
             self.model_name,
             len(entities),
-            [e.entity_type for e in entities],
+            [(e.entity_type, repr(e.text)) for e in entities],
         )
         return entities
     
     @staticmethod
     def _normalize_entity_type(entity_group: str) -> str:
-        """Normalize generic transformer entity labels to canonical entity types."""
+        """Map CoNLL-2003 labels to canonical entity type constants."""
         mapping: dict[str, str] = {
-            # CoNLL-2003 labels (dslim/bert-base-NER, xlm-roberta-base-ner-hrl, etc.)
+            # CoNLL-2003 (dslim/bert-base-NER, xlm-roberta-base-ner-hrl, etc.)
             "PER":          ET.PERSON,
             "PERSON":       ET.PERSON,
             "ORG":          ET.COMPANY_NAME,
@@ -173,56 +141,40 @@ class TransformerNEREngine:
             "LOC":          ET.LOCATION,
             "LOCATION":     ET.LOCATION,
             "GPE":          ET.LOCATION,
-            # OntoNotes 5.0 labels (tner/roberta-large-ontonotes5 et al.)
-            "DATE":         ET.DATE_TIME,
-            "TIME":         ET.DATE_TIME,
-            "MONEY":        ET.TRANSACTION_AMOUNT,
-            "PERCENT":      ET.PERCENTAGE,
-            "LAW":          ET.STATUTE,
-            "FAC":          ET.LOCATION,
-            "NORP":         ET.LOCATION,
-            # Medical (BioBERT, BC5CDR, generic)
-            "DISEASE":      ET.DIAGNOSIS,
-            "CHEMICAL":     ET.DRUG,
-            "DRUG":         ET.DRUG,
         }
         return mapping.get(entity_group.upper(), entity_group.upper())
 
 
 @dataclass
 class DomainTransformerNEREngine(TransformerNEREngine):
-    """Transformer NER engine specialized for domain-specific models.
-    
-    This subclass handles domain-specific entity type mappings and
-    post-processing for medical, financial, or legal domains.
+    """Transformer NER engine with domain-specific label normalisation.
+
+    Currently the only specialised domain is ``"medical"``, which maps
+    biomedical label vocabularies (d4data, BC5CDR) to the
+    canonical entity type constants.  The ``"general"`` domain falls back to
+    the CoNLL label mapping in the base class.
     """
-    
-    domain: str = "general"  # "medical", "financial", "legal", "general"
-    
+
+    domain: str = "general"  # "medical" | "general"
+
     def _normalize_entity_type(self, entity_group: str) -> str:
-        """Domain-aware entity type normalization."""
+        """Dispatch to domain-specific normaliser."""
         if self.domain == "medical":
             return self._normalize_medical_entity(entity_group)
-        elif self.domain == "financial":
-            return self._normalize_financial_entity(entity_group)
-        elif self.domain == "legal":
-            return self._normalize_legal_entity(entity_group)
-        else:
-            return super()._normalize_entity_type(entity_group)
+        return super()._normalize_entity_type(entity_group)
     
     @staticmethod
     def _normalize_medical_entity(entity_group: str) -> str:
-        """Normalize medical entity labels to canonical types.
+        """Map biomedical label vocabularies to canonical entity type constants.
 
         Covers labels emitted by:
-          - d4data/biomedical-ner-all  (aggregated BIO labels: "Disease_disorder" etc.)
-          - samrawal/bert-base-uncased_clinical-ner  ("problem", "treatment", "test")
-          - Generic biomedical models  (BC5CDR: "DISEASE", "CHEMICAL")
+        - ``d4data/biomedical-ner-all`` — aggregated BIO labels such as
+          ``Disease_disorder``, ``Sign_symptom``, ``Medication``, etc.
+          After ``.upper()`` these become the dict keys below.
+        - Generic BC5CDR labels: ``DISEASE``, ``CHEMICAL``.
         """
         mapping: dict[str, str] = {
-            # ── d4data/biomedical-ner-all ─────────────────────────────────────────
-            # aggregation_strategy='simple' strips B-/I- and preserves casing;
-            # after .upper() the keys below are the effective lookup strings.
+            # d4data/biomedical-ner-all labels (uppercased after aggregation)
             "DISEASE_DISORDER":      ET.DIAGNOSIS,
             "SIGN_SYMPTOM":          ET.SYMPTOM,
             "MEDICATION":            ET.DRUG,
@@ -237,11 +189,7 @@ class DomainTransformerNEREngine(TransformerNEREngine):
             "ACTIVITY":              ET.PROCEDURE,
             "OUTCOME":               ET.DIAGNOSIS,
             "SEVERITY":              ET.SYMPTOM,
-            # ── samrawal/bert-base-uncased_clinical-ner ───────────────────────────
-            "PROBLEM":   ET.DIAGNOSIS,
-            "TREATMENT": ET.PROCEDURE,
-            "TEST":      ET.LAB_VALUE,
-            # ── Generic / BC5CDR / legacy labels ─────────────────────────────────
+            # Generic / BC5CDR labels
             "DISEASE":   ET.DIAGNOSIS,
             "DISORDER":  ET.DIAGNOSIS,
             "SYMPTOM":   ET.SYMPTOM,
@@ -249,62 +197,7 @@ class DomainTransformerNEREngine(TransformerNEREngine):
             "DRUG":      ET.DRUG,
             "PROCEDURE": ET.PROCEDURE,
             "ANATOMY":   ET.ANATOMICAL_SITE,
-            "GENE":      ET.DIAGNOSIS,   # gene name often indicates condition context
+            "GENE":      ET.DIAGNOSIS,
             "PROTEIN":   ET.DIAGNOSIS,
-        }
-        return mapping.get(entity_group.upper(), entity_group.upper())
-    
-    @staticmethod
-    def _normalize_financial_entity(entity_group: str) -> str:
-        """Normalize financial entity labels to canonical types.
-
-        Covers labels emitted by:
-          - tner/roberta-large-ontonotes5  (OntoNotes 5.0 label set)
-        """
-        mapping: dict[str, str] = {
-            # OntoNotes 5.0 labels
-            "MONEY":        ET.TRANSACTION_AMOUNT,
-            "PERCENT":      ET.PERCENTAGE,
-            "ORG":          ET.COMPANY_NAME,
-            "ORGANIZATION": ET.COMPANY_NAME,
-            "PERSON":       ET.PERSON,
-            "PER":          ET.PERSON,
-            "DATE":         ET.DATE_TIME,
-            "TIME":         ET.DATE_TIME,
-            "GPE":          ET.LOCATION,
-            "LOC":          ET.LOCATION,
-            "LOCATION":     ET.LOCATION,
-            "FAC":          ET.LOCATION,
-            "NORP":         ET.LOCATION,
-            "LAW":          ET.STATUTE,
-            # Legacy label kept for backwards compat
-            "CURRENCY":     ET.CURRENCY,
-        }
-        return mapping.get(entity_group.upper(), entity_group.upper())
-    
-    @staticmethod
-    def _normalize_legal_entity(entity_group: str) -> str:
-        """Normalize legal entity labels to canonical types.
-
-        Covers labels emitted by:
-          - tner/roberta-large-ontonotes5  (OntoNotes 5.0 label set)
-        """
-        mapping: dict[str, str] = {
-            # OntoNotes 5.0 labels
-            "LAW":          ET.STATUTE,
-            "ORG":          ET.LEGAL_ENTITY,    # courts, firms, agencies
-            "ORGANIZATION": ET.LEGAL_ENTITY,
-            "PERSON":       ET.PERSON,
-            "PER":          ET.PERSON,
-            "GPE":          ET.LOCATION,
-            "LOC":          ET.LOCATION,
-            "LOCATION":     ET.LOCATION,
-            "DATE":         ET.DATE_TIME,
-            # Legacy legal-bert labels (kept for backwards compat)
-            "COURT":        ET.LEGAL_ENTITY,
-            "JUDGE":        ET.PERSON,
-            "LAWYER":       ET.PERSON,
-            "CASE":         ET.CASE_NUMBER,
-            "STATUTE":      ET.STATUTE,
         }
         return mapping.get(entity_group.upper(), entity_group.upper())

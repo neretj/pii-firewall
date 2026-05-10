@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import logging
 import sys
 from typing import Any
+
+_logger = logging.getLogger(__name__)
 
 from .types import Entity
 from .language import LanguageDetector, ThreadLanguageCache, LanguageRouter
@@ -138,64 +141,104 @@ class UnifiedDetectionEngine:
         """
         # Step 1: Detect language
         detected_language = self._detect_language(text, language, thread_id)
-        
+
         # Step 2: Get locale for pattern routing
         locale = self.language_router.get_patterns_locale(detected_language)
+
+        _logger.info(
+            "[detect] profile=%s backend=%s lang=%s locale=%s text=%r",
+            self.profile.name, self.detector_backend, detected_language, locale,
+            text[:120] + ("..." if len(text) > 120 else ""),
+        )
 
         # Prime linguistic filter early so first-pass trim/merge can use it.
         if self.profile.linguistic_filter_enabled:
             self._ensure_linguistic_filter(detected_language)
-        
+
         # Step 3: Detect with all backends
         entities: list[Entity] = []
-        
+
         # Pattern-based detection (works for all languages)
         pattern_entities = self._detect_with_patterns(text, locale)
+        _logger.info("[pattern] %d entities: %s", len(pattern_entities),
+                     [(e.entity_type, repr(e.text)) for e in pattern_entities])
         entities.extend(pattern_entities)
-        
+
         # NER-based detection with Presidio (works for all languages via SpacyRecognizer)
         if self.detector_backend in ("presidio", "hybrid"):
             presidio_entities = self._detect_with_presidio(text, detected_language, context_words)
+            _logger.info("[presidio] %d entities: %s", len(presidio_entities),
+                         [(e.entity_type, repr(e.text)) for e in presidio_entities])
             entities.extend(presidio_entities)
 
         # OPF-based detection (language-agnostic token classifier)
         if self.detector_backend == "opf":
             opf_entities = self._detect_with_opf(text)
+            _logger.info("[opf] %d entities: %s", len(opf_entities),
+                         [(e.entity_type, repr(e.text)) for e in opf_entities])
             entities.extend(opf_entities)
 
         # GLiNER-based detection (zero-shot labels tuned for PII)
         if self.detector_backend == "gliner":
             gliner_entities = self._detect_with_gliner(text)
+            _logger.info("[gliner] %d entities: %s", len(gliner_entities),
+                         [(e.entity_type, repr(e.text)) for e in gliner_entities])
             entities.extend(gliner_entities)
 
         # Nemotron fine-tune on OPF architecture
         if self.detector_backend == "nemotron":
             nemotron_entities = self._detect_with_nemotron(text)
+            _logger.info("[nemotron] %d entities: %s", len(nemotron_entities),
+                         [(e.entity_type, repr(e.text)) for e in nemotron_entities])
             entities.extend(nemotron_entities)
-        
+
         # Transformer-based detection (optional, heavyweight)
         if self.detector_backend in ("transformers", "hybrid"):
             transformer_entities = self._detect_with_transformers(text, detected_language)
+            _logger.info("[transformers] %d entities: %s", len(transformer_entities),
+                         [(e.entity_type, repr(e.text)) for e in transformer_entities])
             entities.extend(transformer_entities)
-        
-        # Step 4: Trim entity boundaries (remove stop words like "Compare", "with", etc.)
+        elif self.detector_backend == "presidio":
+            # Presidio/spaCy handles general NER (PERSON/ORG/LOC) but has no
+            # vocabulary for specialized domains such as biomedical entities
+            # (DIAGNOSIS, DRUG, LAB_VALUE, …).  When the active profile explicitly
+            # requires those entity types, run the corresponding transformer models
+            # on top of Presidio so cross-domain PII (e.g. medical data inside a
+            # finance document) is still detected and anonymized.
+            from .transformers_ner.models import get_required_model_domains
+            required = get_required_model_domains(self.profile.dispositions)
+            if required:
+                _logger.info("[presidio+transformers] profile requires specialized domains %s — running transformer engines", sorted(required))
+                transformer_entities = self._detect_with_transformers(text, detected_language)
+                _logger.info("[transformers] %d entities: %s", len(transformer_entities),
+                             [(e.entity_type, repr(e.text)) for e in transformer_entities])
+                entities.extend(transformer_entities)
+            else:
+                _logger.info("[presidio+transformers] no specialized domains needed — skipping transformer models")
+
+        # Step 4: Trim entity boundaries
         entities = self._trim_entity_boundaries(entities, text, detected_language)
-        
+
         # Step 5: Deduplicate overlapping entities (BEFORE merge)
-        # This ensures specific entities (PHONE_NUMBER) win over generic mis-tags (PERSON)
-        # before we try to merge adjacent PERSON entities
+        before_dedup = len(entities)
         entities = self._dedupe_entities(entities)
-        
-        # Step 6: Merge adjacent PERSON entities (e.g., "Ana" + "Garcia" → "Ana Garcia")
-        # Now safe to merge because mis-tagged PERSON entities were already removed
+        _logger.info("[dedup] %d -> %d entities", before_dedup, len(entities))
+
+        # Step 6: Merge adjacent PERSON entities
         entities = self._merge_adjacent_persons(entities, text, detected_language)
-        
-        # Step 7: Apply linguistic filtering (if model supports it)
+
+        # Step 7: Apply linguistic filtering
         if self.profile.linguistic_filter_enabled:
+            before_filter = len(entities)
             entities = self._apply_linguistic_filter(entities, text, detected_language)
-        
+            _logger.info("[linguistic_filter] %d -> %d entities", before_filter, len(entities))
+
         # Step 8: Filter by profile (only keep entities the profile cares about)
+        before_profile = len(entities)
         entities = self._filter_by_profile(entities)
+        _logger.info("[profile_filter] %d -> %d entities (final): %s",
+                     before_profile, len(entities),
+                     [(e.entity_type, repr(e.text), round(e.confidence, 3)) for e in entities])
         
         return entities, detected_language
     
@@ -859,24 +902,17 @@ class UnifiedDetectionEngine:
         """Initialize all transformer NER engines required by the profile.
 
         Loads one engine per specialized model domain derived from the profile's
-        dispositions. The domain model stack is driven by WHAT the profile needs
-        to detect, not by which domain the document belongs to:
+        dispositions. Only entity types that are (a) regulated PII or GDPR
+        Article 9 special-category data and (b) undetectable by regex patterns
+        or the general CoNLL NER model trigger a specialized domain load.
 
-          - Finance profile: OntoNotes NER (MONEY/PERCENT/LAW) + biomedical NER
-            (medical cross-domain leakage in loan/insurance documents)
-          - Healthcare profile: biomedical NER (primary domain) only
-          - Legal profile: OntoNotes NER (LAW label) + biomedical NER
-            (injury/malpractice filings) — OntoNotes model shared with finance
-          - Generic: medical NER (no assumptions about content)
+        Currently the only specialized domain is "medical":
+          - All profiles: biomedical NER (d4data/biomedical-ner-all, 265 MB)
+            loaded whenever any medical entity type appears in dispositions
+            (DIAGNOSIS, DRUG, PROCEDURE, SYMPTOM, LAB_VALUE, VITAL_SIGN, etc.)
 
         The general CoNLL transformer is only loaded when Presidio is NOT running,
         because spaCy already covers PERSON/LOCATION/ORG with equivalent accuracy.
-
-        Model deduplication: if financial and legal both resolve to the same
-        HuggingFace model (e.g. tner/roberta-large-ontonotes5, which covers all
-        relevant OntoNotes labels), the weights are loaded only once. The first
-        domain's normalizer is used; the financial normalizer already maps LAW
-        and ORG to their canonical types so no legal entity is lost.
         """
         import warnings
         from .transformers_ner import get_model_for_domain, DomainTransformerNEREngine
@@ -894,12 +930,13 @@ class UnifiedDetectionEngine:
         # inside models.py — the dict is passed directly).
         required_domains = get_required_model_domains(self.profile.dispositions)
 
-        # Add the general baseline transformer only when Presidio is NOT active.
-        # In "hybrid" or "presidio" mode, spaCy already detects PERSON/LOCATION/ORG
-        # with the same vocabulary, so loading an extra ~420 MB general model would
-        # waste memory and double latency for those labels with no accuracy gain.
-        presidio_active = self.detector_backend in ("presidio", "hybrid")
-        if not presidio_active:
+        # In pure "presidio" mode spaCy is the sole NER backbone, so the general
+        # CoNLL transformer would duplicate its output with ~420 MB of extra weight.
+        # In "hybrid" mode the user explicitly requests maximum coverage; spaCy may
+        # miss foreign-script or accented names (e.g. "Ana García" with en_core_web_sm),
+        # so the general transformer runs as a complementary pass.  Dedup removes any
+        # entity that both models agree on.
+        if self.detector_backend != "presidio":
             required_domains.add("general")
 
         engines = []

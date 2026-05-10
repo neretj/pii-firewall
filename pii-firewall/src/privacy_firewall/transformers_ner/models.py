@@ -15,7 +15,7 @@ class TransformerModelConfig:
     """Configuration for a transformer NER model."""
     
     model_id: str  # HuggingFace model identifier
-    domain: str  # "general", "medical", "financial", "legal"
+    domain: str  # "general" | "medical"
     language: str  # ISO 639-1 code or "multilingual"
     entity_types: tuple[str, ...]  # Entities this model can detect
     description: str
@@ -97,79 +97,25 @@ MEDICAL_EN = TransformerModelConfig(
     size_mb=265,
 )
 
-MEDICAL_EN_CLINICAL = TransformerModelConfig(
-    model_id="samrawal/bert-base-uncased_clinical-ner",
-    domain="medical",
-    language="en",
-    # Labels: problem (→DIAGNOSIS), treatment (→PROCEDURE), test (→LAB_VALUE)
-    entity_types=("problem", "treatment", "test"),
-    description=(
-        "Clinical NER (BERT) - fine-tuned on i2b2/n2c2 clinical notes; "
-        "compact 3-class schema (problem/treatment/test) with high precision "
-        "on EHR and discharge summary text."
-    ),
-    size_mb=420,
-)
-
-MEDICAL_ES = TransformerModelConfig(
-    model_id="PlanTL-GOB-ES/bsc-bio-ehr-es",
-    domain="medical",
-    language="es",
-    entity_types=("DISEASE", "DRUG", "PROCEDURE", "SYMPTOM"),
-    description="Spanish biomedical NER - trained on clinical texts",
-    size_mb=420,
-)
+# NOTE: PlanTL-GOB-ES/bsc-bio-ehr-es was removed — it is a masked-language-model
+# base checkpoint without a token-classification head (classifier.weight MISSING
+# at load time → produces no predictions). For Spanish biomedical NER the code
+# falls back to d4data/biomedical-ner-all via the English fallback in
+# get_model_for_domain(), which handles cross-language medical terminology well
+# (disease/drug names are largely Latin-based and model-agnostic).
 
 
-# =============================================================================
-# FINANCIAL NER MODELS
-# =============================================================================
-
-# NOTE: ProsusAI/finbert is a SENTIMENT classifier (positive/negative/neutral),
-# NOT a token classifier. It cannot be used for NER.
-# tner/roberta-large-ontonotes5 is a RobertaForTokenClassification model trained
-# on OntoNotes 5.0, which includes MONEY, PERCENT, ORG, PERSON, DATE and LAW labels
-# — the most useful label set for financial and legal document NER.
-FINANCIAL_EN = TransformerModelConfig(
-    model_id="tner/roberta-large-ontonotes5",
-    domain="financial",
-    language="en",
-    # OntoNotes 5.0 label set (aggregated, after B-/I- strip):
-    # PERSON, ORG, MONEY, PERCENT, DATE, TIME, GPE, LOC, FAC, NORP,
-    # LAW, CARDINAL, ORDINAL, QUANTITY, PRODUCT, WORK_OF_ART, EVENT, LANGUAGE
-    entity_types=("MONEY", "PERCENT", "ORGANIZATION", "PERSON", "DATE", "LAW"),
-    description=(
-        "Broad-coverage NER (RoBERTa-large) trained on OntoNotes 5.0. "
-        "Detects MONEY and PERCENT in prose (\"transferred $50k\", \"15% interest\") "
-        "plus ORG, PERSON, DATE, and legal citations (LAW label). "
-        "Used for financial and legal domains."
-    ),
-    size_mb=1400,
-)
-
-
-# =============================================================================
-# LEGAL NER MODELS
-# =============================================================================
-
-# NOTE: nlpaueb/legal-bert-base-uncased is a masked language model (BertForPreTraining)
-# with dummy labels LABEL_0/LABEL_1 — it is NOT fine-tuned for NER.
-# We reuse tner/roberta-large-ontonotes5 because OntoNotes includes the LAW label
-# which captures statutory references and legal citations in prose.
-# The normalizer maps LAW→STATUTE and ORG→LEGAL_ENTITY for this domain.
-LEGAL_EN = TransformerModelConfig(
-    model_id="tner/roberta-large-ontonotes5",
-    domain="legal",
-    language="en",
-    entity_types=("LAW", "ORGANIZATION", "PERSON", "DATE"),
-    description=(
-        "Broad-coverage NER (RoBERTa-large) trained on OntoNotes 5.0. "
-        "The LAW label detects statutory references (\"42 U.S.C. § 1983\", "
-        "\"Article 6 GDPR\"); ORG maps to LEGAL_ENTITY (courts, firms, agencies). "
-        "Shared model with financial domain — only loaded once when both are active."
-    ),
-    size_mb=1400,
-)
+# Financial and legal domain NER models are intentionally NOT included.
+#
+# Transaction amounts, percentages, legal statutes, case citations, and company
+# names are not regulated PII — they are public or contextual data that this
+# anonymizer must not redact. Loading a 900MB specialised model to detect
+# "Article 6 GDPR" or "50,000 euros" (which we then KEEP unchanged) would
+# waste memory and add latency with zero privacy benefit.
+#
+# Structured financial identifiers (IBAN, credit card, account numbers, tax IDs)
+# are handled accurately by regex patterns — no NER model needed.
+# Company names and organisations are detected by the general CoNLL NER model.
 
 
 # =============================================================================
@@ -184,15 +130,9 @@ TRANSFORMER_MODELS: dict[tuple[str, str], TransformerModelConfig] = {
     ("general", "de"): GENERAL_DE,
     ("general", "multilingual"): GENERAL_MULTILINGUAL,
     
-    # Medical
+    # Medical — only English model available; Spanish falls back to English
+    # via get_model_for_domain() since medical terminology is cross-linguistic.
     ("medical", "en"): MEDICAL_EN,
-    ("medical", "es"): MEDICAL_ES,
-    
-    # Financial
-    ("financial", "en"): FINANCIAL_EN,
-    
-    # Legal
-    ("legal", "en"): LEGAL_EN,
 }
 
 
@@ -200,7 +140,7 @@ def get_model_for_domain(domain: str, language: str) -> TransformerModelConfig:
     """Get recommended transformer model for domain and language.
     
     Args:
-        domain: "general", "medical", "financial", "legal"
+        domain: "general" | "medical"
         language: ISO 639-1 code (or "multilingual")
     
     Returns:
@@ -266,26 +206,24 @@ def list_available_models(domain: str | None = None, language: str | None = None
 # ENTITY TYPE → SPECIALIZED MODEL DOMAIN
 #
 # Maps entity types to the NER model domain required to detect them.
-# Only includes types that CANNOT be reliably detected by the pattern engine
-# (regex) or the general-purpose spaCy/Presidio baseline.
+# Only entity types that satisfy ALL of the following criteria appear here:
+#   1. Cannot be reliably detected by regex patterns or the general CoNLL NER
+#   2. Constitute regulated PII or GDPR Article 9 special-category data
+#   3. Require anonymization in at least one domain profile
 #
-# Absent from this dict → already covered by patterns or Presidio:
-#   PERSON, LOCATION, ADDRESS, DATE, DATE_TIME, EMAIL, PHONE_NUMBER,
-#   SSN, IBAN, CREDIT_CARD, ACCOUNT_NUMBER, NATIONAL_ID, PASSPORT,
-#   POSTAL_CODE, IP_ADDRESS, URL, SECRET, TAX_ID, COMPANY_NAME, AGE
-#   (all regex-detectable or handled by CoNLL/OntoNotes spaCy)
-#
-# Domains:
-#   "medical"   — biomedical NER (BioBERT, BC5CDR, BiomedNER, etc.)
-#   "financial" — financial NER for SEMANTIC amounts/types (FinBERT, etc.)
-#                 Note: structured financial identifiers (IBAN, card numbers)
-#                 are captured by patterns — only unstructured semantic
-#                 entities need FinBERT.
-#   "legal"     — legal NER (legal-BERT, etc.)
+# Entity types absent from this dict are covered by one of:
+#   - Regex patterns: PERSON (name patterns), EMAIL, PHONE_NUMBER, SSN, IBAN,
+#     CREDIT_CARD, ACCOUNT_NUMBER, NATIONAL_ID, PASSPORT, POSTAL_CODE,
+#     IP_ADDRESS, URL, SECRET, TAX_ID
+#   - General CoNLL NER (dslim/bert-base-NER): PERSON, COMPANY_NAME (ORG),
+#     LOCATION (LOC/GPE)
+#   - Not regulated PII: TRANSACTION_AMOUNT, CURRENCY, PERCENTAGE,
+#     STATUTE, LEGAL_CITATION, CASE_NUMBER, LEGAL_ENTITY — these are
+#     public or contextual data and must NOT be anonymized.
 # =============================================================================
 
 ENTITY_TYPE_TO_MODEL_DOMAIN: dict[str, str] = {
-    # Medical — biomedical vocabulary invisible to general NER
+    # Medical — GDPR Article 9 special-category data; invisible to general NER
     "DIAGNOSIS":       "medical",
     "DRUG":            "medical",
     "PROCEDURE":       "medical",
@@ -294,19 +232,6 @@ ENTITY_TYPE_TO_MODEL_DOMAIN: dict[str, str] = {
     "VITAL_SIGN":      "medical",
     "ANATOMICAL_SITE": "medical",
     "MEDICAL_RECORD":  "medical",
-
-    # Financial (semantic) — amounts and transaction context that FinBERT
-    # recognises in prose ("transferred five hundred euros") where regex fails
-    "TRANSACTION_AMOUNT": "financial",
-    "CURRENCY":            "financial",
-    "TRANSACTION_TYPE":    "financial",
-    "PERCENTAGE":          "financial",
-
-    # Legal — case references and statutory citations
-    "CASE_NUMBER":    "legal",
-    "STATUTE":        "legal",
-    "LEGAL_CITATION": "legal",
-    "LEGAL_ENTITY":   "legal",
 }
 
 
@@ -328,7 +253,7 @@ def get_required_model_domains(dispositions: dict) -> set[str]:
         dispositions: Mapping of entity_type → EntityDisposition (profile.dispositions).
 
     Returns:
-        Set of specialized domain strings, e.g. {"medical", "legal"}.
+        Set of specialized domain strings, e.g. {"medical"}.
     """
     domains: set[str] = set()
     for entity_type in dispositions:
