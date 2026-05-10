@@ -1,20 +1,22 @@
-# LLM Pii Firewall 🛡️
+# PII Firewall 🛡️
 
-**Best-in-class multi-language, domain-aware anonymization library for AI applications**
+**Open-source PII firewall for LLM apps — detect, anonymize and rehydrate sensitive data before it reaches OpenAI, Anthropic or any LLM provider**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-## 🌟 Why Pii Firewall?
+## Why PII Firewall?
 
-This library outperforms competitors by combining:
-- **Domain Awareness**: Keep relevant data (medical diagnoses in healthcare, transaction amounts in finance)
-- **Auto Language Detection**: Detects 55+ languages automatically with thread-level caching
-- **Locale-Specific Patterns**: Country-specific ID formats (Spanish DNI, US SSN, French INSEE, etc.)
-- **Multiple Detection Backends**: Pattern matching, Presidio (spaCy), OPF, GLiNER-PII, Nemotron privacy filter, and Transformers
-- **7 Disposition Actions**: Keep, Redact, Pseudonymize, Generalize, Mask, Hash, Suppress
-- **Reversible Anonymization**: Pseudonymization with secure vault storage
-- **Easy to Extend**: Add new locale = add one file
+Most PII tools were built for data pipelines, not for LLM calls. PII Firewall is designed specifically around the **detect → sanitize → LLM → rehydrate** round-trip:
+
+- **Domain awareness** — keep relevant data (medical diagnoses in healthcare, transaction amounts in finance) so the LLM still has context, while stripping what must not leave your system
+- **Auto language detection** — 55+ languages detected automatically with thread-level caching (0 ms after the first call)
+- **Locale-specific patterns** — country-specific ID formats: Spanish DNI, US SSN, French INSEE, German Steuernummer, Italian Codice Fiscale, Portuguese NIF, and more
+- **7 detection backends** — regex, Presidio, Hybrid, GLiNER, Transformers, OPF, Nemotron — switch with one parameter
+- **7 disposition actions** — Keep, Redact, Pseudonymize, Generalize, Mask, Hash, Suppress
+- **Reversible pseudonymization** — vault stores original↔token mappings; real names are restored in LLM responses
+- **Streaming support** — `secure_call_stream()` yields rehydrated tokens in real-time
+- **GDPR Art. 17 right to forget** — `firewall.forget()` wipes all mappings for a thread or case
 
 ## 📦 Quick Start
 
@@ -445,15 +447,27 @@ Access at http://127.0.0.1:3010
 
 ## 📊 Performance
 
-- **Language detection**: 1-2ms (first message), 0ms (cached)
-- **Pattern matching**: <1ms
-- **Presidio NER**: 50-200ms (depends on text length)
-- **Transformer NER**: 100-500ms (use for accuracy, not speed)
-- **Overall latency**: ~50-250ms per request (Presidio mode)
+- **Language detection**: 1–2 ms (first message), 0 ms (cached)
+- **Pattern matching (regex mode)**: < 1 ms
+- **Presidio NER**: 50–200 ms (depends on text length)
+- **OPF / Nemotron**: 50–300 ms
+- **Transformer NER**: 100–500 ms (use for accuracy, not latency)
+- **Overall round-trip** (Presidio mode): ~50–250 ms per request
+
+### Detection backend comparison
+
+| Backend | Install | Best for | Latency |
+|---|---|---|---|
+| `regex` | *(none)* | Structured IDs, emails, phones | < 1 ms |
+| `presidio` | `[presidio,langdetect]` | Named entities — best speed/accuracy balance | 50–200 ms |
+| `hybrid` | `[presidio,langdetect]` | Regex + Presidio for max coverage | 50–250 ms |
+| `gliner` | `[gliner]` | Zero-shot NER, no fine-tuning needed | 100–400 ms |
+| `transformers` | `[transformers]` | Biomedical NER (d4data, BC5CDR) | 100–500 ms |
+| `opf` | `[opf]` | Token-level classifier, language-agnostic | 50–200 ms |
+| `nemotron` | `[opf]` | NVIDIA fine-tune, high recall on free text | 100–300 ms |
 
 **Optimization tips**:
 - Use thread-level language caching (enabled by default)
-- Preload models on startup: `firewall.preload_languages(["es", "en", "fr"])`
 - Use `detector_backend="presidio"` for best speed/accuracy balance
 
 ## 🏗️ Architecture

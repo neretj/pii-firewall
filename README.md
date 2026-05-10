@@ -2,10 +2,24 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen.svg)](#)
+[![PyPI](https://img.shields.io/badge/PyPI-0.1.0-blue.svg)](https://pypi.org/project/pii-firewall/)
 
-![Demo](assets/demo.gif)
+Open-source PII firewall for LLM apps. Detect, anonymize and rehydrate sensitive data before it reaches OpenAI, Anthropic or any LLM provider.
 
-A best-in-class, multi-language, domain-aware **PII anonymization library** for AI applications. It intercepts text before it reaches an LLM, strips or transforms sensitive data, forwards the sanitized prompt, and then re-hydrates the model response — all transparently.
+```
+pip install "pii-firewall[presidio,langdetect]"
+```
+
+> **Try the playground:** run `pii-web-next` locally .
+---
+
+## Repository structure
+
+```
+/pii-firewall     Python SDK + FastAPI server
+/pii-web-next     Playground UI (Next.js)
+```
 
 ---
 
@@ -30,15 +44,29 @@ User text  ──→  [ PII Firewall ]  ──→  Sanitized prompt  ──→  
 
 | Feature | Details |
 |---|---|
-| **Domain profiles** | Built-in presets for Healthcare, Finance, and Legal; fully customizable |
+| **Domain profiles** | Built-in presets for Healthcare, Finance, Legal, and Generic; fully customizable |
 | **Domain-aware keep rules** | Medical terms (diagnoses, medications, procedures) are *kept* — not redacted — in healthcare and related profiles |
 | **7 disposition actions** | Keep, Redact, Pseudonymize, Generalize, Mask, Hash, Suppress |
 | **Reversible pseudonymization** | Secure vault stores the original→token mapping for rehydration |
 | **55+ language auto-detection** | Thread-level caching adds zero latency after the first call |
 | **Locale-specific patterns** | Spanish DNI, US SSN, French INSEE, German Personalausweis, Italian CF, Portuguese NIF, and more |
-| **Multiple detection backends** | Mix and match: regex, Presidio, OPF, GLiNER, Nemotron, Transformers |
+| **Multiple detection backends** | regex, Presidio, Hybrid, GLiNER, Transformers, OPF, Nemotron — switch with one parameter |
+| **Streaming support** | `secure_call_stream()` yields rehydrated tokens in real-time for SSE/WebSocket apps |
 | **Full audit trace** | Every call produces a `TraceRecord` with detected entities, replacements, and language |
 | **GDPR right to forget** | Single call to wipe all vault mappings for a case or thread |
+
+---
+
+## Use cases
+
+| Scenario | Profile | Key benefit |
+|---|---|---|
+| Protect patient data before sending clinical notes to GPT-4 | `healthcare` | Medical terms kept; patient identifiers stripped |
+| Redact Spanish DNI, NIE and IBAN before LLM calls | `healthcare` / `finance` | Locale-aware patterns for ES/EU documents |
+| Rehydrate LLM responses without leaking real names | any | Vault restores original values transparently |
+| GDPR Art. 17 right-to-forget for LLM conversation history | any | `firewall.forget()` wipes all mappings by thread/case |
+| Customer support: anonymize tickets before sending to AI | `generic` | Zero PII reaches the model provider |
+| Legal discovery: pseudonymize party names in documents | `legal` | Reversible — case management still works |
 
 ---
 
@@ -70,6 +98,95 @@ print(result.sanitized_text)
 
 print(result.final_text)
 # → After the LLM responds, real names are restored for the end-user.
+```
+
+---
+
+## Integrations
+
+PII Firewall wraps any callable or object that accepts a text prompt. Below are drop-in recipes for the most common providers.
+
+### OpenAI
+
+```python
+from openai import OpenAI
+from privacy_firewall import create_firewall
+
+client = OpenAI()
+firewall = create_firewall("healthcare", detector_backend="presidio")
+
+context = {"tenant_id": "acme", "case_id": "c1", "thread_id": "t1", "actor_id": "u1"}
+
+def openai_llm(prompt: str) -> str:
+    resp = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return resp.choices[0].message.content
+
+result = firewall.secure_call(text=user_input, context=context, llm_client=openai_llm)
+print(result.final_text)  # real names restored
+```
+
+### Anthropic
+
+```python
+import anthropic
+from privacy_firewall import create_firewall
+
+ac = anthropic.Anthropic()
+firewall = create_firewall("healthcare", detector_backend="presidio")
+
+def anthropic_llm(prompt: str) -> str:
+    msg = ac.messages.create(
+        model="claude-opus-4-5",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return msg.content[0].text
+
+result = firewall.secure_call(text=user_input, context=context, llm_client=anthropic_llm)
+```
+
+### LangChain
+
+```python
+from langchain_openai import ChatOpenAI
+from privacy_firewall import create_firewall
+
+llm = ChatOpenAI(model="gpt-4o")
+firewall = create_firewall("generic", detector_backend="presidio")
+
+def langchain_llm(prompt: str) -> str:
+    return llm.invoke(prompt).content
+
+result = firewall.secure_call(text=user_input, context=context, llm_client=langchain_llm)
+```
+
+### FastAPI middleware
+
+```python
+from fastapi import FastAPI
+from privacy_firewall import PrivacyFirewallSDK
+
+app = FastAPI()
+sdk = PrivacyFirewallSDK.create(domain="healthcare", detector_backend="presidio")
+
+@app.post("/chat")
+async def chat(req: dict):
+    context = req["context"]
+    anon = sdk.anonymize_text(text=req["message"], context=context)
+    llm_response = await call_your_llm(anon.sanitized_text)
+    final = sdk.rehydrate_text(text=llm_response, context=context)
+    return {"response": final}
+```
+
+### Streaming (SSE / WebSocket)
+
+```python
+# Yields rehydrated tokens as they stream from the LLM — no buffering needed
+for token in firewall.secure_call_stream(text=user_input, context=context, llm_client=streaming_llm):
+    yield token
 ```
 
 ---
@@ -172,9 +289,11 @@ Locale-specific patterns are applied automatically: Spanish DNI/NIE, US SSN/EIN,
 |---|---|---|---|
 | `regex` | *(none)* | Structured IDs, emails, phones | < 1 ms |
 | `presidio` | `[presidio,langdetect]` | Named entities (persons, orgs) — best balance | 50–200 ms |
-| `transformers` | `[transformers]` | Biomedical NER (`d4data`, BC5CDR) — highest accuracy for medical entities | 100–500 ms |
-| `gliner` | `[gliner]` | Zero-shot NER, no fine-tuning needed | 100–400 ms |
 | `hybrid` | `[presidio,langdetect]` | Regex + Presidio combined for max coverage | 50–250 ms |
+| `gliner` | `[gliner]` | Zero-shot NER, no fine-tuning needed | 100–400 ms |
+| `transformers` | `[transformers]` | Biomedical NER (`d4data`, BC5CDR) — highest accuracy for medical entities | 100–500 ms |
+| `opf` | `[opf]` | Token-level PII classifier, language-agnostic | 50–200 ms |
+| `nemotron` | `[opf]` | NVIDIA fine-tune on OPF — high recall on free text | 100–300 ms |
 
 ```python
 firewall = create_firewall("healthcare", detector_backend="presidio")
@@ -359,5 +478,3 @@ pip install "pii-firewall[all]"                      # full feature set
 ## License
 
 Apache 2.0. See [pii-firewall/LICENSE](pii-firewall/LICENSE).
-
-A best-in-class, multi-language, domain-aware **PII anonymization library** for AI applications. It intercepts text before it reaches an LLM, strips or transforms sensitive data, forwards the sanitized prompt, and then re-hydrates the model response — all transparently.

@@ -5,13 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pii-firewall"
 version = "0.1.0"
-description = "Privacy firewall layer for agent systems (Option C MVP)"
+description = "Open-source PII firewall for LLM apps. Detect, anonymize and rehydrate sensitive data before it reaches OpenAI, Anthropic or any LLM provider."
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{name = "LocalModel"}]
+authors = [{name = "neretj"}]
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-keywords = ["pii", "privacy", "anonymization", "redaction", "llm", "gdpr"]
+keywords = ["pii", "privacy", "anonymization", "redaction", "llm", "gdpr", "ai-security", "llm-security", "data-protection", "presidio", "nlp"]
 dependencies = []
 classifiers = [
   "Development Status :: 3 - Alpha",
