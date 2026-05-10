@@ -1,4 +1,4 @@
-"""Launch the Privacy Firewall V2 API server.
+"""Launch the Privacy Firewall API server.
 
 This script starts the FastAPI backend server.
 The frontend is served separately by the Next.js app in pii-web-next.
@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 def main() -> None:
-    """Start the Privacy Firewall V2 API server."""
+    """Start the Privacy Firewall API server."""
     # Optional: load environment variables from .env
     try:
         from dotenv import load_dotenv
@@ -35,7 +35,7 @@ def main() -> None:
         ) from exc
 
     print("=" * 70)
-    print("🚀 Privacy Firewall V2 - API Server")
+    print("🚀 Privacy Firewall - API Server")
     print("=" * 70)
     print()
     print("Starting FastAPI server...")

@@ -130,7 +130,7 @@ result_fr = firewall.process(
 
 ```python
 from privacy_firewall import (
-    PrivacyFirewallV2,
+    PrivacyFirewall,
     create_custom_profile,
     EntityDisposition,
     DispositionAction,
@@ -152,7 +152,7 @@ profile.add_disposition(EntityDisposition(
     confidence_threshold=0.9,
 ))
 
-firewall = PrivacyFirewallV2(profile=profile)
+firewall = PrivacyFirewall(profile=profile)
 ```
 
 ### Adding Your Own Custom PII Detectors
@@ -493,7 +493,7 @@ src/privacy_firewall/
 
 ## 🆚 Comparison
 
-| Feature | Privacy Firewall V2 | Presidio | scrubadub | AWS Comprehend |
+| Feature | Privacy Firewall | Presidio | scrubadub | AWS Comprehend |
 |---------|---------------------|----------|-----------|----------------|
 | **Domain awareness** | ✅ Keep relevant data | ❌ | ❌ | ⚠️ Healthcare only |
 | **Multi-language** | ✅ 55+ auto-detect | ✅ Manual | ❌ English only | ✅ Some |

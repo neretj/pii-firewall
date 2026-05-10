@@ -1,4 +1,4 @@
-"""Privacy Firewall V2 public API."""
+"""Privacy Firewall public API."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Any
 from .types import ProcessResult, Entity, TraceRecord
 from .vault import InMemoryMappingVault, SQLiteMappingVault
 from .llm import MockLLMClient, LLMClientProtocol, call_model
-from .firewall import PrivacyFirewallV2, create_firewall
+from .firewall import PrivacyFirewall, create_firewall
 from .profiles import (
     DomainProfile,
     EntityDisposition,
@@ -39,7 +39,7 @@ def create_app(*args: Any, **kwargs: Any) -> Any:
 
 __all__ = [
     # Core runtime
-    "PrivacyFirewallV2",
+    "PrivacyFirewall",
     "create_firewall",
 
     # Shared runtime dependencies

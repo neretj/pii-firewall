@@ -1,4 +1,4 @@
-"""FastAPI backend for Privacy Firewall V2 API.
+"""FastAPI backend for Privacy Firewall API.
 
 This module provides REST API endpoints for the Privacy Firewall.
 Frontend is served separately by pii-web-next (Next.js app).
@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from ..llm import MockLLMClient
 from ..vault import InMemoryMappingVault
-from ..firewall import PrivacyFirewallV2, create_firewall
+from ..firewall import PrivacyFirewall, create_firewall
 
 
 class RunRequest(BaseModel):
@@ -43,13 +43,13 @@ class RuntimeKey:
 
 
 class RuntimeFactory:
-    """Factory for creating and caching PrivacyFirewallV2 instances."""
+    """Factory for creating and caching PrivacyFirewall instances."""
     
     def __init__(self) -> None:
-        self._runtimes: Dict[RuntimeKey, PrivacyFirewallV2] = {}
+        self._runtimes: Dict[RuntimeKey, PrivacyFirewall] = {}
         self._shared_vault = InMemoryMappingVault()
 
-    def get(self, req: RunRequest) -> PrivacyFirewallV2:
+    def get(self, req: RunRequest) -> PrivacyFirewall:
         """Get or create a firewall instance for the request."""
         key = RuntimeKey(
             profile=req.profile,
@@ -74,8 +74,8 @@ class RuntimeFactory:
         return fw
 
 
-def create_app(firewall: PrivacyFirewallV2 | None = None) -> FastAPI:
-    """Create FastAPI app with Privacy Firewall V2 API endpoints.
+def create_app(firewall: PrivacyFirewall | None = None) -> FastAPI:
+    """Create FastAPI app with Privacy Firewall API endpoints.
     
     Args:
         firewall: Optional pre-configured firewall instance (for testing)
@@ -92,7 +92,7 @@ def create_app(firewall: PrivacyFirewallV2 | None = None) -> FastAPI:
             raise HTTPException(status_code=401, detail="Unauthorized")
 
     app = FastAPI(
-        title="Privacy Firewall V2 API",
+        title="Privacy Firewall API",
         version="2.0.0",
         description="Domain-aware multi-language anonymization API",
     )

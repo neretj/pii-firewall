@@ -49,7 +49,7 @@ def apply_defensive_cleanup(text: str, max_iterations: int = 3) -> tuple[str, li
 
 
 @dataclass
-class PrivacyFirewallV2:
+class PrivacyFirewall:
     profile: DomainProfile
     vault: MappingVaultProtocol | None = None
     llm_client: Any = None
@@ -331,7 +331,7 @@ def create_firewall(
     detector_backend: str = "regex",
     token_scope: str | None = None,
     **kwargs,
-) -> PrivacyFirewallV2:
+) -> PrivacyFirewall:
     from .profiles import get_preset_profile
 
     base_profile = profile if profile is not None else get_preset_profile(domain)
@@ -340,7 +340,7 @@ def create_firewall(
     if token_scope is not None:
         selected_profile.token_scope = token_scope
 
-    return PrivacyFirewallV2(
+    return PrivacyFirewall(
         profile=selected_profile,
         manual_language=language,
         detector_backend=detector_backend,

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from collections.abc import Iterator
 from typing import Any
 
-from .firewall import PrivacyFirewallV2, create_firewall
+from .firewall import PrivacyFirewall, create_firewall
 from .types import ProcessResult
 from .profiles import DomainProfile
 
@@ -27,7 +27,7 @@ class PrivacyFirewallSDK:
     then rehydrate model outputs using vault mappings.
     """
 
-    firewall: PrivacyFirewallV2
+    firewall: PrivacyFirewall
 
     @classmethod
     def create(
