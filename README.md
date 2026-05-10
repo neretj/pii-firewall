@@ -140,4 +140,4 @@ pip install "pii-firewall[all]"
 
 ## License
 
-MIT. See [pii-firewall/LICENSE](pii-firewall/LICENSE).
+Apache 2.0. See [pii-firewall/LICENSE](pii-firewall/LICENSE).

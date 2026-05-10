@@ -9,7 +9,7 @@ description = "Privacy firewall layer for agent systems (Option C MVP)"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{name = "LocalModel"}]
-license = "MIT"
+license = "Apache-2.0"
 license-files = ["LICENSE"]
 keywords = ["pii", "privacy", "anonymization", "redaction", "llm", "gdpr"]
 dependencies = []

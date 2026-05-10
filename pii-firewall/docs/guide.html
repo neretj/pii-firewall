@@ -346,7 +346,7 @@
 
   <!-- HERO -->
   <div class="hero">
-    <div class="badge">Open Source · MIT License</div>
+    <div class="badge">Open Source · Apache 2.0 License</div>
     <h1>Privacy Firewall</h1>
     <p>
       A domain-aware PII anonymization library for AI applications. Detects, 
@@ -361,6 +361,49 @@
     </div>
   </div>
 
+  
+  <!-- ── 3. HOW IT WORKS ────────────────────────────────────────────── -->
+  <section id="flow">
+    <h2><span class="ico">🔄</span> How It Works</h2>
+    <p>
+      Privacy Firewall acts as an <strong>anonymization layer</strong> that sits between your application and the LLM.
+      Text is cleaned before going to the model, and restored after the model responds.
+    </p>
+
+    <div class="flow">
+      <div class="flow-box">
+        <span class="label">1. Input</span>
+        <span class="value">Raw text<br><small style="color:#6272a4">"Ana García, DNI 12345678A"</small></span>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box accent">
+        <span class="label">2. Detect</span>
+        <span class="value">Find PII<br><small>Presidio / regex / etc.</small></span>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box accent">
+        <span class="label">3. Anonymize</span>
+        <span class="value">Replace tokens<br><small>"PERSON_1, NATIONAL_ID_1"</small></span>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">
+        <span class="label">4. LLM</span>
+        <span class="value">Model sees<br><small>anonymized text only</small></span>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <span class="label">5. Rehydrate</span>
+        <span class="value">Restore names<br><small>"Ana García, DNI..."</small></span>
+      </div>
+    </div>
+
+    <p>
+      The <strong>vault</strong> stores the mapping between tokens and real values per thread.
+      If you call <code>process()</code> (which calls the LLM), rehydration is automatic.
+      If you only need anonymization (e.g., you're in a proxy microservice), use <code>anonymize()</code>
+      and <code>rehydrate()</code> separately.
+    </p>
+  </section>
 
   <!-- ── 1. INSTALL ─────────────────────────────────────────────────── -->
   <section id="install">
@@ -466,50 +509,6 @@ result = firewall.<span class="fn">process</span>(
 <pre><code><span class="sh"># If you avoid langdetect, pass language explicitly</span>
 firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>, language=<span class="st">"es"</span>)
 </code></pre>
-  </section>
-
-
-  <!-- ── 3. HOW IT WORKS ────────────────────────────────────────────── -->
-  <section id="flow">
-    <h2><span class="ico">🔄</span> How It Works</h2>
-    <p>
-      Privacy Firewall acts as an <strong>anonymization layer</strong> that sits between your application and the LLM.
-      Text is cleaned before going to the model, and restored after the model responds.
-    </p>
-
-    <div class="flow">
-      <div class="flow-box">
-        <span class="label">1. Input</span>
-        <span class="value">Raw text<br><small style="color:#6272a4">"Ana García, DNI 12345678A"</small></span>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box accent">
-        <span class="label">2. Detect</span>
-        <span class="value">Find PII<br><small>Presidio / regex / etc.</small></span>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box accent">
-        <span class="label">3. Anonymize</span>
-        <span class="value">Replace tokens<br><small>"PERSON_1, NATIONAL_ID_1"</small></span>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box green">
-        <span class="label">4. LLM</span>
-        <span class="value">Model sees<br><small>anonymized text only</small></span>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box">
-        <span class="label">5. Rehydrate</span>
-        <span class="value">Restore names<br><small>"Ana García, DNI..."</small></span>
-      </div>
-    </div>
-
-    <p>
-      The <strong>vault</strong> stores the mapping between tokens and real values per thread.
-      If you call <code>process()</code> (which calls the LLM), rehydration is automatic.
-      If you only need anonymization (e.g., you're in a proxy microservice), use <code>anonymize()</code>
-      and <code>rehydrate()</code> separately.
-    </p>
   </section>
 
 
@@ -1282,7 +1281,7 @@ deleted = firewall.<span class="fn">forget</span>(
 
   <hr>
   <p style="color:var(--text-muted); font-size:13px; text-align:center;">
-    Privacy Firewall v0.1 · MIT License · Built for privacy-first AI applications
+    Privacy Firewall v0.1 · Apache 2.0 License · Built for privacy-first AI applications
   </p>
 
 </main>

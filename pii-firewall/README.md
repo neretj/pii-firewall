@@ -3,7 +3,7 @@
 **Best-in-class multi-language, domain-aware anonymization library for AI applications**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## 🌟 Why Pii Firewall?
 
@@ -577,9 +577,7 @@ python -c "import privacy_firewall; print('ok')"
 
 ## 📝 License
 
-MIT License - see LICENSE file for details.
-
-Commercial licensing options are also available. Contact: info@botlance.ai
+Apache 2.0 — see [LICENSE](LICENSE) for details.
 
 ## 🤝 Contributing
 
