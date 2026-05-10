@@ -274,16 +274,31 @@ FINANCE_PROFILE = DomainProfile(
             description="Company and organization names (public record, not PII)",
         ),
 
-        # Redact medical data (out of domain for finance)
+        # Redact medical data (out of domain for finance).
+        # Biomedical NER models score lower than regex, so use threshold 0.45.
         "DIAGNOSIS": EntityDisposition(
             entity_type="DIAGNOSIS",
             action=DispositionAction.REDACT,
+            confidence_threshold=0.45,
             description="Medical diagnoses (out of domain)",
+        ),
+        "SYMPTOM": EntityDisposition(
+            entity_type="SYMPTOM",
+            action=DispositionAction.REDACT,
+            confidence_threshold=0.45,
+            description="Medical symptoms (cross-domain leakage)",
         ),
         "DRUG": EntityDisposition(
             entity_type="DRUG",
             action=DispositionAction.REDACT,
+            confidence_threshold=0.45,
             description="Medication names (out of domain)",
+        ),
+        "PROCEDURE": EntityDisposition(
+            entity_type="PROCEDURE",
+            action=DispositionAction.REDACT,
+            confidence_threshold=0.45,
+            description="Medical procedures (out of domain)",
         ),
         "MEDICAL_RECORD": EntityDisposition(
             entity_type="MEDICAL_RECORD",
@@ -348,6 +363,12 @@ LEGAL_PROFILE = DomainProfile(
             action=DispositionAction.REDACT,
             confidence_threshold=0.45,
             description="Medical diagnoses (injury/malpractice cross-domain leakage)",
+        ),
+        "SYMPTOM": EntityDisposition(
+            entity_type="SYMPTOM",
+            action=DispositionAction.REDACT,
+            confidence_threshold=0.45,
+            description="Medical symptoms (cross-domain leakage)",
         ),
         "DRUG": EntityDisposition(
             entity_type="DRUG",

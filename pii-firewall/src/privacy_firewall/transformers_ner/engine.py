@@ -106,6 +106,13 @@ class TransformerNEREngine:
             score = float(item["score"])
 
             normalized = self._normalize_entity_type(raw_label)
+            if not normalized:
+                # Empty string = non-PII label (Time, Date, Severity, etc.) — skip
+                _logger.info(
+                    "  [transformer:%s] label %r -> DROPPED (non-PII)  score=%.3f  word=%r",
+                    self.model_name, raw_label, score, word,
+                )
+                continue
             _logger.info(
                 "  [transformer:%s] label %r -> %r  score=%.3f  word=%r",
                 self.model_name, raw_label, normalized, score, word,
@@ -173,6 +180,7 @@ class DomainTransformerNEREngine(TransformerNEREngine):
           After ``.upper()`` these become the dict keys below.
         - Generic BC5CDR labels: ``DISEASE``, ``CHEMICAL``.
         """
+        # Labels that map to canonical PII/PHI entity types.
         mapping: dict[str, str] = {
             # d4data/biomedical-ner-all labels (uppercased after aggregation)
             "DISEASE_DISORDER":      ET.DIAGNOSIS,
@@ -182,13 +190,9 @@ class DomainTransformerNEREngine(TransformerNEREngine):
             "THERAPEUTIC_PROCEDURE": ET.PROCEDURE,
             "LAB_VALUE":             ET.LAB_VALUE,
             "BIOLOGICAL_STRUCTURE":  ET.ANATOMICAL_SITE,
-            "CLINICAL_EVENT":        ET.PROCEDURE,
             "FAMILY_HISTORY":        ET.DIAGNOSIS,
             "DOSAGE":                ET.DRUG,
             "HISTORY":               ET.DIAGNOSIS,
-            "ACTIVITY":              ET.PROCEDURE,
-            "OUTCOME":               ET.DIAGNOSIS,
-            "SEVERITY":              ET.SYMPTOM,
             # Generic / BC5CDR labels
             "DISEASE":   ET.DIAGNOSIS,
             "DISORDER":  ET.DIAGNOSIS,
@@ -200,4 +204,18 @@ class DomainTransformerNEREngine(TransformerNEREngine):
             "GENE":      ET.DIAGNOSIS,
             "PROTEIN":   ET.DIAGNOSIS,
         }
-        return mapping.get(entity_group.upper(), entity_group.upper())
+        # Labels that are NOT PII/PHI and must be dropped (return None).
+        # These are clinical context labels that carry no identifying information.
+        non_pii_labels = {
+            "AGE",             # demographic — captured by regex AGE patterns instead
+            "TIME",            # temporal expression — not an identifier
+            "DATE",            # date fragment — not an identifier (regex handles dates)
+            "SEVERITY",        # clinical severity adjective (e.g. 'severe') — not PII
+            "CLINICAL_EVENT",  # generic clinical verb (e.g. 'came', 'visited') — not PII
+            "ACTIVITY",        # patient activity — not PII
+            "OUTCOME",         # clinical outcome — not a direct identifier
+        }
+        upper = entity_group.upper()
+        if upper in non_pii_labels:
+            return ""  # sentinel: caller must drop entities with empty type
+        return mapping.get(upper, upper)
