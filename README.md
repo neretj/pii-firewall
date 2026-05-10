@@ -1,7 +1,372 @@
 # PII Firewall
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+A best-in-class, multi-language, domain-aware **PII anonymization library** for AI applications. It intercepts text before it reaches an LLM, strips or transforms sensitive data, forwards the sanitized prompt, and then re-hydrates the model response — all transparently.
+
+---
+
+## Repository structure
+
+```text
+pii-firewall-clean/
+  pii-firewall/    # Python library, FastAPI REST API, and HTML guide
+  pii-web-next/    # Next.js playground UI (anonymize → LLM → rehydrate)
+```
+
+---
+
+## How it works
+
+### Detect → Anonymize → Rehydrate
+
+```
+User text  ──→  [ PII Firewall ]  ──→  Sanitized prompt  ──→  LLM
+                      │                                          │
+                 Secure vault                             Model response
+                      │                                          │
+                      └──────────  Re-hydrated reply  ←─────────┘
+```
+
+1. **Detect** — finds PII entities using one or more configurable backends (regex patterns, Presidio/spaCy, OPF, GLiNER-PII, Nemotron, Transformers NER).
+2. **Anonymize** — transforms each entity according to the active domain profile: redact, pseudonymize, generalize, mask, hash, or suppress.
+3. **LLM call** — the sanitized prompt is forwarded to any LLM. The model never sees real personal data.
+4. **Rehydrate** — the model's response is restored by substituting tokens back from a secure in-memory vault, so the end-user sees real values.
+
+### Key capabilities
+
+| Feature | Details |
+|---|---|
+| **Domain profiles** | Built-in presets for Healthcare, Finance, and Legal; fully customizable |
+| **Domain-aware keep rules** | Medical terms, transaction amounts, legal references, etc. are *kept* — not redacted |
+| **7 disposition actions** | Keep, Redact, Pseudonymize, Generalize, Mask, Hash, Suppress |
+| **Reversible pseudonymization** | Secure vault stores the original→token mapping for rehydration |
+| **55+ language auto-detection** | Thread-level caching adds zero latency after the first call |
+| **Locale-specific patterns** | Spanish DNI, US SSN, French INSEE, German Personalausweis, Italian CF, Portuguese NIF, and more |
+| **Multiple detection backends** | Mix and match: regex, Presidio, OPF, GLiNER, Nemotron, Transformers |
+| **Full audit trace** | Every call produces a `TraceRecord` with detected entities, replacements, and language |
+| **GDPR right to forget** | Single call to wipe all vault mappings for a case or thread |
+
+---
+
+## Quick start
+
+```bash
+pip install "pii-firewall[presidio,langdetect]"
+python -m spacy download en_core_web_sm
+```
+
+```python
+from privacy_firewall import create_firewall
+
+firewall = create_firewall("healthcare")
+
+result = firewall.process(
+    text="Patient John Doe, SSN 123-45-6789, diagnosed with hypertension. Prescribed lisinopril 10mg.",
+    context={
+        "tenant_id": "hospital-001",
+        "case_id":   "patient-123",
+        "thread_id": "consultation-1",
+        "actor_id":  "doctor-456",
+    },
+)
+
+print(result.sanitized_text)
+# → "Patient PERSON_1, [REDACTED], diagnosed with hypertension. Prescribed lisinopril 10mg."
+#   Medical terms (hypertension, lisinopril) are preserved — the LLM still understands the case.
+
+print(result.final_text)
+# → After the LLM responds, real names are restored for the end-user.
+```
+
+---
+
+## Domain profiles
+
+The active profile controls what happens to each detected entity type.
+
+### Healthcare
+
+Keeps clinical data the LLM needs. Strips personal identifiers.
+
+```python
+firewall = create_firewall("healthcare")
+result = firewall.process(
+    text="Ana García, 43 años, hipertensión. Prescripción: enalapril 10mg.",
+    context={...},
+)
+print(result.sanitized_text)
+# → "PERSON_1, [AGE_40-49], hipertensión. enalapril 10mg."
+#   Diagnosis and medication are preserved. Name and age are anonymized.
+```
+
+### Finance
+
+Keeps amounts and transaction context. Masks card numbers. Pseudonymizes account numbers (reversible).
+
+```python
+firewall = create_firewall("finance")
+result = firewall.process(
+    text="Cliente María López, tarjeta 4111111111111111, transferencia de 2.500€ a cuenta ES12345678.",
+    context={...},
+)
+print(result.sanitized_text)
+# → "Cliente PERSON_1, tarjeta 4111...1111, transferencia de 2.500€ a cuenta ACCOUNT_1."
+#   Amount is preserved for the LLM. Card and account are masked/pseudonymized.
+```
+
+### Legal
+
+High anonymity. Pseudonymizes party names. Generalizes all dates to year only.
+
+```python
+firewall = create_firewall("legal")
+result = firewall.process(
+    text="El demandante Juan Pérez presentó recurso el 15 de marzo de 2024, expediente EXP-2024/001234.",
+    context={...},
+)
+print(result.sanitized_text)
+# → "El demandante PERSON_1 presentó recurso en 2024, expediente EXP-2024/001234."
+#   Case number kept. Party name pseudonymized. Date generalized to year.
+```
+
+### Custom profile
+
+```python
+from privacy_firewall import create_firewall, create_custom_profile, EntityDisposition, DispositionAction
+
+profile = create_custom_profile("my_domain")
+profile.add_disposition(EntityDisposition(
+    entity_type="EMPLOYEE_ID",
+    action=DispositionAction.REDACT,
+    confidence_threshold=0.9,
+))
+profile.add_disposition(EntityDisposition(
+    entity_type="PROJECT_CODE",
+    action=DispositionAction.KEEP,
+    confidence_threshold=0.8,
+))
+
+firewall = create_firewall("generic", profile=profile)
+```
+
+---
+
+## Multi-language support
+
+Language is detected automatically per message. No configuration needed.
+
+```python
+firewall = create_firewall("healthcare")
+
+# Spanish
+result = firewall.process(text="Paciente con diabetes tipo 2, DNI 12345678A", context={...})
+
+# English
+result = firewall.process(text="Patient with type 2 diabetes, SSN 123-45-6789", context={...})
+
+# French
+result = firewall.process(text="Patient avec diabète, INSEE 1234567890123", context={...})
+```
+
+Locale-specific patterns are applied automatically: Spanish DNI/NIE, US SSN/EIN, French INSEE/SIREN, German Steuernummer, Italian Codice Fiscale, Portuguese NIF, and global fallbacks for all other languages.
+
+---
+
+## Detection backends
+
+| Backend | Install extra | Best for | Latency |
+|---|---|---|---|
+| `regex` | *(none)* | Structured IDs, emails, phones | < 1 ms |
+| `presidio` | `[presidio,langdetect]` | Named entities (persons, orgs) — best balance | 50–200 ms |
+| `transformers` | `[transformers]` | Domain NER (BioBERT, FinBERT) — highest accuracy | 100–500 ms |
+| `gliner` | `[gliner]` | Zero-shot NER, no fine-tuning needed | 100–400 ms |
+| `hybrid` | `[presidio,langdetect]` | Regex + Presidio combined for max coverage | 50–250 ms |
+
+```python
+firewall = create_firewall("healthcare", detector_backend="presidio")
+```
+
+---
+
+## Adding custom PII detectors
+
+### Option A — Regex rule (any backend)
+
+```python
+firewall.add_custom_regex(
+    entity_type="EMPLOYEE_ID",
+    regex=r"\bEMP-\d{6}\b",
+    locales=["GLOBAL"],
+    confidence=0.95,
+    context_words=["employee", "staff"],
+    disposition_action="redact",
+)
+```
+
+### Option B — HuggingFace / ML model (Presidio backend)
+
+```python
+from privacy_firewall import create_firewall
+from privacy_firewall.presidio_integration import create_custom_recognizer
+
+recognizer = create_custom_recognizer(
+    entity_type="EMPLOYEE_ID",
+    patterns=[r"\bEMP\d{6}\b"],
+    context_words=["employee", "badge"],
+    score=0.9,
+)
+
+firewall = create_firewall("generic", detector_backend="presidio", custom_recognizers=[recognizer])
+```
+
+For a fully custom ML model, subclass Presidio's `EntityRecognizer`:
+
+```python
+from presidio_analyzer import EntityRecognizer, RecognizerResult
+from transformers import pipeline
+
+class HFPIIRecognizer(EntityRecognizer):
+    def __init__(self, model_id: str):
+        super().__init__(supported_entities=["PERSON", "ORGANIZATION", "LOCATION"])
+        self._pipe = pipeline("ner", model=model_id, aggregation_strategy="simple")
+
+    def load(self): pass
+
+    def analyze(self, text, entities, nlp_artifacts):
+        return [
+            RecognizerResult(entity_type=s["entity_group"], start=s["start"], end=s["end"], score=s["score"])
+            for s in self._pipe(text)
+        ]
+
+firewall = create_firewall("healthcare", detector_backend="presidio",
+                           custom_recognizers=[HFPIIRecognizer("dslim/bert-base-NER")])
+```
+
+### Testing a HuggingFace NER model directly
+
+```bash
+pip install "pii-firewall[transformers]"
+```
+
+```python
+# Built-in catalog of domain models
+from privacy_firewall.transformers_ner.models import get_model_for_domain
+
+config = get_model_for_domain("medical", "en")  # → d4data/biomedical-ner-all
+firewall = create_firewall("healthcare", detector_backend="transformers",
+                           transformer_model_id=config.model_id,
+                           transformer_device=0)  # 0 = GPU, -1 = CPU
+```
+
+Available catalog entries: `("general", "en")`, `("medical", "en")`, `("medical", "es")`, `("financial", "en")`, `("legal", "en")`, and multilingual.
+
+---
+
+## SDK pattern (provider-agnostic)
+
+`PrivacyFirewallSDK` wraps the firewall with convenience methods for building LLM middleware:
+
+```python
+from privacy_firewall import PrivacyFirewallSDK
+
+sdk = PrivacyFirewallSDK.create(domain="healthcare", detector_backend="presidio")
+
+context = {"tenant_id": "hospital-001", "case_id": "patient-123",
+           "thread_id": "thread-1", "actor_id": "doctor-456"}
+
+# Anonymize only
+anon = sdk.anonymize_text(text="John Doe, SSN 123-45-6789", context=context)
+print(anon.sanitized_text)  # "PERSON_1, [REDACTED]"
+
+# Full round-trip with any LLM client
+def my_llm(prompt: str) -> str:
+    ...  # call OpenAI, Anthropic, Ollama, etc.
+
+result = sdk.secure_call(text="John Doe has hypertension.", context=context, llm_client=my_llm)
+print(result.sanitized_text)  # What the LLM saw
+print(result.final_text)      # Restored output shown to the user
+
+# Anonymize/rehydrate whole JSON payloads (deep-walks strings recursively)
+safe_payload = sdk.anonymize_payload(payload={"patient": "Ana García", "notes": ["DNI: 12345678A"]}, context=context)
+```
+
+---
+
+## Persistent vault & GDPR
+
+By default, the vault is in-memory. For persistence across restarts:
+
+```python
+from privacy_firewall import create_firewall, SQLiteMappingVault
+
+vault = SQLiteMappingVault("privacy_vault.db")
+firewall = create_firewall("healthcare", vault=vault)
+```
+
+To comply with GDPR Art. 17 (right to erasure):
+
+```python
+deleted = firewall.forget(tenant_id="hospital-001", case_id="patient-123", thread_id="thread-1")
+print(f"Deleted {deleted} token mappings")
+# After this, the LLM response can no longer be rehydrated for this thread.
+```
+
+---
+
+## Running the stack
+
+### Prerequisites
+
+- Python 3.10+
+- Node.js 18+
+
+### 1. Backend API
+
+```bash
+cd pii-firewall
+python -m pip install --upgrade pip
+python -m pip install -e ".[web,presidio,langdetect]"
+uvicorn privacy_firewall.web.app:create_app --factory --reload --port 8080
+```
+
+- Interactive API docs: http://127.0.0.1:8080/docs
+- Full developer guide: [pii-firewall/docs/guide.html](pii-firewall/docs/guide.html)
+
+> **VS Code tip:** open [pii-firewall/docs/guide.html](pii-firewall/docs/guide.html) and press `Ctrl+Shift+V` to preview it.
+
+### 2. Frontend playground
+
+```bash
+cd pii-web-next
+Copy-Item .env.example .env.local   # Windows PowerShell
+# cp .env.example .env.local        # macOS / Linux
+npm install
+npm run dev
+```
+
+UI: http://127.0.0.1:3010
+
+The frontend proxies to the backend via `PII_API_BASE_URL` in `pii-web-next/.env.local` (default: `http://127.0.0.1:8080`).
+
+### 3. Library only
+
+```bash
+# From this repo
+cd pii-firewall && pip install -e .
+
+# From PyPI
+pip install pii-firewall                             # minimal (regex only)
+pip install "pii-firewall[presidio,langdetect]"      # recommended
+pip install "pii-firewall[all]"                      # full feature set
+```
+
+---
+
+## License
+
+Apache 2.0. See [pii-firewall/LICENSE](pii-firewall/LICENSE).
 
 A best-in-class, multi-language, domain-aware **PII anonymization library** for AI applications. It intercepts text before it reaches an LLM, strips or transforms sensitive data, forwards the sanitized prompt, and then re-hydrates the model response — all transparently.
 
