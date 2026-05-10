@@ -21,11 +21,11 @@ def apply_residual_cleanup(text: str) -> tuple[str, list[dict]]:
     matches: list[tuple[int, int, str, str]] = []
 
     for m in DNI_REGEX.finditer(text):
-        matches.append((m.start(), m.end(), m.group(0), "ES_DNI"))
+        matches.append((m.start(), m.end(), m.group(0), "NATIONAL_ID"))
     for m in EMAIL_REGEX.finditer(text):
         matches.append((m.start(), m.end(), m.group(0), "EMAIL"))
     for m in PHONE_REGEX.finditer(text):
-        matches.append((m.start(), m.end(), m.group(0), "PHONE"))
+        matches.append((m.start(), m.end(), m.group(0), "PHONE_NUMBER"))
 
     for start, end, original, entity_type in sorted(matches, key=lambda x: x[0], reverse=True):
         replacement = f"<{entity_type}>"

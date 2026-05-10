@@ -2,6 +2,7 @@
 
 import re
 from ..catalog import EntityPattern
+from ... import entity_types as ET
 
 
 # =============================================================================
@@ -9,7 +10,7 @@ from ..catalog import EntityPattern
 # =============================================================================
 
 DE_TAX_ID = EntityPattern(
-    entity_type="TAX_ID",
+    entity_type=ET.TAX_ID,
     locale="DE",
     pattern=re.compile(r"\b\d{11}\b"),
     confidence=0.7,
@@ -18,7 +19,7 @@ DE_TAX_ID = EntityPattern(
 )
 
 DE_TAX_ID_PREFIXED = EntityPattern(
-    entity_type="TAX_ID",
+    entity_type=ET.TAX_ID,
     locale="DE",
     pattern=re.compile(r"\bDE\d{9,11}\b"),
     confidence=0.9,
@@ -32,7 +33,7 @@ DE_TAX_ID_PREFIXED = EntityPattern(
 # =============================================================================
 
 DE_PHONE = EntityPattern(
-    entity_type="PHONE",
+    entity_type=ET.PHONE_NUMBER,
     locale="DE",
     pattern=re.compile(r"\b(?:\+49\s?)?(?:\(0\)\s?)?\d{2,5}[-\s]?\d{3,10}\b"),
     confidence=0.8,
@@ -45,7 +46,7 @@ DE_PHONE = EntityPattern(
 # =============================================================================
 
 DE_POSTAL_CODE = EntityPattern(
-    entity_type="POSTAL_CODE",
+    entity_type=ET.POSTAL_CODE,
     locale="DE",
     pattern=re.compile(r"\b\d{5}\b"),
     confidence=0.6,
@@ -59,7 +60,7 @@ DE_POSTAL_CODE = EntityPattern(
 # =============================================================================
 
 DE_IBAN = EntityPattern(
-    entity_type="IBAN",
+    entity_type=ET.IBAN,
     locale="DE",
     pattern=re.compile(r"\bDE\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{2}\b"),
     confidence=0.95,
@@ -73,7 +74,7 @@ DE_IBAN = EntityPattern(
 # =============================================================================
 
 DE_DATE_DOTTED = EntityPattern(
-    entity_type="DATE_TIME",
+    entity_type=ET.DATE_TIME,
     locale="DE",
     pattern=re.compile(r"\b(?:0?[1-9]|[12]\d|3[01])\.(?:0?[1-9]|1[0-2])\.\d{4}\b"),
     confidence=0.85,

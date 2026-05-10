@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from ..llm import MockLLMClient
 from ..vault import InMemoryMappingVault
 from ..firewall import PrivacyFirewall, create_firewall
+from ..resolver import ContextualEntityResolver
 
 
 class RunRequest(BaseModel):
@@ -48,6 +49,7 @@ class RuntimeFactory:
     def __init__(self) -> None:
         self._runtimes: Dict[RuntimeKey, PrivacyFirewall] = {}
         self._shared_vault = InMemoryMappingVault()
+        self._shared_resolver = ContextualEntityResolver()
 
     def get(self, req: RunRequest) -> PrivacyFirewall:
         """Get or create a firewall instance for the request."""
@@ -67,6 +69,7 @@ class RuntimeFactory:
             detector_backend=req.detector_backend,
             token_scope=req.token_scope,
             vault=self._shared_vault,
+            resolver=self._shared_resolver,
             llm_client=MockLLMClient(prefix="[MOCK_LLM]"),
         )
         

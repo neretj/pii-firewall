@@ -134,7 +134,7 @@ class PatternCatalog:
         {
             "patterns": [
                 {
-                    "entity_type": "PHONE",
+                    "entity_type": "PHONE_NUMBER"  # e.g. ET.PHONE_NUMBER,
                     "locale": "ES",
                     "pattern": r"\\b(?:\\+34\\s?)?(?:6|7|9)\\d{8}\\b",
                     "confidence": 1.0,

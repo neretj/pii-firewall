@@ -2,6 +2,7 @@
 
 import re
 from ..catalog import EntityPattern
+from ... import entity_types as ET
 
 
 # =============================================================================
@@ -9,7 +10,7 @@ from ..catalog import EntityPattern
 # =============================================================================
 
 PT_NIF = EntityPattern(
-    entity_type="TAX_ID",
+    entity_type=ET.TAX_ID,
     locale="PT",
     pattern=re.compile(r"\b\d{9}\b"),
     confidence=0.7,
@@ -18,7 +19,7 @@ PT_NIF = EntityPattern(
 )
 
 PT_CPF = EntityPattern(
-    entity_type="TAX_ID",
+    entity_type=ET.TAX_ID,
     locale="PT",
     pattern=re.compile(r"\b\d{3}\.\d{3}\.\d{3}-\d{2}\b"),
     confidence=0.95,
@@ -32,7 +33,7 @@ PT_CPF = EntityPattern(
 # =============================================================================
 
 PT_PHONE = EntityPattern(
-    entity_type="PHONE",
+    entity_type=ET.PHONE_NUMBER,
     locale="PT",
     pattern=re.compile(r"\b(?:\+351\s?)?[29]\d{8}\b"),
     confidence=0.9,
@@ -40,7 +41,7 @@ PT_PHONE = EntityPattern(
 )
 
 PT_BR_PHONE = EntityPattern(
-    entity_type="PHONE",
+    entity_type=ET.PHONE_NUMBER,
     locale="PT",
     pattern=re.compile(r"(?<!\w)(?:\+55\s?)?(?:\d{2}\s?)?9?\d{8,9}\b"),
     confidence=0.85,
@@ -54,7 +55,7 @@ PT_BR_PHONE = EntityPattern(
 # =============================================================================
 
 PT_POSTAL_CODE = EntityPattern(
-    entity_type="POSTAL_CODE",
+    entity_type=ET.POSTAL_CODE,
     locale="PT",
     pattern=re.compile(r"\b\d{4}-\d{3}\b"),
     confidence=0.8,
@@ -68,7 +69,7 @@ PT_POSTAL_CODE = EntityPattern(
 # =============================================================================
 
 PT_IBAN = EntityPattern(
-    entity_type="IBAN",
+    entity_type=ET.IBAN,
     locale="PT",
     pattern=re.compile(r"\bPT\d{2}\s?\d{4}\s?\d{4}\s?\d{11}\s?\d{2}\b"),
     confidence=0.95,
@@ -77,7 +78,7 @@ PT_IBAN = EntityPattern(
 )
 
 PT_ACCOUNT = EntityPattern(
-    entity_type="ACCOUNT_NUMBER",
+    entity_type=ET.ACCOUNT_NUMBER,
     locale="PT",
     pattern=re.compile(r"\b\d{5}-\d\s\d{5}-\d\b"),
     confidence=0.85,

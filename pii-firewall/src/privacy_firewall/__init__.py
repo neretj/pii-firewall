@@ -26,6 +26,7 @@ from .language import LanguageDetector, LanguageRouter
 from .unified_detector import UnifiedDetectionEngine
 from .anonymization_engine import AnonymizationEngine
 from .sdk import PrivacyFirewallSDK
+from . import entity_types
 
 
 def create_app(*args: Any, **kwargs: Any) -> Any:
@@ -75,4 +76,7 @@ __all__ = [
     "UnifiedDetectionEngine",
     "AnonymizationEngine",
     "PrivacyFirewallSDK",
+
+    # Canonical entity type constants
+    "entity_types",
 ]

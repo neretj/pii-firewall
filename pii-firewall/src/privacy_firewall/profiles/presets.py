@@ -4,6 +4,13 @@ from __future__ import annotations
 
 from .profiles import DomainProfile, EntityDisposition, DispositionAction
 
+# Presidio scores phone numbers at ~0.40 — lower the threshold so they are
+# processed even when the backend returns a modest confidence value.
+_PHONE_THRESHOLD = 0.35
+
+# Presidio scores many date patterns at ~0.60; use a slightly lower gate.
+_DATE_THRESHOLD = 0.55
+
 
 # =============================================================================
 # HEALTHCARE PROFILE
@@ -83,39 +90,27 @@ HEALTHCARE_PROFILE = DomainProfile(
             action=DispositionAction.REDACT,
             description="Email addresses",
         ),
-        "PHONE": EntityDisposition(
-            entity_type="PHONE",
-            action=DispositionAction.REDACT,
-            confidence_threshold=0.35,  # Lower threshold for Presidio phone detection (~0.40)
-            description="Phone numbers",
-        ),        
         "PHONE_NUMBER": EntityDisposition(
             entity_type="PHONE_NUMBER",
             action=DispositionAction.REDACT,
-            confidence_threshold=0.35,  # Lower threshold for Presidio phone detection (~0.40)
-            description="Phone numbers (alternative entity type)",
-        ),        
+            confidence_threshold=_PHONE_THRESHOLD,
+            description="Phone numbers",
+        ),
         "NATIONAL_ID": EntityDisposition(
             entity_type="NATIONAL_ID",
             action=DispositionAction.REDACT,
-            description="National ID numbers (SSN, DNI, etc.)",
+            description="National ID numbers (SSN, DNI, INSEE, Codice Fiscale, etc.)",
         ),
         "SSN": EntityDisposition(
             entity_type="SSN",
             action=DispositionAction.REDACT,
             description="Social Security Numbers",
         ),
-        "ES_DNI": EntityDisposition(
-            entity_type="ES_DNI",
-            action=DispositionAction.PSEUDONYMIZE,
-            parameters={},
-            description="Spanish DNI/NIF identification numbers",
-        ),
         "LOCATION": EntityDisposition(
             entity_type="LOCATION",
             action=DispositionAction.GENERALIZE,
             parameters={"level": "city"},
-            description="Geographic locations (cities, regions)",
+            description="Geographic locations (generalized to city level)",
         ),
         "ADDRESS": EntityDisposition(
             entity_type="ADDRESS",
@@ -145,12 +140,12 @@ HEALTHCARE_PROFILE = DomainProfile(
         "DATE_TIME": EntityDisposition(
             entity_type="DATE_TIME",
             action=DispositionAction.GENERALIZE,
-            confidence_threshold=0.55,  # Lower threshold for date formats (Presidio scores dd/mm/yyyy at ~0.60)
+            confidence_threshold=_DATE_THRESHOLD,
             parameters={"level": "year"},
             description="Dates and timestamps (birth dates, appointments, etc.)",
         ),
         
-        # Redact financial data (out of domain)
+        # Redact financial data (out of domain for healthcare)
         "CREDIT_CARD": EntityDisposition(
             entity_type="CREDIT_CARD",
             action=DispositionAction.REDACT,
@@ -261,17 +256,24 @@ FINANCE_PROFILE = DomainProfile(
         "NATIONAL_ID": EntityDisposition(
             entity_type="NATIONAL_ID",
             action=DispositionAction.REDACT,
-            description="National ID numbers (SSN, DNI, etc.)",
+            description="National ID numbers (SSN, DNI, INSEE, etc.)",
         ),
         "SSN": EntityDisposition(
             entity_type="SSN",
             action=DispositionAction.REDACT,
             description="Social Security Numbers",
         ),
-        "PHONE": EntityDisposition(
-            entity_type="PHONE",
+        "PHONE_NUMBER": EntityDisposition(
+            entity_type="PHONE_NUMBER",
             action=DispositionAction.REDACT,
+            confidence_threshold=_PHONE_THRESHOLD,
             description="Phone numbers",
+        ),
+        "LOCATION": EntityDisposition(
+            entity_type="LOCATION",
+            action=DispositionAction.GENERALIZE,
+            parameters={"level": "city"},
+            description="Geographic locations (generalized to city level)",
         ),
         "ADDRESS": EntityDisposition(
             entity_type="ADDRESS",
@@ -299,7 +301,7 @@ FINANCE_PROFILE = DomainProfile(
             description="Secrets, API keys, and tokens",
         ),
         
-        # Redact medical data (out of domain)
+        # Redact medical data (out of domain for finance)
         "DIAGNOSIS": EntityDisposition(
             entity_type="DIAGNOSIS",
             action=DispositionAction.REDACT,
@@ -382,20 +384,27 @@ LEGAL_PROFILE = DomainProfile(
             action=DispositionAction.REDACT,
             description="Email addresses",
         ),
-        "PHONE": EntityDisposition(
-            entity_type="PHONE",
+        "PHONE_NUMBER": EntityDisposition(
+            entity_type="PHONE_NUMBER",
             action=DispositionAction.REDACT,
+            confidence_threshold=_PHONE_THRESHOLD,
             description="Phone numbers",
         ),
         "NATIONAL_ID": EntityDisposition(
             entity_type="NATIONAL_ID",
             action=DispositionAction.REDACT,
-            description="National ID numbers",
+            description="National ID numbers (SSN, DNI, INSEE, etc.)",
         ),
         "SSN": EntityDisposition(
             entity_type="SSN",
             action=DispositionAction.REDACT,
             description="Social Security Numbers",
+        ),
+        "LOCATION": EntityDisposition(
+            entity_type="LOCATION",
+            action=DispositionAction.GENERALIZE,
+            parameters={"level": "city"},
+            description="Geographic locations (generalized to city level)",
         ),
         "ADDRESS": EntityDisposition(
             entity_type="ADDRESS",
@@ -458,32 +467,28 @@ GENERIC_PROFILE = DomainProfile(
     entity_similarity_threshold=0.75,
     linguistic_filter_enabled=True,
     dispositions={
-        "PERSON": EntityDisposition(entity_type="PERSON", action=DispositionAction.PSEUDONYMIZE),
-        "EMAIL": EntityDisposition(entity_type="EMAIL", action=DispositionAction.REDACT),
-        "PHONE": EntityDisposition(entity_type="PHONE", action=DispositionAction.REDACT),
-        "PHONE_NUMBER": EntityDisposition(entity_type="PHONE_NUMBER", action=DispositionAction.REDACT),
-        "NATIONAL_ID": EntityDisposition(entity_type="NATIONAL_ID", action=DispositionAction.REDACT),
-        "SSN": EntityDisposition(entity_type="SSN", action=DispositionAction.REDACT),
-        "IBAN": EntityDisposition(entity_type="IBAN", action=DispositionAction.REDACT),
-        "TAX_ID": EntityDisposition(entity_type="TAX_ID", action=DispositionAction.REDACT),
+        "PERSON":         EntityDisposition(entity_type="PERSON",         action=DispositionAction.PSEUDONYMIZE),
+        "EMAIL":          EntityDisposition(entity_type="EMAIL",          action=DispositionAction.REDACT),
+        "PHONE_NUMBER":   EntityDisposition(entity_type="PHONE_NUMBER",   action=DispositionAction.REDACT,
+                                            confidence_threshold=_PHONE_THRESHOLD),
+        "NATIONAL_ID":    EntityDisposition(entity_type="NATIONAL_ID",    action=DispositionAction.REDACT),
+        "SSN":            EntityDisposition(entity_type="SSN",            action=DispositionAction.REDACT),
+        "IBAN":           EntityDisposition(entity_type="IBAN",           action=DispositionAction.REDACT),
+        "TAX_ID":         EntityDisposition(entity_type="TAX_ID",         action=DispositionAction.REDACT),
         "ACCOUNT_NUMBER": EntityDisposition(entity_type="ACCOUNT_NUMBER", action=DispositionAction.REDACT),
-        "CREDIT_CARD": EntityDisposition(entity_type="CREDIT_CARD", action=DispositionAction.MASK),
-        "ES_DNI": EntityDisposition(entity_type="ES_DNI", action=DispositionAction.PSEUDONYMIZE),
-        "ADDRESS": EntityDisposition(entity_type="ADDRESS", action=DispositionAction.REDACT),
-        "POSTAL_CODE": EntityDisposition(entity_type="POSTAL_CODE", action=DispositionAction.REDACT),
-        "IP_ADDRESS": EntityDisposition(entity_type="IP_ADDRESS", action=DispositionAction.REDACT),
-        "URL": EntityDisposition(entity_type="URL", action=DispositionAction.REDACT),
-        "SECRET": EntityDisposition(entity_type="SECRET", action=DispositionAction.REDACT),
-        "DATE": EntityDisposition(
-            entity_type="DATE",
-            action=DispositionAction.GENERALIZE,
-            parameters={"granularity": "year"},
-        ),
-        "DATE_TIME": EntityDisposition(
-            entity_type="DATE_TIME",
-            action=DispositionAction.GENERALIZE,
-            parameters={"level": "year"},
-        ),
+        "CREDIT_CARD":    EntityDisposition(entity_type="CREDIT_CARD",    action=DispositionAction.MASK),
+        "LOCATION":       EntityDisposition(entity_type="LOCATION",       action=DispositionAction.GENERALIZE,
+                                            parameters={"level": "city"}),
+        "ADDRESS":        EntityDisposition(entity_type="ADDRESS",        action=DispositionAction.REDACT),
+        "POSTAL_CODE":    EntityDisposition(entity_type="POSTAL_CODE",    action=DispositionAction.REDACT),
+        "IP_ADDRESS":     EntityDisposition(entity_type="IP_ADDRESS",     action=DispositionAction.REDACT),
+        "URL":            EntityDisposition(entity_type="URL",            action=DispositionAction.REDACT),
+        "SECRET":         EntityDisposition(entity_type="SECRET",         action=DispositionAction.REDACT),
+        "DATE":           EntityDisposition(entity_type="DATE",           action=DispositionAction.GENERALIZE,
+                                            parameters={"granularity": "year"}),
+        "DATE_TIME":      EntityDisposition(entity_type="DATE_TIME",      action=DispositionAction.GENERALIZE,
+                                            confidence_threshold=_DATE_THRESHOLD,
+                                            parameters={"level": "year"}),
     },
 )
 

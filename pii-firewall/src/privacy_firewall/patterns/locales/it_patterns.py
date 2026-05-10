@@ -2,6 +2,7 @@
 
 import re
 from ..catalog import EntityPattern
+from ... import entity_types as ET
 
 
 # =============================================================================
@@ -9,7 +10,7 @@ from ..catalog import EntityPattern
 # =============================================================================
 
 IT_FISCAL_CODE = EntityPattern(
-    entity_type="NATIONAL_ID",
+    entity_type=ET.NATIONAL_ID,
     locale="IT",
     pattern=re.compile(r"\b[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]\b"),
     confidence=0.95,
@@ -23,7 +24,7 @@ IT_FISCAL_CODE = EntityPattern(
 # =============================================================================
 
 IT_PHONE = EntityPattern(
-    entity_type="PHONE",
+    entity_type=ET.PHONE_NUMBER,
     locale="IT",
     pattern=re.compile(r"(?:\+39\s?)?3\d{9}\b"),
     confidence=0.9,
@@ -36,7 +37,7 @@ IT_PHONE = EntityPattern(
 # =============================================================================
 
 IT_POSTAL_CODE = EntityPattern(
-    entity_type="POSTAL_CODE",
+    entity_type=ET.POSTAL_CODE,
     locale="IT",
     pattern=re.compile(r"\b\d{5}\b"),
     confidence=0.6,
@@ -50,7 +51,7 @@ IT_POSTAL_CODE = EntityPattern(
 # =============================================================================
 
 IT_IBAN = EntityPattern(
-    entity_type="IBAN",
+    entity_type=ET.IBAN,
     locale="IT",
     pattern=re.compile(r"\bIT\d{2}\s?[A-Z]\s?\d{5}\s?\d{5}\s?\d{12}\b"),
     confidence=0.95,
@@ -64,7 +65,7 @@ IT_IBAN = EntityPattern(
 # =============================================================================
 
 IT_VAT = EntityPattern(
-    entity_type="TAX_ID",
+    entity_type=ET.TAX_ID,
     locale="IT",
     pattern=re.compile(r"\b\d{11}\b"),
     confidence=0.7,

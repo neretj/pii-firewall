@@ -2,6 +2,7 @@
 
 import re
 from ..catalog import EntityPattern
+from ... import entity_types as ET
 
 
 # =============================================================================
@@ -9,7 +10,7 @@ from ..catalog import EntityPattern
 # =============================================================================
 
 GLOBAL_EMAIL = EntityPattern(
-    entity_type="EMAIL",
+    entity_type=ET.EMAIL,
     locale="GLOBAL",
     pattern=re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"),
     confidence=1.0,
@@ -22,7 +23,7 @@ GLOBAL_EMAIL = EntityPattern(
 # =============================================================================
 
 GLOBAL_IP_V4 = EntityPattern(
-    entity_type="IP_ADDRESS",
+    entity_type=ET.IP_ADDRESS,
     locale="GLOBAL",
     pattern=re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"),
     confidence=0.9,
@@ -30,7 +31,7 @@ GLOBAL_IP_V4 = EntityPattern(
 )
 
 GLOBAL_IP_V6 = EntityPattern(
-    entity_type="IP_ADDRESS",
+    entity_type=ET.IP_ADDRESS,
     locale="GLOBAL",
     pattern=re.compile(r"\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b"),
     confidence=0.95,
@@ -43,7 +44,7 @@ GLOBAL_IP_V6 = EntityPattern(
 # =============================================================================
 
 GLOBAL_CREDIT_CARD = EntityPattern(
-    entity_type="CREDIT_CARD",
+    entity_type=ET.CREDIT_CARD,
     locale="GLOBAL",
     pattern=re.compile(r"\b(?:\d{4}[-\s]?){3}\d{4}\b"),
     confidence=0.8,
@@ -57,7 +58,7 @@ GLOBAL_CREDIT_CARD = EntityPattern(
 # =============================================================================
 
 GLOBAL_URL = EntityPattern(
-    entity_type="URL",
+    entity_type=ET.URL,
     locale="GLOBAL",
     pattern=re.compile(r"\b(?:https?|ftp)://[^\s/$.?#].[^\s]*\b", re.IGNORECASE),
     confidence=0.95,
@@ -70,7 +71,7 @@ GLOBAL_URL = EntityPattern(
 # =============================================================================
 
 GLOBAL_MAC_ADDRESS = EntityPattern(
-    entity_type="MAC_ADDRESS",
+    entity_type=ET.MAC_ADDRESS,
     locale="GLOBAL",
     pattern=re.compile(r"\b(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}\b"),
     confidence=0.9,

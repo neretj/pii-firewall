@@ -2,6 +2,7 @@
 
 import re
 from ..catalog import EntityPattern
+from ... import entity_types as ET
 
 
 # =============================================================================
@@ -9,7 +10,7 @@ from ..catalog import EntityPattern
 # =============================================================================
 
 US_SSN = EntityPattern(
-    entity_type="SSN",
+    entity_type=ET.SSN,
     locale="US",
     pattern=re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
     confidence=1.0,
@@ -18,7 +19,7 @@ US_SSN = EntityPattern(
 )
 
 US_SSN_NO_DASH = EntityPattern(
-    entity_type="SSN",
+    entity_type=ET.SSN,
     locale="US",
     pattern=re.compile(r"\b\d{9}\b"),
     confidence=0.7,
@@ -32,7 +33,7 @@ US_SSN_NO_DASH = EntityPattern(
 # =============================================================================
 
 US_PHONE = EntityPattern(
-    entity_type="PHONE",
+    entity_type=ET.PHONE_NUMBER,
     locale="US",
     pattern=re.compile(r"\b(?:\+1\s?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"),
     confidence=0.9,
@@ -40,7 +41,7 @@ US_PHONE = EntityPattern(
 )
 
 US_PHONE_SHORT = EntityPattern(
-    entity_type="PHONE",
+    entity_type=ET.PHONE_NUMBER,
     locale="US",
     pattern=re.compile(r"(?<!\w)(?:\+1[-.\s]?)?\d{3}[-.\s]?\d{4}\b"),
     confidence=0.8,
@@ -54,7 +55,7 @@ US_PHONE_SHORT = EntityPattern(
 # =============================================================================
 
 US_ZIP_CODE = EntityPattern(
-    entity_type="POSTAL_CODE",
+    entity_type=ET.POSTAL_CODE,
     locale="US",
     pattern=re.compile(r"\b\d{5}(?:-\d{4})?\b"),
     confidence=0.7,
@@ -68,7 +69,7 @@ US_ZIP_CODE = EntityPattern(
 # =============================================================================
 
 US_DRIVERS_LICENSE = EntityPattern(
-    entity_type="DRIVERS_LICENSE",
+    entity_type=ET.DRIVERS_LICENSE,
     locale="US",
     pattern=re.compile(r"\b[A-Z]\d{7,14}\b"),
     confidence=0.6,
@@ -77,7 +78,7 @@ US_DRIVERS_LICENSE = EntityPattern(
 )
 
 US_PASSPORT = EntityPattern(
-    entity_type="PASSPORT",
+    entity_type=ET.PASSPORT,
     locale="US",
     pattern=re.compile(r"\b[0-9]{9}\b"),
     confidence=0.7,
@@ -91,7 +92,7 @@ US_PASSPORT = EntityPattern(
 # =============================================================================
 
 US_AGE = EntityPattern(
-    entity_type="AGE",
+    entity_type=ET.AGE,
     locale="US",
     pattern=re.compile(r"\b(\d{1,3})\s*(?:years?\s+old|y\.?o\.?|yrs?\s+old)\b", re.IGNORECASE),
     confidence=0.9,
@@ -104,7 +105,7 @@ US_AGE = EntityPattern(
 # =============================================================================
 
 US_MEDICAL_RECORD = EntityPattern(
-    entity_type="MEDICAL_RECORD",
+    entity_type=ET.MEDICAL_RECORD,
     locale="US",
     pattern=re.compile(r"\b(?:MRN|mrn)[\s:-]?\d{6,10}\b"),
     confidence=0.85,
@@ -118,7 +119,7 @@ US_MEDICAL_RECORD = EntityPattern(
 # =============================================================================
 
 US_ROUTING_NUMBER = EntityPattern(
-    entity_type="ROUTING_NUMBER",
+    entity_type=ET.ROUTING_NUMBER,
     locale="US",
     pattern=re.compile(r"\b\d{9}\b"),
     confidence=0.6,
@@ -127,7 +128,7 @@ US_ROUTING_NUMBER = EntityPattern(
 )
 
 US_ACCOUNT_NUMBER = EntityPattern(
-    entity_type="ACCOUNT_NUMBER",
+    entity_type=ET.ACCOUNT_NUMBER,
     locale="US",
     pattern=re.compile(r"\b\d{8,17}\b"),
     confidence=0.5,
@@ -141,7 +142,7 @@ US_ACCOUNT_NUMBER = EntityPattern(
 # =============================================================================
 
 US_EIN = EntityPattern(
-    entity_type="TAX_ID",
+    entity_type=ET.TAX_ID,
     locale="US",
     pattern=re.compile(r"\b\d{2}-\d{7}\b"),
     confidence=0.9,

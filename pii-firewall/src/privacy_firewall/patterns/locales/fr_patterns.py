@@ -2,6 +2,7 @@
 
 import re
 from ..catalog import EntityPattern
+from ... import entity_types as ET
 
 
 # =============================================================================
@@ -9,7 +10,7 @@ from ..catalog import EntityPattern
 # =============================================================================
 
 FR_INSEE = EntityPattern(
-    entity_type="NATIONAL_ID",
+    entity_type=ET.NATIONAL_ID,
     locale="FR",
     pattern=re.compile(r"\b[12]\d{12}\b"),
     confidence=0.95,
@@ -23,7 +24,7 @@ FR_INSEE = EntityPattern(
 # =============================================================================
 
 FR_PHONE = EntityPattern(
-    entity_type="PHONE",
+    entity_type=ET.PHONE_NUMBER,
     locale="FR",
     pattern=re.compile(r"(?<!\d)(?:\+33\s?)?[1-9](?:\s?\d{2}){4}(?!\d)"),
     confidence=0.9,
@@ -36,7 +37,7 @@ FR_PHONE = EntityPattern(
 # =============================================================================
 
 FR_POSTAL_CODE = EntityPattern(
-    entity_type="POSTAL_CODE",
+    entity_type=ET.POSTAL_CODE,
     locale="FR",
     pattern=re.compile(r"\b\d{5}\b"),
     confidence=0.6,
@@ -50,7 +51,7 @@ FR_POSTAL_CODE = EntityPattern(
 # =============================================================================
 
 FR_IBAN = EntityPattern(
-    entity_type="IBAN",
+    entity_type=ET.IBAN,
     locale="FR",
     pattern=re.compile(r"\bFR\d{2}\s?\d{5}\s?\d{5}\s?\d{11}\s?\d{2}\b"),
     confidence=0.95,
@@ -64,7 +65,7 @@ FR_IBAN = EntityPattern(
 # =============================================================================
 
 FR_PASSPORT = EntityPattern(
-    entity_type="PASSPORT",
+    entity_type=ET.PASSPORT,
     locale="FR",
     pattern=re.compile(r"\b\d{2}[A-Z]{2}\d{5}\b"),
     confidence=0.75,

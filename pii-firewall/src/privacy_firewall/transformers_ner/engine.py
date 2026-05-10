@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..types import Entity
+from .. import entity_types as ET
 
 
 @dataclass
@@ -112,34 +113,27 @@ class TransformerNEREngine:
     
     @staticmethod
     def _normalize_entity_type(entity_group: str) -> str:
-        """Normalize transformer entity types to our standard types.
-        
-        Transformer models often use different label sets:
-        - CoNLL: PER, ORG, LOC, MISC
-        - OntoNotes: PERSON, ORG, GPE, DATE, etc.
-        
-        We normalize to a consistent set.
-        """
-        # Map common variations to standard types
-        mapping = {
-            "PER": "PERSON",
-            "PERSON": "PERSON",
-            "ORG": "ORGANIZATION",
-            "ORGANIZATION": "ORGANIZATION",
-            "LOC": "LOCATION",
-            "LOCATION": "LOCATION",
-            "GPE": "LOCATION",  # Geo-political entity
-            "MISC": "MISC",
-            
+        """Normalize generic transformer entity labels to canonical entity types."""
+        mapping: dict[str, str] = {
+            # CoNLL-style labels
+            "PER":          ET.PERSON,
+            "PERSON":       ET.PERSON,
+            "ORG":          ET.COMPANY_NAME,
+            "ORGANIZATION": ET.COMPANY_NAME,
+            "LOC":          ET.LOCATION,
+            "LOCATION":     ET.LOCATION,
+            "GPE":          ET.LOCATION,
+            # OntoNotes labels
+            "DATE":         ET.DATE_TIME,
+            "TIME":         ET.DATE_TIME,
+            "MONEY":        ET.TRANSACTION_AMOUNT,
+            "PERCENT":      ET.PERCENTAGE,
+            "CARDINAL":     ET.TRANSACTION_AMOUNT,
             # Medical (BioBERT)
-            "DISEASE": "DIAGNOSIS",
-            "CHEMICAL": "DRUG",
-            
-            # Financial (FinBERT)
-            "MONEY": "TRANSACTION_AMOUNT",
-            "PERCENT": "PERCENTAGE",
+            "DISEASE":      ET.DIAGNOSIS,
+            "CHEMICAL":     ET.DRUG,
+            "DRUG":         ET.DRUG,
         }
-        
         return mapping.get(entity_group.upper(), entity_group.upper())
 
 
@@ -166,42 +160,42 @@ class DomainTransformerNEREngine(TransformerNEREngine):
     
     @staticmethod
     def _normalize_medical_entity(entity_group: str) -> str:
-        """Normalize medical entity types."""
-        mapping = {
-            "DISEASE": "DIAGNOSIS",
-            "DISORDER": "DIAGNOSIS",
-            "SYMPTOM": "SYMPTOM",
-            "CHEMICAL": "DRUG",
-            "DRUG": "DRUG",
-            "PROCEDURE": "PROCEDURE",
-            "TEST": "LAB_VALUE",
-            "ANATOMY": "ANATOMICAL_SITE",
+        """Normalize medical entity labels to canonical types."""
+        mapping: dict[str, str] = {
+            "DISEASE":   ET.DIAGNOSIS,
+            "DISORDER":  ET.DIAGNOSIS,
+            "SYMPTOM":   ET.SYMPTOM,
+            "CHEMICAL":  ET.DRUG,
+            "DRUG":      ET.DRUG,
+            "PROCEDURE": ET.PROCEDURE,
+            "TEST":      ET.LAB_VALUE,
+            "ANATOMY":   ET.ANATOMICAL_SITE,
         }
         return mapping.get(entity_group.upper(), entity_group.upper())
     
     @staticmethod
     def _normalize_financial_entity(entity_group: str) -> str:
-        """Normalize financial entity types."""
-        mapping = {
-            "MONEY": "TRANSACTION_AMOUNT",
-            "CURRENCY": "CURRENCY",
-            "ORG": "COMPANY_NAME",
-            "ORGANIZATION": "COMPANY_NAME",
-            "PERCENT": "PERCENTAGE",
-            "DATE": "DATE",
+        """Normalize financial entity labels to canonical types."""
+        mapping: dict[str, str] = {
+            "MONEY":        ET.TRANSACTION_AMOUNT,
+            "CURRENCY":     ET.CURRENCY,
+            "ORG":          ET.COMPANY_NAME,
+            "ORGANIZATION": ET.COMPANY_NAME,
+            "PERCENT":      ET.PERCENTAGE,
+            "DATE":         ET.DATE_TIME,
         }
         return mapping.get(entity_group.upper(), entity_group.upper())
     
     @staticmethod
     def _normalize_legal_entity(entity_group: str) -> str:
-        """Normalize legal entity types."""
-        mapping = {
-            "COURT": "LEGAL_ENTITY",
-            "JUDGE": "PERSON",
-            "LAWYER": "PERSON",
-            "CASE": "CASE_NUMBER",
-            "STATUTE": "STATUTE",
-            "ORG": "ORGANIZATION",
-            "LAW": "STATUTE",
+        """Normalize legal entity labels to canonical types."""
+        mapping: dict[str, str] = {
+            "COURT":  ET.LEGAL_ENTITY,
+            "JUDGE":  ET.PERSON,
+            "LAWYER": ET.PERSON,
+            "CASE":   ET.CASE_NUMBER,
+            "STATUTE": ET.STATUTE,
+            "ORG":    ET.COMPANY_NAME,
+            "LAW":    ET.STATUTE,
         }
         return mapping.get(entity_group.upper(), entity_group.upper())

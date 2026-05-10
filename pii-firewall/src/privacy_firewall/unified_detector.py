@@ -10,38 +10,42 @@ from .types import Entity
 from .language import LanguageDetector, ThreadLanguageCache, LanguageRouter
 from .patterns import PatternCatalog, create_default_catalog
 from .profiles import DomainProfile
+from . import entity_types as ET
 
 
+# Canonical mapping from GLiNER label strings → internal entity type constants.
+# GLiNER uses free-text labels — keep this in sync with the labels passed to
+# predict_entities() in _detect_with_gliner().
 GLINER_LABEL_TO_ENTITY: dict[str, str] = {
-    "name": "PERSON",
-    "first name": "PERSON",
-    "last name": "PERSON",
-    "email address": "EMAIL",
-    "phone number": "PHONE_NUMBER",
-    "location address": "ADDRESS",
-    "location city": "LOCATION",
-    "location state": "LOCATION",
-    "location country": "LOCATION",
-    "location zip": "POSTAL_CODE",
-    "dob": "DATE_TIME",
-    "date of birth": "DATE_TIME",
-    "date": "DATE_TIME",
-    "passport number": "PASSPORT",
-    "driver license": "NATIONAL_ID",
-    "ssn": "SSN",
-    "national id": "NATIONAL_ID",
-    "tax id": "TAX_ID",
-    "medical record number": "MEDICAL_RECORD",
-    "healthcare number": "MEDICAL_RECORD",
-    "account number": "ACCOUNT_NUMBER",
-    "bank account": "ACCOUNT_NUMBER",
-    "routing number": "ACCOUNT_NUMBER",
-    "credit card": "CREDIT_CARD",
-    "url": "URL",
-    "ip address": "IP_ADDRESS",
-    "username": "SECRET",
-    "password": "SECRET",
-    "api key": "SECRET",
+    "name":                  ET.PERSON,
+    "first name":            ET.PERSON,
+    "last name":             ET.PERSON,
+    "email address":         ET.EMAIL,
+    "phone number":          ET.PHONE_NUMBER,
+    "location address":      ET.ADDRESS,
+    "location city":         ET.LOCATION,
+    "location state":        ET.LOCATION,
+    "location country":      ET.LOCATION,
+    "location zip":          ET.POSTAL_CODE,
+    "dob":                   ET.DATE_TIME,
+    "date of birth":         ET.DATE_TIME,
+    "date":                  ET.DATE_TIME,
+    "passport number":       ET.PASSPORT,
+    "driver license":        ET.DRIVERS_LICENSE,
+    "ssn":                   ET.SSN,
+    "national id":           ET.NATIONAL_ID,
+    "tax id":                ET.TAX_ID,
+    "medical record number": ET.MEDICAL_RECORD,
+    "healthcare number":     ET.MEDICAL_RECORD,
+    "account number":        ET.ACCOUNT_NUMBER,
+    "bank account":          ET.ACCOUNT_NUMBER,
+    "routing number":        ET.ACCOUNT_NUMBER,
+    "credit card":           ET.CREDIT_CARD,
+    "url":                   ET.URL,
+    "ip address":            ET.IP_ADDRESS,
+    "username":              ET.SECRET,
+    "password":              ET.SECRET,
+    "api key":               ET.SECRET,
 }
 
 
@@ -560,17 +564,17 @@ class UnifiedDetectionEngine:
 
     @staticmethod
     def _map_opf_label(label: str) -> str | None:
-        """Map OPF labels to internal entity types used by profiles."""
+        """Map OPF labels to canonical entity types."""
         label_norm = label.strip().lower()
-        mapping = {
-            "private_person": "PERSON",
-            "private_email": "EMAIL",
-            "private_phone": "PHONE_NUMBER",
-            "private_date": "DATE_TIME",
-            "private_address": "ADDRESS",
-            "private_url": "URL",
-            "account_number": "ACCOUNT_NUMBER",
-            "secret": "SECRET",
+        mapping: dict[str, str] = {
+            "private_person":  ET.PERSON,
+            "private_email":   ET.EMAIL,
+            "private_phone":   ET.PHONE_NUMBER,
+            "private_date":    ET.DATE_TIME,
+            "private_address": ET.ADDRESS,
+            "private_url":     ET.URL,
+            "account_number":  ET.ACCOUNT_NUMBER,
+            "secret":          ET.SECRET,
         }
         return mapping.get(label_norm)
 
@@ -581,59 +585,59 @@ class UnifiedDetectionEngine:
 
     @staticmethod
     def _map_nemotron_label(label: str) -> str | None:
-        """Map Nemotron (or OPF-compatible) labels to internal entity types."""
+        """Map Nemotron (OPF-compatible) labels to canonical entity types."""
         label_norm = label.strip().lower()
-        mapping = {
+        mapping: dict[str, str] = {
             # OPF-compatible coarse labels
-            "private_person": "PERSON",
-            "private_email": "EMAIL",
-            "private_phone": "PHONE_NUMBER",
-            "private_date": "DATE_TIME",
-            "private_address": "ADDRESS",
-            "private_url": "URL",
-            "account_number": "ACCOUNT_NUMBER",
-            "secret": "SECRET",
+            "private_person":  ET.PERSON,
+            "private_email":   ET.EMAIL,
+            "private_phone":   ET.PHONE_NUMBER,
+            "private_date":    ET.DATE_TIME,
+            "private_address": ET.ADDRESS,
+            "private_url":     ET.URL,
+            "account_number":  ET.ACCOUNT_NUMBER,
+            "secret":          ET.SECRET,
             # Nemotron fine-grained labels
-            "first_name": "PERSON",
-            "last_name": "PERSON",
-            "user_name": "SECRET",
-            "email": "EMAIL",
-            "phone_number": "PHONE_NUMBER",
-            "fax_number": "PHONE_NUMBER",
-            "url": "URL",
-            "street_address": "ADDRESS",
-            "city": "LOCATION",
-            "county": "LOCATION",
-            "state": "LOCATION",
-            "country": "LOCATION",
-            "postcode": "POSTAL_CODE",
-            "date": "DATE_TIME",
-            "date_of_birth": "DATE_TIME",
-            "date_time": "DATE_TIME",
-            "time": "DATE_TIME",
-            "ssn": "SSN",
-            "national_id": "NATIONAL_ID",
-            "tax_id": "TAX_ID",
-            "credit_debit_card": "CREDIT_CARD",
-            "bank_routing_number": "ACCOUNT_NUMBER",
-            "swift_bic": "ACCOUNT_NUMBER",
-            "cvv": "SECRET",
-            "pin": "SECRET",
-            "password": "SECRET",
-            "medical_record_number": "MEDICAL_RECORD",
-            "health_plan_beneficiary_number": "MEDICAL_RECORD",
-            "customer_id": "NATIONAL_ID",
-            "employee_id": "NATIONAL_ID",
-            "unique_id": "NATIONAL_ID",
-            "certificate_license_number": "NATIONAL_ID",
-            "license_plate": "NATIONAL_ID",
-            "vehicle_identifier": "NATIONAL_ID",
-            "ipv4": "IP_ADDRESS",
-            "ipv6": "IP_ADDRESS",
-            "mac_address": "IP_ADDRESS",
-            "device_identifier": "NATIONAL_ID",
-            "api_key": "SECRET",
-            "http_cookie": "SECRET",
+            "first_name":                     ET.PERSON,
+            "last_name":                      ET.PERSON,
+            "user_name":                      ET.SECRET,
+            "email":                          ET.EMAIL,
+            "phone_number":                   ET.PHONE_NUMBER,
+            "fax_number":                     ET.PHONE_NUMBER,
+            "url":                            ET.URL,
+            "street_address":                 ET.ADDRESS,
+            "city":                           ET.LOCATION,
+            "county":                         ET.LOCATION,
+            "state":                          ET.LOCATION,
+            "country":                        ET.LOCATION,
+            "postcode":                       ET.POSTAL_CODE,
+            "date":                           ET.DATE_TIME,
+            "date_of_birth":                  ET.DATE_TIME,
+            "date_time":                      ET.DATE_TIME,
+            "time":                           ET.DATE_TIME,
+            "ssn":                            ET.SSN,
+            "national_id":                    ET.NATIONAL_ID,
+            "tax_id":                         ET.TAX_ID,
+            "credit_debit_card":              ET.CREDIT_CARD,
+            "bank_routing_number":            ET.ACCOUNT_NUMBER,
+            "swift_bic":                      ET.ACCOUNT_NUMBER,
+            "cvv":                            ET.SECRET,
+            "pin":                            ET.SECRET,
+            "password":                       ET.SECRET,
+            "medical_record_number":          ET.MEDICAL_RECORD,
+            "health_plan_beneficiary_number": ET.MEDICAL_RECORD,
+            "customer_id":                    ET.NATIONAL_ID,
+            "employee_id":                    ET.NATIONAL_ID,
+            "unique_id":                      ET.NATIONAL_ID,
+            "certificate_license_number":     ET.NATIONAL_ID,
+            "license_plate":                  ET.LICENSE_PLATE,
+            "vehicle_identifier":             ET.NATIONAL_ID,
+            "ipv4":                           ET.IP_ADDRESS,
+            "ipv6":                           ET.IP_ADDRESS,
+            "mac_address":                    ET.IP_ADDRESS,
+            "device_identifier":              ET.NATIONAL_ID,
+            "api_key":                        ET.SECRET,
+            "http_cookie":                    ET.SECRET,
         }
         return mapping.get(label_norm)
     
@@ -661,29 +665,29 @@ class UnifiedDetectionEngine:
         """
         # Tier 1: High-precision pattern matches (100 points base)
         if entity_type in {
-            "PHONE_NUMBER", "PHONE", "EMAIL", "EMAIL_ADDRESS",
-            "SSN", "IBAN", "CREDIT_CARD", "IP_ADDRESS", "URL", "SECRET",
+            ET.PHONE_NUMBER, ET.EMAIL,
+            ET.SSN, ET.IBAN, ET.CREDIT_CARD, ET.IP_ADDRESS, ET.URL, ET.SECRET,
         }:
             return 100
         
-        # Tier 2: National IDs and medical records (80 points)
+        # Tier 2: National IDs and financial/medical records (80 points)
         if entity_type in {
-            "ES_DNI", "NATIONAL_ID", "MEDICAL_RECORD", "PASSPORT",
-            "TAX_ID", "ACCOUNT_NUMBER",
+            ET.NATIONAL_ID, ET.MEDICAL_RECORD, ET.PASSPORT, ET.DRIVERS_LICENSE,
+            ET.TAX_ID, ET.ACCOUNT_NUMBER,
         }:
             return 80
         
         # Tier 3: Dates and times (60 points)
-        if entity_type in {"DATE_TIME", "DATE", "TIME"}:
+        if entity_type in {ET.DATE_TIME, ET.DATE}:
             return 60
         
         # Tier 4: Person names (40 points)
         # Lower priority because NER can mis-tag non-person text as PERSON
-        if entity_type == "PERSON":
+        if entity_type == ET.PERSON:
             return 40
         
         # Tier 5: Locations (30 points)
-        if entity_type in {"LOCATION", "ADDRESS", "CITY", "COUNTRY", "POSTAL_CODE"}:
+        if entity_type in {ET.LOCATION, ET.ADDRESS, ET.POSTAL_CODE}:
             return 30
         
         # Tier 6: Everything else (10 points)

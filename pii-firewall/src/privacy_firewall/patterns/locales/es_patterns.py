@@ -2,6 +2,7 @@
 
 import re
 from ..catalog import EntityPattern
+from ... import entity_types as ET
 
 
 # =============================================================================
@@ -9,7 +10,7 @@ from ..catalog import EntityPattern
 # =============================================================================
 
 ES_DNI = EntityPattern(
-    entity_type="NATIONAL_ID",
+    entity_type=ET.NATIONAL_ID,
     locale="ES",
     pattern=re.compile(r"\b\d{8}[A-Z]\b"),
     confidence=1.0,
@@ -18,7 +19,7 @@ ES_DNI = EntityPattern(
 )
 
 ES_NIE = EntityPattern(
-    entity_type="NATIONAL_ID",
+    entity_type=ET.NATIONAL_ID,
     locale="ES",
     pattern=re.compile(r"\b[XYZ]\d{7}[A-Z]\b"),
     confidence=1.0,
@@ -32,7 +33,7 @@ ES_NIE = EntityPattern(
 # =============================================================================
 
 ES_PHONE_MOBILE = EntityPattern(
-    entity_type="PHONE",
+    entity_type=ET.PHONE_NUMBER,
     locale="ES",
     pattern=re.compile(r"(?<!\w)(?:\+34\s?)?[67]\d{8}\b"),
     confidence=1.0,
@@ -40,7 +41,7 @@ ES_PHONE_MOBILE = EntityPattern(
 )
 
 ES_PHONE_LANDLINE = EntityPattern(
-    entity_type="PHONE",
+    entity_type=ET.PHONE_NUMBER,
     locale="ES",
     pattern=re.compile(r"(?<!\w)(?:\+34\s?)?[89]\d{8}\b"),
     confidence=1.0,
@@ -53,7 +54,7 @@ ES_PHONE_LANDLINE = EntityPattern(
 # =============================================================================
 
 ES_SOCIAL_SECURITY = EntityPattern(
-    entity_type="SSN",
+    entity_type=ET.SSN,
     locale="ES",
     pattern=re.compile(r"\b\d{12}\b"),
     confidence=0.7,
@@ -67,7 +68,7 @@ ES_SOCIAL_SECURITY = EntityPattern(
 # =============================================================================
 
 ES_IBAN = EntityPattern(
-    entity_type="IBAN",
+    entity_type=ET.IBAN,
     locale="ES",
     pattern=re.compile(r"\bES\d{2}\s?\d{4}\s?\d{4}\s?\d{2}\s?\d{10}\b"),
     confidence=0.95,
@@ -81,7 +82,7 @@ ES_IBAN = EntityPattern(
 # =============================================================================
 
 ES_POSTAL_CODE = EntityPattern(
-    entity_type="POSTAL_CODE",
+    entity_type=ET.POSTAL_CODE,
     locale="ES",
     pattern=re.compile(r"\b\d{5}\b"),
     confidence=0.6,
@@ -95,7 +96,7 @@ ES_POSTAL_CODE = EntityPattern(
 # =============================================================================
 
 ES_LICENSE_PLATE = EntityPattern(
-    entity_type="LICENSE_PLATE",
+    entity_type=ET.LICENSE_PLATE,
     locale="ES",
     pattern=re.compile(r"\b\d{4}\s?[A-Z]{3}\b"),
     confidence=0.8,
@@ -109,7 +110,7 @@ ES_LICENSE_PLATE = EntityPattern(
 # =============================================================================
 
 ES_AGE = EntityPattern(
-    entity_type="AGE",
+    entity_type=ET.AGE,
     locale="ES",
     pattern=re.compile(r"\b(\d{1,3})\s*(?:años?|a\u00f1os?)\b", re.IGNORECASE),
     confidence=0.9,
@@ -122,7 +123,7 @@ ES_AGE = EntityPattern(
 # =============================================================================
 
 ES_MEDICAL_RECORD = EntityPattern(
-    entity_type="MEDICAL_RECORD",
+    entity_type=ET.MEDICAL_RECORD,
     locale="ES",
     pattern=re.compile(r"\b(?:NHC|nhc)[\s:-]?\d{6,10}\b"),
     confidence=0.85,
@@ -136,7 +137,7 @@ ES_MEDICAL_RECORD = EntityPattern(
 # =============================================================================
 
 ES_PASSPORT = EntityPattern(
-    entity_type="PASSPORT",
+    entity_type=ET.PASSPORT,
     locale="ES",
     pattern=re.compile(r"\b[A-Z]{3}\d{6}\b"),
     confidence=0.75,
