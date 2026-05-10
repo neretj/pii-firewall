@@ -25,10 +25,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/neretj/pii-firewall"
-Repository = "https://github.com/neretj/pii-firewall"
-Documentation = "https://github.com/neretj/pii-firewall#readme"
-Issues = "https://github.com/neretj/pii-firewall/issues"
+Homepage = "https://github.com/neretj/llm-pii-firewall"
+Repository = "https://github.com/neretj/llm-pii-firewall"
+Documentation = "https://github.com/neretj/llm-pii-firewall/tree/main/pii-firewall/docs"
+Issues = "https://github.com/neretj/llm-pii-firewall/issues"
 
 [project.optional-dependencies]
 dev = [
