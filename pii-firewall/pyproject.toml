@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pii-firewall"
+version = "0.1.0"
+description = "Privacy firewall layer for agent systems (Option C MVP)"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "LocalModel"}]
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["pii", "privacy", "anonymization", "redaction", "llm", "gdpr"]
+dependencies = []
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Security",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/neretj/pii-firewall"
+Repository = "https://github.com/neretj/pii-firewall"
+Documentation = "https://github.com/neretj/pii-firewall#readme"
+Issues = "https://github.com/neretj/pii-firewall/issues"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+presidio = [
+  "presidio-analyzer>=2.2.0",
+  "presidio-anonymizer>=2.2.0",
+  "spacy>=3.7.0",
+]
+langdetect = [
+  "langdetect>=1.0.9",
+]
+fasttext = [
+  "fasttext>=0.9.2",
+]
+transformers = [
+  "transformers>=4.30.0",
+  "torch>=2.0.0",
+]
+opf = [
+  "opf",
+]
+gliner = [
+  "gliner>=0.2.9",
+]
+web = [
+  "fastapi>=0.115.0",
+  "uvicorn>=0.30.0",
+  "python-dotenv>=1.0.1",
+]
+all = [
+  "presidio-analyzer>=2.2.0",
+  "presidio-anonymizer>=2.2.0",
+  "spacy>=3.7.0",
+  "langdetect>=1.0.9",
+  "transformers>=4.30.0",
+  "torch>=2.0.0",
+  "opf",
+  "gliner>=0.2.9",
+  "fastapi>=0.115.0",
+  "uvicorn>=0.30.0",
+  "python-dotenv>=1.0.1",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests_integration"]

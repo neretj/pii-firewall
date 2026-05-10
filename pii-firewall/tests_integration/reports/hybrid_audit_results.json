@@ -1,0 +1,415 @@
+{
+  "generated_at": "2026-04-28T21:56:53.893658+00:00",
+  "backend": "hybrid",
+  "profile": "generic",
+  "languages": {
+    "es": {
+      "total_queries": 10,
+      "http_failures": [
+        {
+          "idx": 1,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 2,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 3,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 4,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 5,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 6,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 7,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 8,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 9,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 10,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        }
+      ],
+      "structured_expected": 0,
+      "structured_fully_sanitized": 0,
+      "query_results": []
+    },
+    "en": {
+      "total_queries": 10,
+      "http_failures": [
+        {
+          "idx": 1,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 2,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 3,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 4,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 5,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 6,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 7,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 8,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 9,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 10,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        }
+      ],
+      "structured_expected": 0,
+      "structured_fully_sanitized": 0,
+      "query_results": []
+    },
+    "fr": {
+      "total_queries": 10,
+      "http_failures": [
+        {
+          "idx": 1,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 2,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 3,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 4,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 5,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 6,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 7,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 8,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 9,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 10,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        }
+      ],
+      "structured_expected": 0,
+      "structured_fully_sanitized": 0,
+      "query_results": []
+    },
+    "de": {
+      "total_queries": 10,
+      "http_failures": [
+        {
+          "idx": 1,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 2,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 3,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 4,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 5,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 6,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 7,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 8,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 9,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 10,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        }
+      ],
+      "structured_expected": 0,
+      "structured_fully_sanitized": 0,
+      "query_results": []
+    },
+    "it": {
+      "total_queries": 10,
+      "http_failures": [
+        {
+          "idx": 1,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 2,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 3,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 4,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 5,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 6,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 7,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 8,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 9,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 10,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        }
+      ],
+      "structured_expected": 0,
+      "structured_fully_sanitized": 0,
+      "query_results": []
+    },
+    "pt": {
+      "total_queries": 10,
+      "http_failures": [
+        {
+          "idx": 1,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 2,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 3,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 4,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 5,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 6,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 7,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 8,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 9,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        },
+        {
+          "idx": 10,
+          "status": 500,
+          "unavailable": true,
+          "detail": "{\"detail\":\"cannot import name 'DomainTransformerNEREngine' from 'src.privacy_firewall.transformers_ner' (C:\\\\Users\\\\nerea\\\\repo\\\\localmodel\\\\artifacts\\\\pii-firewall\\\\src\\\\privacy_firewall\\\\transformers_ner\\\\__init__.py)\"}"
+        }
+      ],
+      "structured_expected": 0,
+      "structured_fully_sanitized": 0,
+      "query_results": []
+    }
+  }
+}

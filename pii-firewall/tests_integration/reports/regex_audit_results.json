@@ -1,0 +1,613 @@
+{
+  "generated_at": "2026-04-28T21:57:06.033378+00:00",
+  "backend": "regex",
+  "profile": "generic",
+  "languages": {
+    "es": {
+      "total_queries": 10,
+      "http_failures": [],
+      "structured_expected": 6,
+      "structured_fully_sanitized": 6,
+      "query_results": [
+        {
+          "idx": 1,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 1,
+          "expected_structured": [
+            "12345678A"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 2,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 1,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 3,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 2,
+          "expected_structured": [
+            "luis.garcia@mail.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 4,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 2,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 5,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 2,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 6,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 3,
+          "expected_structured": [
+            "ES9121000418450200051332"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 7,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 4,
+          "expected_structured": [
+            "+34612345678"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 8,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 5,
+          "expected_structured": [
+            "sofia.r@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 9,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 6,
+          "expected_structured": [
+            "87654321B"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 10,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 6,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        }
+      ]
+    },
+    "en": {
+      "total_queries": 10,
+      "http_failures": [],
+      "structured_expected": 6,
+      "structured_fully_sanitized": 6,
+      "query_results": [
+        {
+          "idx": 1,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 1,
+          "expected_structured": [
+            "123-45-6789"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 2,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 1,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 3,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 2,
+          "expected_structured": [
+            "sarah.s@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 4,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 2,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 5,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 2,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 6,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 3,
+          "expected_structured": [
+            "9876543210"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 7,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 4,
+          "expected_structured": [
+            "+1-555-0123"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 8,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 5,
+          "expected_structured": [
+            "lisa.a@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 9,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 6,
+          "expected_structured": [
+            "987-65-4321"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 10,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 6,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        }
+      ]
+    },
+    "fr": {
+      "total_queries": 10,
+      "http_failures": [],
+      "structured_expected": 6,
+      "structured_fully_sanitized": 3,
+      "query_results": [
+        {
+          "idx": 1,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 0,
+          "expected_structured": [
+            "2850312345678"
+          ],
+          "still_present_after_sanitize": [
+            "2850312345678"
+          ]
+        },
+        {
+          "idx": 2,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 0,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 3,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 1,
+          "expected_structured": [
+            "pierre.d@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 4,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 1,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 5,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 1,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 6,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 2,
+          "expected_structured": [
+            "FR7612345678901234567890123"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 7,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 2,
+          "expected_structured": [
+            "+33612345678"
+          ],
+          "still_present_after_sanitize": [
+            "+33612345678"
+          ]
+        },
+        {
+          "idx": 8,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 3,
+          "expected_structured": [
+            "claire.l@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 9,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 3,
+          "expected_structured": [
+            "1850312345678"
+          ],
+          "still_present_after_sanitize": [
+            "1850312345678"
+          ]
+        },
+        {
+          "idx": 10,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 3,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        }
+      ]
+    },
+    "de": {
+      "total_queries": 10,
+      "http_failures": [],
+      "structured_expected": 7,
+      "structured_fully_sanitized": 7,
+      "query_results": [
+        {
+          "idx": 1,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 1,
+          "expected_structured": [
+            "DE123456789"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 2,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 1,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 3,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 2,
+          "expected_structured": [
+            "anna.mueller@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 4,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 2,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 5,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 3,
+          "expected_structured": [
+            "20.06.1985"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 6,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 4,
+          "expected_structured": [
+            "DE89370400440532013000"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 7,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 5,
+          "expected_structured": [
+            "+4915112345678"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 8,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 6,
+          "expected_structured": [
+            "lisa.s@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 9,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 7,
+          "expected_structured": [
+            "DE987654321"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 10,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 7,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        }
+      ]
+    },
+    "it": {
+      "total_queries": 10,
+      "http_failures": [],
+      "structured_expected": 4,
+      "structured_fully_sanitized": 3,
+      "query_results": [
+        {
+          "idx": 1,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 1,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 2,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 1,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 3,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 2,
+          "expected_structured": [
+            "anna.rossi@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 4,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 2,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 5,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 2,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 6,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 3,
+          "expected_structured": [
+            "0542811101000000123456"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 7,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 3,
+          "expected_structured": [
+            "+393123456789"
+          ],
+          "still_present_after_sanitize": [
+            "+393123456789"
+          ]
+        },
+        {
+          "idx": 8,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 4,
+          "expected_structured": [
+            "elena.f@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 9,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 5,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 10,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 5,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        }
+      ]
+    },
+    "pt": {
+      "total_queries": 10,
+      "http_failures": [],
+      "structured_expected": 6,
+      "structured_fully_sanitized": 6,
+      "query_results": [
+        {
+          "idx": 1,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 1,
+          "expected_structured": [
+            "123.456.789-00"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 2,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 1,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 3,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 2,
+          "expected_structured": [
+            "maria.silva@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 4,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 2,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 5,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 2,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 6,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 3,
+          "expected_structured": [
+            "12345-6 78901-2"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 7,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 4,
+          "expected_structured": [
+            "+5511987654321"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 8,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 4,
+          "expected_structured": [
+            "mariana.f@example.com"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 9,
+          "blocked": false,
+          "detected_entities": 1,
+          "mapping_size": 5,
+          "expected_structured": [
+            "987.654.321-00"
+          ],
+          "still_present_after_sanitize": []
+        },
+        {
+          "idx": 10,
+          "blocked": false,
+          "detected_entities": 0,
+          "mapping_size": 5,
+          "expected_structured": [],
+          "still_present_after_sanitize": []
+        }
+      ]
+    }
+  }
+}

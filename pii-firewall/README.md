@@ -1,0 +1,459 @@
+# Privacy Firewall V2 🛡️
+
+**Best-in-class multi-language, domain-aware anonymization library for AI applications**
+
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## 🌟 Why Privacy Firewall V2?
+
+This library outperforms competitors by combining:
+- **Domain Awareness**: Keep relevant data (medical diagnoses in healthcare, transaction amounts in finance)
+- **Auto Language Detection**: Detects 55+ languages automatically with thread-level caching
+- **Locale-Specific Patterns**: Country-specific ID formats (Spanish DNI, US SSN, French INSEE, etc.)
+- **Multiple Detection Backends**: Pattern matching, Presidio (spaCy), OPF, GLiNER-PII, Nemotron privacy filter, and Transformers
+- **7 Disposition Actions**: Keep, Redact, Pseudonymize, Generalize, Mask, Hash, Suppress
+- **Reversible Anonymization**: Pseudonymization with secure vault storage
+- **Easy to Extend**: Add new locale = add one file
+
+## 📦 Quick Start
+
+### Installation
+
+```bash
+# From PyPI (basic, pattern-based)
+pip install pii-firewall
+
+# Recommended: With Presidio and language detection
+pip install "pii-firewall[presidio,langdetect]"
+
+# Full features (includes transformers, OPF, GLiNER)
+pip install "pii-firewall[all]"
+
+# Local development install
+pip install -e .
+
+# Focused installs
+pip install "pii-firewall[opf]"       # OPF runtime (or install from source if your environment requires it)
+pip install "pii-firewall[gliner]"    # GLiNER PII models
+```
+
+### Basic Usage
+
+```python
+from privacy_firewall import create_firewall
+
+# Create healthcare firewall (auto-detects language)
+firewall = create_firewall("healthcare")
+
+# Process text
+result = firewall.process(
+    text="Ana García, 43 años, hipertensión. Prescripción: enalapril 10mg.",
+    context={
+        "tenant_id": "hospital-001",
+        "case_id": "patient-123",
+        "thread_id": "consultation-1",
+        "actor_id": "doctor-456",
+    },
+)
+
+print(result.sanitized_text)
+# Output: "PERSON_1, [AGE_40-49], hipertensión. enalapril 10mg."
+# Notice: Medical terms (hipertensión, enalapril) are KEPT!
+```
+
+## 🎯 Domain Profiles
+
+### Healthcare
+Keeps medical data relevant for diagnosis while protecting patient identity:
+```python
+firewall = create_firewall("healthcare")
+
+# Keeps: diagnoses, medications, procedures, lab values
+# Redacts: names, IDs, addresses
+# Generalizes: ages (43 → 40-49), dates (specific → month/year)
+```
+
+### Finance
+Preserves transaction details while protecting PII:
+```python
+firewall = create_firewall("finance")
+
+# Keeps: transaction amounts, account types, credit scores
+# Redacts: medical information, customer PII
+# Masks: credit cards (4111...1111)
+# Pseudonymizes: account numbers (reversible)
+```
+
+### Legal
+High anonymity for legal documents:
+```python
+firewall = create_firewall("legal")
+
+# Keeps: case numbers, statutes, legal references
+# Pseudonymizes: party names (reversible for case management)
+# Generalizes: all dates to year only
+# Redacts: all strong identifiers
+```
+
+## 🌍 Multi-Language Support
+
+Auto-detects 55+ languages with 0ms overhead after first detection:
+
+```python
+firewall = create_firewall("healthcare")
+
+# Spanish - detected automatically
+result_es = firewall.process(
+    text="Paciente con diabetes tipo 2, DNI 12345678A",
+    context={...}
+)
+
+# English - detected automatically  
+result_en = firewall.process(
+    text="Patient with type 2 diabetes, SSN 123-45-6789",
+    context={...}
+)
+
+# French - detected automatically
+result_fr = firewall.process(
+    text="Patient avec diabète, INSEE 1234567890123",
+    context={...}
+)
+```
+
+**Supported locales**: ES, US, FR, DE, IT, PT, + global patterns
+
+## 🔧 Advanced Usage
+
+### Custom Profiles
+
+```python
+from privacy_firewall import (
+    PrivacyFirewallV2,
+    create_custom_profile,
+    EntityDisposition,
+    DispositionAction,
+)
+
+# Create custom profile
+profile = create_custom_profile("legal_discovery")
+
+# Add entity dispositions
+profile.add_disposition(EntityDisposition(
+    entity_type="PERSON",
+    action=DispositionAction.PSEUDONYMIZE,
+    confidence_threshold=0.8,
+))
+
+profile.add_disposition(EntityDisposition(
+    entity_type="CASE_NUMBER",
+    action=DispositionAction.KEEP,
+    confidence_threshold=0.9,
+))
+
+firewall = PrivacyFirewallV2(profile=profile)
+```
+
+### Custom Patterns
+
+```python
+import re
+from privacy_firewall.patterns import EntityPattern
+
+# Add custom pattern at runtime
+firewall.add_custom_pattern(EntityPattern(
+    entity_type="EMPLOYEE_ID",
+    locale="US",
+    pattern=re.compile(r"\bEMP-\d{6}\b"),
+    confidence=0.95,
+    context_words=("employee", "staff", "worker"),
+    description="Company employee IDs",
+))
+```
+
+### Reversible Pseudonymization
+
+```python
+# Anonymize
+result = firewall.process(text="Contact John Doe at john@example.com", context={...})
+print(result.sanitized_text)
+# "Contact PERSON_1 at EMAIL_1"
+
+# LLM processes anonymized text
+llm_response = "PERSON_1 should verify EMAIL_1 is correct"
+
+# Rehydrate (restore original values)
+from privacy_firewall.anonymization_engine import rehydrate_text
+mapping = firewall.vault.get_case_mapping(
+    tenant_id="...",
+    case_id="...",
+    thread_id="...",
+)
+final = rehydrate_text(llm_response, mapping)
+print(final)
+# "John Doe should verify john@example.com is correct"
+```
+
+### Provider-Agnostic SDK Flow
+
+```python
+from privacy_firewall import PrivacyFirewallSDK
+
+sdk = PrivacyFirewallSDK.create(domain="healthcare", detector_backend="presidio")
+
+context = {
+    "tenant_id": "hospital-001",
+    "case_id": "patient-123",
+    "thread_id": "consultation-1",
+    "actor_id": "doctor-456",
+}
+
+# 1) Anonymize input
+anon = sdk.anonymize_text(text="Contact John Doe at john@example.com", context=context)
+
+# 2) Call any model client (callable or object with .generate)
+def my_llm(prompt: str) -> str:
+    return f"Please verify PERSON_1 at EMAIL_1. Input was: {prompt}"
+
+# 3) Rehydrate output
+result = sdk.secure_call(
+    text="Contact John Doe at john@example.com",
+    context=context,
+    llm_client=my_llm,
+)
+print(result.final_text)
+```
+
+### GDPR Compliance (Right to be Forgotten)
+
+```python
+# Forget all data for a case
+deleted = firewall.forget(
+    tenant_id="hospital-001",
+    case_id="patient-123",
+    thread_id="consultation-1",
+)
+print(f"Deleted {deleted} mappings")
+```
+
+## 🚀 Web API
+
+Run the FastAPI web server:
+
+```bash
+cd pii-firewall
+uvicorn privacy_firewall.web.app:create_app --factory --reload --port 8080
+```
+
+Access the API at http://127.0.0.1:8080/docs
+
+### API Example
+
+```bash
+curl -X POST "http://localhost:8000/api/run" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Ana García, 43 años, hipertensión",
+    "tenant_id": "hospital-001",
+    "case_id": "patient-123",
+    "thread_id": "thread-1",
+    "actor_id": "doctor-456",
+    "profile": "healthcare",
+        "detector_backend": "gliner"
+  }'
+```
+
+### Web UI
+
+The project includes a Next.js web interface:
+
+```bash
+cd ../pii-web-next
+npm install
+npm run dev
+```
+
+Access at http://127.0.0.1:3010
+
+## 📤 Publish To PyPI
+
+```bash
+cd pii-firewall
+python -m pip install --upgrade build twine
+python -m build
+python -m twine check dist/*
+
+# TestPyPI (recommended first)
+python -m twine upload --repository testpypi dist/*
+
+# Production PyPI
+python -m twine upload dist/*
+```
+
+Detailed publishing guide: **[PUBLISHING.md](PUBLISHING.md)**
+
+Suggested release order:
+1. Bump `version` in `pyproject.toml`
+2. Build + `twine check`
+3. Upload to TestPyPI and verify install
+4. Upload to PyPI
+5. Create git tag/release matching the published version
+
+## 📊 Performance
+
+- **Language detection**: 1-2ms (first message), 0ms (cached)
+- **Pattern matching**: <1ms
+- **Presidio NER**: 50-200ms (depends on text length)
+- **Transformer NER**: 100-500ms (use for accuracy, not speed)
+- **Overall latency**: ~50-250ms per request (Presidio mode)
+
+**Optimization tips**:
+- Use thread-level language caching (enabled by default)
+- Preload models on startup: `firewall.preload_languages(["es", "en", "fr"])`
+- Use `detector_backend="presidio"` for best speed/accuracy balance
+
+## 🏗️ Architecture
+
+```
+src/privacy_firewall/
+├── language/              # Auto-detection & routing
+│   ├── detector.py       # LanguageDetector (langdetect/fasttext)
+│   └── router.py         # LanguageRouter (spaCy model selection)
+├── patterns/             # Locale-aware patterns
+│   ├── catalog.py        # PatternCatalog
+│   └── locales/          # ONE FILE PER LANGUAGE ✨
+│       ├── global_patterns.py
+│       ├── es_patterns.py
+│       ├── us_patterns.py
+│       ├── fr_patterns.py
+│       ├── de_patterns.py
+│       ├── it_patterns.py
+│       └── pt_patterns.py
+├── profiles/             # Domain profiles
+│   ├── profiles.py       # DomainProfile, EntityDisposition
+│   └── presets.py        # HEALTHCARE, FINANCE, LEGAL
+├── presidio_integration/ # Full Presidio capabilities
+│   ├── engine.py         # Analyzer + Anonymizer
+│   └── recognizers.py    # Custom recognizers
+├── transformers_ner/     # Domain-specific models
+│   ├── engine.py         # TransformerNEREngine
+│   └── models.py         # BioBERT, FinBERT, etc.
+├── unified_detector.py   # Multi-backend orchestration
+├── anonymization_engine.py  # Disposition-based anonymization
+├── firewall.py        # Next-gen PrivacyFirewall
+└── web/                  # FastAPI web interface
+    └── app.py            # REST API
+```
+
+## 🆚 Comparison
+
+| Feature | Privacy Firewall V2 | Presidio | scrubadub | AWS Comprehend |
+|---------|---------------------|----------|-----------|----------------|
+| **Domain awareness** | ✅ Keep relevant data | ❌ | ❌ | ⚠️ Healthcare only |
+| **Multi-language** | ✅ 55+ auto-detect | ✅ Manual | ❌ English only | ✅ Some |
+| **Locale patterns** | ✅ Per-country | ❌ | ❌ | ❌ |
+| **Multiple dispositions** | ✅ | ❌ Basic | ❌ | ❌ |
+| **Transformers** | ✅ BioBERT, FinBERT | ❌ | ❌ | ✅ Proprietary |
+| **Reversibility** | ✅ Vault | ❌ | ❌ | ❌ |
+| **Custom patterns** | ✅ Runtime | ⚠️ Code | ⚠️ Code | ❌ |
+| **Thread caching** | ✅ 0ms after first | ❌ | ❌ | N/A |
+| **Open source** | ✅ | ✅ | ✅ | ❌ |
+
+## 🔌 Extending with New Locales
+
+Add support for a new country in 3 steps:
+
+1. **Create pattern file** (`patterns/locales/nl_patterns.py`):
+```python
+import re
+from ..catalog import EntityPattern
+
+NL_BSN = EntityPattern(
+    entity_type="NATIONAL_ID",
+    locale="NL",
+    pattern=re.compile(r"\b\d{9}\b"),
+    confidence=0.9,
+    context_words=("bsn", "burgerservicenummer"),
+    description="Dutch BSN",
+)
+
+NL_PATTERNS = [NL_BSN]
+```
+
+2. **Import in** `patterns/locales/__init__.py`:
+```python
+from .nl_patterns import NL_PATTERNS
+LOCALE_PATTERNS = [...] + NL_PATTERNS
+```
+
+3. **Add language config** (optional, for spaCy models):
+```python
+# In language/router.py
+"nl": LanguageConfig(
+    language_code="nl",
+    spacy_model="nl_core_news_sm",
+    patterns_locale="NL",
+),
+```
+
+Done! Dutch patterns now available automatically.
+
+## 📚 Documentation
+
+- **[Developer Guide (HTML)](docs/guide.html)** - Complete implementation and usage guide
+- **[PUBLISHING.md](PUBLISHING.md)** - Package release checklist and PyPI flow
+- **[tests_integration/README.md](tests_integration/README.md)** - Integration test notes
+
+To show the guide in a panel in VS Code:
+1. Open **[docs/guide.html](docs/guide.html)**
+2. Select Open Preview (or use Ctrl+Shift+V)
+
+## 🧪 Testing
+
+```bash
+# Unit tests
+pytest tests/
+
+# Integration tests
+pytest tests_integration/
+
+# Quick package smoke test
+python -c "import privacy_firewall; print('ok')"
+```
+
+## 🔐 Security & Privacy
+
+- ✅ Simple end-to-end anonymize→LLM→rehydrate flow
+- ✅ Reversible pseudo-anonymization with vault
+- ✅ Pluggable vault storage (in-memory and SQLite)
+- ✅ GDPR "right to be forgotten"
+- ✅ Audit trails in `result.trace`
+- ✅ No data leaves your infrastructure
+
+## 📝 License
+
+MIT License - see LICENSE file for details.
+
+Commercial licensing options are also available. Contact: info@botlance.ai
+
+## 🤝 Contributing
+
+Contributions welcome! Areas to contribute:
+- New locale patterns (add your country!)
+- Domain profiles (education, government, etc.)
+- Custom recognizers
+- Performance optimizations
+- Documentation improvements
+
+## 🙏 Acknowledgments
+
+Built with:
+- [Presidio](https://github.com/microsoft/presidio) - Microsoft's PII detection library
+- [spaCy](https://spacy.io/) - Industrial-strength NLP
+- [langdetect](https://github.com/Mimino666/langdetect) - Fast language detection
+- [transformers](https://huggingface.co/transformers/) - State-of-the-art NLP models
+
+---
+
+**Built with ❤️ for privacy-first AI applications**
