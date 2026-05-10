@@ -3,6 +3,8 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+![Demo](assets/demo.gif)
+
 A best-in-class, multi-language, domain-aware **PII anonymization library** for AI applications. It intercepts text before it reaches an LLM, strips or transforms sensitive data, forwards the sanitized prompt, and then re-hydrates the model response — all transparently.
 
 ---
