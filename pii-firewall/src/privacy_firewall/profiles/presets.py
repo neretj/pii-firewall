@@ -13,6 +13,129 @@ _DATE_THRESHOLD = 0.55
 
 
 # =============================================================================
+# UNIVERSAL BASE DISPOSITIONS
+#
+# Every profile starts from this baseline. It covers the universal PII types
+# that should always be handled — regardless of domain. Domain profiles
+# override specific entries and add domain-specific ones on top.
+#
+# Rationale for each default action:
+#   PERSON          → PSEUDONYMIZE  reversible tokens needed for cross-turn continuity
+#   EMAIL           → REDACT        high-risk direct identifier, no domain value
+#   PHONE_NUMBER    → REDACT        high-risk direct identifier
+#   NATIONAL_ID     → REDACT        legal identifier, highest risk
+#   SSN             → REDACT        legal identifier, highest risk
+#   IBAN            → REDACT        financial identifier — domain profiles may pseudonymize
+#   CREDIT_CARD     → MASK          partial visibility is sufficient for most integrations
+#   ACCOUNT_NUMBER  → REDACT        financial, high risk
+#   TAX_ID          → REDACT        legal-financial identifier
+#   ADDRESS         → REDACT        precise location, high re-identification risk
+#   POSTAL_CODE     → REDACT        quasi-identifier
+#   LOCATION        → GENERALIZE    useful context at city level, not at street level
+#   IP_ADDRESS      → REDACT        digital identifier
+#   URL             → REDACT        may embed credentials or session data
+#   SECRET          → REDACT        always redact; no legitimate downstream use
+#   DATE            → GENERALIZE    quasi-identifier; year granularity is safe by default
+#   DATE_TIME       → GENERALIZE    idem — full timestamp is high-risk
+# =============================================================================
+
+_UNIVERSAL_DISPOSITIONS: dict[str, EntityDisposition] = {
+    "PERSON": EntityDisposition(
+        entity_type="PERSON",
+        action=DispositionAction.PSEUDONYMIZE,
+        confidence_threshold=0.75,
+        description="Person names — pseudonymized for cross-turn continuity",
+    ),
+    "EMAIL": EntityDisposition(
+        entity_type="EMAIL",
+        action=DispositionAction.REDACT,
+        description="Email addresses",
+    ),
+    "PHONE_NUMBER": EntityDisposition(
+        entity_type="PHONE_NUMBER",
+        action=DispositionAction.REDACT,
+        confidence_threshold=_PHONE_THRESHOLD,
+        description="Phone numbers",
+    ),
+    "NATIONAL_ID": EntityDisposition(
+        entity_type="NATIONAL_ID",
+        action=DispositionAction.REDACT,
+        description="National ID numbers (DNI, INSEE, Codice Fiscale, etc.)",
+    ),
+    "SSN": EntityDisposition(
+        entity_type="SSN",
+        action=DispositionAction.REDACT,
+        description="Social Security Numbers",
+    ),
+    "IBAN": EntityDisposition(
+        entity_type="IBAN",
+        action=DispositionAction.REDACT,
+        description="Bank account numbers (IBAN)",
+    ),
+    "CREDIT_CARD": EntityDisposition(
+        entity_type="CREDIT_CARD",
+        action=DispositionAction.MASK,
+        parameters={"visible_digits": 4},
+        description="Credit/debit card numbers (last 4 digits visible)",
+    ),
+    "ACCOUNT_NUMBER": EntityDisposition(
+        entity_type="ACCOUNT_NUMBER",
+        action=DispositionAction.REDACT,
+        description="Bank account numbers and routing identifiers",
+    ),
+    "TAX_ID": EntityDisposition(
+        entity_type="TAX_ID",
+        action=DispositionAction.REDACT,
+        description="Tax identification numbers",
+    ),
+    "ADDRESS": EntityDisposition(
+        entity_type="ADDRESS",
+        action=DispositionAction.REDACT,
+        description="Street addresses",
+    ),
+    "POSTAL_CODE": EntityDisposition(
+        entity_type="POSTAL_CODE",
+        action=DispositionAction.REDACT,
+        description="Postal / ZIP codes",
+    ),
+    "LOCATION": EntityDisposition(
+        entity_type="LOCATION",
+        action=DispositionAction.GENERALIZE,
+        parameters={"level": "city"},
+        description="Geographic locations (generalized to city level)",
+    ),
+    "IP_ADDRESS": EntityDisposition(
+        entity_type="IP_ADDRESS",
+        action=DispositionAction.REDACT,
+        description="IP addresses",
+    ),
+    "URL": EntityDisposition(
+        entity_type="URL",
+        action=DispositionAction.REDACT,
+        description="Web links and URLs",
+    ),
+    "SECRET": EntityDisposition(
+        entity_type="SECRET",
+        action=DispositionAction.REDACT,
+        description="Secrets, API keys, tokens, PINs, CVVs",
+    ),
+    "DATE": EntityDisposition(
+        entity_type="DATE",
+        action=DispositionAction.GENERALIZE,
+        parameters={"granularity": "year"},
+        description="Dates (reduced to year only)",
+    ),
+    "DATE_TIME": EntityDisposition(
+        entity_type="DATE_TIME",
+        action=DispositionAction.GENERALIZE,
+        confidence_threshold=_DATE_THRESHOLD,
+        parameters={"level": "year"},
+        description="Date-time expressions (reduced to year)",
+    ),
+}
+
+
+# =============================================================================
 # HEALTHCARE PROFILE
 # =============================================================================
 
@@ -25,7 +148,29 @@ HEALTHCARE_PROFILE = DomainProfile(
     linguistic_filter_enabled=True,
     domain_recognizers=["medical_entities", "drug_names", "procedures"],
     dispositions={
-        # Keep domain-relevant clinical entities
+        **_UNIVERSAL_DISPOSITIONS,
+
+        # Healthcare overrides — stricter PERSON threshold for clinical context
+        "PERSON": EntityDisposition(
+            entity_type="PERSON",
+            action=DispositionAction.PSEUDONYMIZE,
+            confidence_threshold=0.80,
+            description="Patient and provider names",
+        ),
+        # DATE kept at year-level by universal default; only override description
+        "DATE": EntityDisposition(
+            entity_type="DATE",
+            action=DispositionAction.GENERALIZE,
+            parameters={"granularity": "year"},
+            description="Dates (reduced to year — birth dates, admission dates)",
+        ),
+        # IBAN/ACCOUNT_NUMBER/TAX_ID/CREDIT_CARD inherit REDACT from universal (correct for healthcare)        # CREDIT_CARD defaults to MASK in universal; healthcare should fully redact financial data
+        "CREDIT_CARD": EntityDisposition(
+            entity_type="CREDIT_CARD",
+            action=DispositionAction.REDACT,
+            description="Credit card numbers (out of domain — fully redacted)",
+        ),
+        # Domain-specific: keep all clinical entities
         "DIAGNOSIS": EntityDisposition(
             entity_type="DIAGNOSIS",
             action=DispositionAction.KEEP,
@@ -56,115 +201,20 @@ HEALTHCARE_PROFILE = DomainProfile(
             action=DispositionAction.KEEP,
             description="Patient-reported symptoms",
         ),
-        
-        # Pseudonymize patient/provider identifiers (reversible for continuity)
-        "PERSON": EntityDisposition(
-            entity_type="PERSON",
-            action=DispositionAction.PSEUDONYMIZE,
-            confidence_threshold=0.80,
-            description="Patient and provider names",
-        ),
+
+        # Pseudonymize medical record numbers for cross-turn continuity
         "MEDICAL_RECORD": EntityDisposition(
             entity_type="MEDICAL_RECORD",
             action=DispositionAction.PSEUDONYMIZE,
             description="Medical record numbers (MRN, NHC)",
         ),
-        
-        # Generalize quasi-identifiers
+
+        # Generalize age for re-identification risk
         "AGE": EntityDisposition(
             entity_type="AGE",
             action=DispositionAction.GENERALIZE,
             parameters={"bucket_size": 10},
             description="Age in years (bucketed by decade)",
-        ),
-        "DATE": EntityDisposition(
-            entity_type="DATE",
-            action=DispositionAction.GENERALIZE,
-            parameters={"granularity": "year"},
-            description="Dates (reduced to year only)",
-        ),
-        
-        # Redact out-of-domain or high-risk identifiers
-        "EMAIL": EntityDisposition(
-            entity_type="EMAIL",
-            action=DispositionAction.REDACT,
-            description="Email addresses",
-        ),
-        "PHONE_NUMBER": EntityDisposition(
-            entity_type="PHONE_NUMBER",
-            action=DispositionAction.REDACT,
-            confidence_threshold=_PHONE_THRESHOLD,
-            description="Phone numbers",
-        ),
-        "NATIONAL_ID": EntityDisposition(
-            entity_type="NATIONAL_ID",
-            action=DispositionAction.REDACT,
-            description="National ID numbers (SSN, DNI, INSEE, Codice Fiscale, etc.)",
-        ),
-        "SSN": EntityDisposition(
-            entity_type="SSN",
-            action=DispositionAction.REDACT,
-            description="Social Security Numbers",
-        ),
-        "LOCATION": EntityDisposition(
-            entity_type="LOCATION",
-            action=DispositionAction.GENERALIZE,
-            parameters={"level": "city"},
-            description="Geographic locations (generalized to city level)",
-        ),
-        "ADDRESS": EntityDisposition(
-            entity_type="ADDRESS",
-            action=DispositionAction.REDACT,
-            description="Street addresses",
-        ),
-        "POSTAL_CODE": EntityDisposition(
-            entity_type="POSTAL_CODE",
-            action=DispositionAction.REDACT,
-            description="Postal/ZIP codes",
-        ),
-        "IP_ADDRESS": EntityDisposition(
-            entity_type="IP_ADDRESS",
-            action=DispositionAction.REDACT,
-            description="IP addresses",
-        ),
-        "URL": EntityDisposition(
-            entity_type="URL",
-            action=DispositionAction.REDACT,
-            description="Web links and URLs",
-        ),
-        "SECRET": EntityDisposition(
-            entity_type="SECRET",
-            action=DispositionAction.REDACT,
-            description="Secrets, API keys, and tokens",
-        ),
-        "DATE_TIME": EntityDisposition(
-            entity_type="DATE_TIME",
-            action=DispositionAction.GENERALIZE,
-            confidence_threshold=_DATE_THRESHOLD,
-            parameters={"level": "year"},
-            description="Dates and timestamps (birth dates, appointments, etc.)",
-        ),
-        
-        # Redact financial data (out of domain for healthcare)
-        "CREDIT_CARD": EntityDisposition(
-            entity_type="CREDIT_CARD",
-            action=DispositionAction.REDACT,
-            description="Credit card numbers",
-        ),
-        "IBAN": EntityDisposition(
-            entity_type="IBAN",
-            action=DispositionAction.REDACT,
-            description="Bank account numbers",
-        ),
-        "TAX_ID": EntityDisposition(
-            entity_type="TAX_ID",
-            action=DispositionAction.REDACT,
-            description="Tax identification numbers",
-        ),
-        "ACCOUNT_NUMBER": EntityDisposition(
-            entity_type="ACCOUNT_NUMBER",
-            action=DispositionAction.REDACT,
-            description="Bank account numbers and account identifiers",
         ),
     },
 )
@@ -183,7 +233,37 @@ FINANCE_PROFILE = DomainProfile(
     linguistic_filter_enabled=True,
     domain_recognizers=["financial_entities", "transaction_patterns"],
     dispositions={
-        # Keep domain-relevant financial entities
+        **_UNIVERSAL_DISPOSITIONS,
+
+        # Finance overrides — keep transaction-relevant data, pseudonymize financials
+        "DATE": EntityDisposition(
+            entity_type="DATE",
+            action=DispositionAction.KEEP,
+            description="Transaction dates (keep full precision for analysis)",
+        ),
+        "DATE_TIME": EntityDisposition(
+            entity_type="DATE_TIME",
+            action=DispositionAction.GENERALIZE,
+            parameters={"level": "year"},
+            description="Date-time expressions (generalized to year)",
+        ),
+        "IBAN": EntityDisposition(
+            entity_type="IBAN",
+            action=DispositionAction.PSEUDONYMIZE,
+            description="Bank account numbers (reversible for audit)",
+        ),
+        "ACCOUNT_NUMBER": EntityDisposition(
+            entity_type="ACCOUNT_NUMBER",
+            action=DispositionAction.PSEUDONYMIZE,
+            description="Account numbers (reversible for audit)",
+        ),
+        "TAX_ID": EntityDisposition(
+            entity_type="TAX_ID",
+            action=DispositionAction.PSEUDONYMIZE,
+            description="Tax IDs (reversible for compliance)",
+        ),
+
+        # Domain-specific: keep financial context entities
         "TRANSACTION_AMOUNT": EntityDisposition(
             entity_type="TRANSACTION_AMOUNT",
             action=DispositionAction.KEEP,
@@ -204,118 +284,27 @@ FINANCE_PROFILE = DomainProfile(
             action=DispositionAction.KEEP,
             description="Currency codes",
         ),
-        "DATE": EntityDisposition(
-            entity_type="DATE",
+        "PERCENTAGE": EntityDisposition(
+            entity_type="PERCENTAGE",
             action=DispositionAction.KEEP,
-            description="Transaction dates (keep full precision for analysis)",
+            description="Interest rates, margins, and percentage figures",
         ),
-        "DATE_TIME": EntityDisposition(
-            entity_type="DATE_TIME",
-            action=DispositionAction.GENERALIZE,
-            parameters={"level": "year"},
-            description="Date-time expressions (generalized to year)",
-        ),
-        
-        # Pseudonymize client identifiers (reversible for audit)
-        "PERSON": EntityDisposition(
-            entity_type="PERSON",
-            action=DispositionAction.PSEUDONYMIZE,
-            confidence_threshold=0.75,
-            description="Client and employee names",
-        ),
-        "IBAN": EntityDisposition(
-            entity_type="IBAN",
-            action=DispositionAction.PSEUDONYMIZE,
-            description="Bank account numbers (reversible for audit)",
-        ),
-        "ACCOUNT_NUMBER": EntityDisposition(
-            entity_type="ACCOUNT_NUMBER",
-            action=DispositionAction.PSEUDONYMIZE,
-            description="Account numbers",
-        ),
-        "TAX_ID": EntityDisposition(
-            entity_type="TAX_ID",
-            action=DispositionAction.PSEUDONYMIZE,
-            description="Tax IDs (reversible for compliance)",
-        ),
-        
-        # Mask partial visibility for UX
-        "CREDIT_CARD": EntityDisposition(
-            entity_type="CREDIT_CARD",
-            action=DispositionAction.MASK,
-            parameters={"visible_digits": 4},
-            description="Credit card numbers (show last 4 digits)",
-        ),
-        
-        # Redact out-of-domain data
-        "EMAIL": EntityDisposition(
-            entity_type="EMAIL",
-            action=DispositionAction.REDACT,
-            description="Email addresses",
-        ),
-        "NATIONAL_ID": EntityDisposition(
-            entity_type="NATIONAL_ID",
-            action=DispositionAction.REDACT,
-            description="National ID numbers (SSN, DNI, INSEE, etc.)",
-        ),
-        "SSN": EntityDisposition(
-            entity_type="SSN",
-            action=DispositionAction.REDACT,
-            description="Social Security Numbers",
-        ),
-        "PHONE_NUMBER": EntityDisposition(
-            entity_type="PHONE_NUMBER",
-            action=DispositionAction.REDACT,
-            confidence_threshold=_PHONE_THRESHOLD,
-            description="Phone numbers",
-        ),
-        "LOCATION": EntityDisposition(
-            entity_type="LOCATION",
-            action=DispositionAction.GENERALIZE,
-            parameters={"level": "city"},
-            description="Geographic locations (generalized to city level)",
-        ),
-        "ADDRESS": EntityDisposition(
-            entity_type="ADDRESS",
-            action=DispositionAction.REDACT,
-            description="Street addresses",
-        ),
-        "POSTAL_CODE": EntityDisposition(
-            entity_type="POSTAL_CODE",
-            action=DispositionAction.REDACT,
-            description="Postal codes",
-        ),
-        "IP_ADDRESS": EntityDisposition(
-            entity_type="IP_ADDRESS",
-            action=DispositionAction.REDACT,
-            description="IP addresses",
-        ),
-        "URL": EntityDisposition(
-            entity_type="URL",
-            action=DispositionAction.REDACT,
-            description="Web links and URLs",
-        ),
-        "SECRET": EntityDisposition(
-            entity_type="SECRET",
-            action=DispositionAction.REDACT,
-            description="Secrets, API keys, and tokens",
-        ),
-        
+
         # Redact medical data (out of domain for finance)
         "DIAGNOSIS": EntityDisposition(
             entity_type="DIAGNOSIS",
             action=DispositionAction.REDACT,
-            description="Medical diagnoses",
+            description="Medical diagnoses (out of domain)",
         ),
         "DRUG": EntityDisposition(
             entity_type="DRUG",
             action=DispositionAction.REDACT,
-            description="Medication names",
+            description="Medication names (out of domain)",
         ),
         "MEDICAL_RECORD": EntityDisposition(
             entity_type="MEDICAL_RECORD",
             action=DispositionAction.REDACT,
-            description="Medical record numbers",
+            description="Medical record numbers (out of domain)",
         ),
     },
 )
@@ -334,7 +323,29 @@ LEGAL_PROFILE = DomainProfile(
     linguistic_filter_enabled=True,
     domain_recognizers=["legal_entities", "case_citations"],
     dispositions={
-        # Keep domain-relevant legal entities
+        **_UNIVERSAL_DISPOSITIONS,
+
+        # Legal overrides — stricter PERSON threshold, dates at month granularity
+        "PERSON": EntityDisposition(
+            entity_type="PERSON",
+            action=DispositionAction.PSEUDONYMIZE,
+            confidence_threshold=0.85,
+            description="Party names (reversible for authorized access)",
+        ),
+        "DATE": EntityDisposition(
+            entity_type="DATE",
+            action=DispositionAction.GENERALIZE,
+            parameters={"granularity": "month"},
+            description="Dates (reduced to month/year for legal filings)",
+        ),
+        # CREDIT_CARD defaults to MASK in universal; legal should fully redact
+        "CREDIT_CARD": EntityDisposition(
+            entity_type="CREDIT_CARD",
+            action=DispositionAction.REDACT,
+            description="Credit card numbers",
+        ),
+
+        # Domain-specific: keep legal reference entities
         "CASE_NUMBER": EntityDisposition(
             entity_type="CASE_NUMBER",
             action=DispositionAction.KEEP,
@@ -355,101 +366,29 @@ LEGAL_PROFILE = DomainProfile(
             action=DispositionAction.KEEP,
             description="Organizations (non-natural persons, public record)",
         ),
-        
-        # Pseudonymize party identifiers
-        "PERSON": EntityDisposition(
-            entity_type="PERSON",
-            action=DispositionAction.PSEUDONYMIZE,
-            confidence_threshold=0.85,
-            description="Party names (reversible for authorized access)",
-        ),
-        
-        # Generalize dates for privacy
-        "DATE": EntityDisposition(
-            entity_type="DATE",
-            action=DispositionAction.GENERALIZE,
-            parameters={"granularity": "month"},
-            description="Dates (reduced to month/year)",
-        ),
-        "DATE_TIME": EntityDisposition(
-            entity_type="DATE_TIME",
-            action=DispositionAction.GENERALIZE,
-            parameters={"level": "year"},
-            description="Dates and timestamps (reduced to year)",
-        ),
-        
-        # Redact all personal identifiers
-        "EMAIL": EntityDisposition(
-            entity_type="EMAIL",
+
+        # Cross-domain medical leakage — legal documents routinely contain
+        # medical information (injury cases, malpractice, insurance disputes)
+        # that must be anonymized to protect parties.
+        "DIAGNOSIS": EntityDisposition(
+            entity_type="DIAGNOSIS",
             action=DispositionAction.REDACT,
-            description="Email addresses",
+            description="Medical diagnoses (injury/malpractice cross-domain leakage)",
         ),
-        "PHONE_NUMBER": EntityDisposition(
-            entity_type="PHONE_NUMBER",
+        "DRUG": EntityDisposition(
+            entity_type="DRUG",
             action=DispositionAction.REDACT,
-            confidence_threshold=_PHONE_THRESHOLD,
-            description="Phone numbers",
+            description="Medication names (cross-domain leakage)",
         ),
-        "NATIONAL_ID": EntityDisposition(
-            entity_type="NATIONAL_ID",
+        "PROCEDURE": EntityDisposition(
+            entity_type="PROCEDURE",
             action=DispositionAction.REDACT,
-            description="National ID numbers (SSN, DNI, INSEE, etc.)",
+            description="Medical procedures (cross-domain leakage)",
         ),
-        "SSN": EntityDisposition(
-            entity_type="SSN",
+        "MEDICAL_RECORD": EntityDisposition(
+            entity_type="MEDICAL_RECORD",
             action=DispositionAction.REDACT,
-            description="Social Security Numbers",
-        ),
-        "LOCATION": EntityDisposition(
-            entity_type="LOCATION",
-            action=DispositionAction.GENERALIZE,
-            parameters={"level": "city"},
-            description="Geographic locations (generalized to city level)",
-        ),
-        "ADDRESS": EntityDisposition(
-            entity_type="ADDRESS",
-            action=DispositionAction.REDACT,
-            description="Street addresses",
-        ),
-        "POSTAL_CODE": EntityDisposition(
-            entity_type="POSTAL_CODE",
-            action=DispositionAction.REDACT,
-            description="Postal codes",
-        ),
-        "CREDIT_CARD": EntityDisposition(
-            entity_type="CREDIT_CARD",
-            action=DispositionAction.REDACT,
-            description="Credit card numbers",
-        ),
-        "IBAN": EntityDisposition(
-            entity_type="IBAN",
-            action=DispositionAction.REDACT,
-            description="Bank account numbers",
-        ),
-        "ACCOUNT_NUMBER": EntityDisposition(
-            entity_type="ACCOUNT_NUMBER",
-            action=DispositionAction.REDACT,
-            description="Bank account numbers and account identifiers",
-        ),
-        "TAX_ID": EntityDisposition(
-            entity_type="TAX_ID",
-            action=DispositionAction.REDACT,
-            description="Tax IDs",
-        ),
-        "IP_ADDRESS": EntityDisposition(
-            entity_type="IP_ADDRESS",
-            action=DispositionAction.REDACT,
-            description="IP addresses",
-        ),
-        "URL": EntityDisposition(
-            entity_type="URL",
-            action=DispositionAction.REDACT,
-            description="Web links and URLs",
-        ),
-        "SECRET": EntityDisposition(
-            entity_type="SECRET",
-            action=DispositionAction.REDACT,
-            description="Secrets, API keys, and tokens",
+            description="Medical record numbers (cross-domain leakage)",
         ),
     },
 )
@@ -467,28 +406,35 @@ GENERIC_PROFILE = DomainProfile(
     entity_similarity_threshold=0.75,
     linguistic_filter_enabled=True,
     dispositions={
-        "PERSON":         EntityDisposition(entity_type="PERSON",         action=DispositionAction.PSEUDONYMIZE),
-        "EMAIL":          EntityDisposition(entity_type="EMAIL",          action=DispositionAction.REDACT),
-        "PHONE_NUMBER":   EntityDisposition(entity_type="PHONE_NUMBER",   action=DispositionAction.REDACT,
-                                            confidence_threshold=_PHONE_THRESHOLD),
-        "NATIONAL_ID":    EntityDisposition(entity_type="NATIONAL_ID",    action=DispositionAction.REDACT),
-        "SSN":            EntityDisposition(entity_type="SSN",            action=DispositionAction.REDACT),
-        "IBAN":           EntityDisposition(entity_type="IBAN",           action=DispositionAction.REDACT),
-        "TAX_ID":         EntityDisposition(entity_type="TAX_ID",         action=DispositionAction.REDACT),
-        "ACCOUNT_NUMBER": EntityDisposition(entity_type="ACCOUNT_NUMBER", action=DispositionAction.REDACT),
-        "CREDIT_CARD":    EntityDisposition(entity_type="CREDIT_CARD",    action=DispositionAction.MASK),
-        "LOCATION":       EntityDisposition(entity_type="LOCATION",       action=DispositionAction.GENERALIZE,
-                                            parameters={"level": "city"}),
-        "ADDRESS":        EntityDisposition(entity_type="ADDRESS",        action=DispositionAction.REDACT),
-        "POSTAL_CODE":    EntityDisposition(entity_type="POSTAL_CODE",    action=DispositionAction.REDACT),
-        "IP_ADDRESS":     EntityDisposition(entity_type="IP_ADDRESS",     action=DispositionAction.REDACT),
-        "URL":            EntityDisposition(entity_type="URL",            action=DispositionAction.REDACT),
-        "SECRET":         EntityDisposition(entity_type="SECRET",         action=DispositionAction.REDACT),
-        "DATE":           EntityDisposition(entity_type="DATE",           action=DispositionAction.GENERALIZE,
-                                            parameters={"granularity": "year"}),
-        "DATE_TIME":      EntityDisposition(entity_type="DATE_TIME",      action=DispositionAction.GENERALIZE,
-                                            confidence_threshold=_DATE_THRESHOLD,
-                                            parameters={"level": "year"}),
+        **_UNIVERSAL_DISPOSITIONS,
+
+        # Medical entities — redact all; a generic profile makes no assumption
+        # about domain context so any medical data is treated as sensitive PII.
+        "DIAGNOSIS": EntityDisposition(
+            entity_type="DIAGNOSIS",
+            action=DispositionAction.REDACT,
+            description="Medical diagnoses and conditions",
+        ),
+        "DRUG": EntityDisposition(
+            entity_type="DRUG",
+            action=DispositionAction.REDACT,
+            description="Medication names",
+        ),
+        "PROCEDURE": EntityDisposition(
+            entity_type="PROCEDURE",
+            action=DispositionAction.REDACT,
+            description="Medical procedures",
+        ),
+        "SYMPTOM": EntityDisposition(
+            entity_type="SYMPTOM",
+            action=DispositionAction.REDACT,
+            description="Patient-reported symptoms",
+        ),
+        "MEDICAL_RECORD": EntityDisposition(
+            entity_type="MEDICAL_RECORD",
+            action=DispositionAction.REDACT,
+            description="Medical record numbers",
+        ),
     },
 )
 

@@ -212,3 +212,112 @@ def list_available_models(domain: str | None = None, language: str | None = None
         models.append(config)
     
     return models
+
+
+# =============================================================================
+# ENTITY TYPE → MODEL DOMAIN VOCABULARY
+#
+# Maps each canonical entity type to the model domain whose NER vocabulary
+# can detect it. Used to compute which models a profile actually needs.
+#
+# Rules:
+#   "general"   — detected by standard CoNLL/OntoNotes NER (Presidio/spaCy
+#                 already covers these, so the transformer adds little here;
+#                 included for completeness in fully-offline mode)
+#   "medical"   — requires a biomedical NER model (BioBERT, BC5CDR, etc.)
+#   "financial" — requires a financial NER model (FinBERT, etc.)
+#   "legal"     — requires a legal NER model (legal-BERT, etc.)
+# =============================================================================
+
+ENTITY_TYPE_TO_MODEL_DOMAIN: dict[str, str] = {
+    # General / universal — spaCy/Presidio handles these; "general" transformer
+    # adds value only for offline/hybrid stacks without Presidio
+    "PERSON":            "general",
+    "LOCATION":          "general",
+    "ADDRESS":           "general",
+    "COMPANY_NAME":      "general",
+    "DATE":              "general",
+    "DATE_TIME":         "general",
+    "EMAIL":             "general",
+    "PHONE_NUMBER":      "general",
+    "SSN":               "general",
+    "NATIONAL_ID":       "general",
+    "PASSPORT":          "general",
+    "DRIVERS_LICENSE":   "general",
+    "POSTAL_CODE":       "general",
+    "IP_ADDRESS":        "general",
+    "URL":               "general",
+    "SECRET":            "general",
+    "AGE":               "general",
+
+    # Medical — requires biomedical NER (BioBERT, BC5CDR, etc.)
+    "DIAGNOSIS":         "medical",
+    "DRUG":              "medical",
+    "PROCEDURE":         "medical",
+    "SYMPTOM":           "medical",
+    "LAB_VALUE":         "medical",
+    "VITAL_SIGN":        "medical",
+    "ANATOMICAL_SITE":   "medical",
+    "MEDICAL_RECORD":    "medical",
+
+    # Financial — requires financial NER (FinBERT, etc.)
+    "TRANSACTION_AMOUNT": "financial",
+    "CURRENCY":           "financial",
+    "TRANSACTION_TYPE":   "financial",
+    "PERCENTAGE":         "financial",
+    "IBAN":               "financial",
+    "CREDIT_CARD":        "financial",
+    "ACCOUNT_NUMBER":     "financial",
+    "ROUTING_NUMBER":     "financial",
+    "TAX_ID":             "financial",
+
+    # Legal — requires legal NER (legal-BERT, etc.)
+    "CASE_NUMBER":    "legal",
+    "STATUTE":        "legal",
+    "LEGAL_CITATION": "legal",
+    "LEGAL_ENTITY":   "legal",
+}
+
+
+def get_required_model_domains(profile) -> set[str]:
+    """Compute the set of model domains needed to fully serve a profile.
+
+    A domain is "needed" if:
+      - The profile has a REDACT/PSEUDONYMIZE/MASK/GENERALIZE disposition for
+        any entity type in that domain's vocabulary (detection required to act)
+      - OR the profile has a KEEP disposition for a medical entity type
+        (detection required for disambiguation — prevents spaCy from
+        misclassifying e.g. "Parkinson's disease" as a PERSON name)
+
+    The "general" domain is always included as the baseline.
+
+    Args:
+        profile: A DomainProfile instance.
+
+    Returns:
+        Set of domain strings to load, e.g. {"general", "medical"}.
+    """
+    from ..profiles.profiles import DispositionAction
+
+    domains: set[str] = {"general"}
+
+    for entity_type, disposition in profile.dispositions.items():
+        model_domain = ENTITY_TYPE_TO_MODEL_DOMAIN.get(entity_type)
+        if model_domain is None or model_domain == "general":
+            continue
+
+        action = disposition.action
+        if action != DispositionAction.KEEP:
+            # Any active anonymization action → must detect this entity type to act on it.
+            domains.add(model_domain)
+        else:
+            # KEEP on a non-general entity → still load the domain model for two reasons:
+            #   1. Disambiguation: prevents the general NER from misclassifying domain
+            #      terms as PERSON (e.g. "Parkinson's disease", "Turner syndrome" for
+            #      medical; statute/case references for legal).
+            #   2. Pass-through correctness: the entity must be detected first so the
+            #      anonymization engine can confirm it is in-scope and leave it untouched
+            #      rather than silently ignoring it.
+            domains.add(model_domain)
+
+    return domains

@@ -460,13 +460,21 @@ class UnifiedDetectionEngine:
         return entities
     
     def _detect_with_transformers(self, text: str, language: str) -> list[Entity]:
-        """Detect entities using transformer model for the specified language."""
-        # Get or create transformer engine for this language
+        """Detect entities using all transformer engines required by the profile.
+
+        One engine is loaded per model domain whose vocabulary is needed by the
+        profile's dispositions (see models.get_required_model_domains). Running
+        multiple engines lets each profile cover cross-domain leakage:
+          - Finance: FinBERT for financial entities + biomedical NER for medical
+          - Healthcare: biomedical NER (primary) + general NER baseline
+          - Generic: all domains so nothing is missed
+        """
         if language not in self._transformer_engines:
-            self._transformer_engines[language] = self._init_transformer_engine(language)
-        
-        engine = self._transformer_engines[language]
-        entities = engine.analyze(text)
+            self._transformer_engines[language] = self._init_transformer_engines(language)
+
+        entities: list[Entity] = []
+        for engine in self._transformer_engines[language]:
+            entities.extend(engine.analyze(text))
         return entities
 
     def _detect_with_opf(self, text: str) -> list[Entity]:
@@ -847,31 +855,53 @@ class UnifiedDetectionEngine:
         
         return engine
     
-    def _init_transformer_engine(self, language: str):
-        """Initialize transformer NER engine."""
+    def _init_transformer_engines(self, language: str) -> list:
+        """Initialize all transformer NER engines required by the profile.
+
+        Instead of one engine chosen by profile name, we inspect the profile's
+        dispositions to determine which model domains are needed, then load
+        one engine per domain. This ensures cross-domain PII is never missed:
+          - A finance profile loads FinBERT AND a biomedical model so that
+            medical leakage (e.g. a patient's diagnosis in a loan denial
+            letter) is caught and redacted.
+          - A healthcare profile loads the biomedical model (primary) AND
+            the general model baseline.
+          - Generic loads all domains.
+        """
         from .transformers_ner import get_model_for_domain, DomainTransformerNEREngine
-        
-        # Determine domain from profile
-        domain_map = {
-            "healthcare": "medical",
-            "finance": "financial",
-            "legal": "legal",
-        }
-        domain = domain_map.get(self.profile.name.lower(), "general")
-        
-        # Get recommended model
+        from .transformers_ner.models import get_required_model_domains
+
+        # If the caller pinned a specific model, honour it (single engine, legacy).
         if self.transformer_model_id:
-            model_name = self.transformer_model_id
-        else:
+            return [DomainTransformerNEREngine(
+                model_name=self.transformer_model_id,
+                device=self.transformer_device,
+                domain="general",
+            )]
+
+        required_domains = get_required_model_domains(self.profile)
+
+        engines = []
+        for domain in sorted(required_domains):  # sorted for determinism
             try:
                 model_config = get_model_for_domain(domain, language)
             except ValueError:
-                # Fallback to general model
-                model_config = get_model_for_domain("general", language)
+                try:
+                    model_config = get_model_for_domain(domain, "multilingual")
+                except ValueError:
+                    # No model for this domain/language — skip, log, continue
+                    import warnings
+                    warnings.warn(
+                        f"No transformer model available for domain '{domain}' "
+                        f"and language '{language}' — skipping.",
+                        stacklevel=2,
+                    )
+                    continue
+
             model_name = model_config.model_id
 
             # CamemBERT tokenizer is currently incompatible in this runtime.
-            # Use multilingual fallback for French generic mode.
+            # Use multilingual fallback for French general mode.
             if (
                 domain == "general"
                 and language == "fr"
@@ -880,15 +910,14 @@ class UnifiedDetectionEngine:
                 and model_name == "Jean-Baptiste/camembert-ner"
             ):
                 model_name = "Davlan/xlm-roberta-base-ner-hrl"
-        
-        # Create engine
-        engine = DomainTransformerNEREngine(
-            model_name=model_name,
-            device=self.transformer_device,
-            domain=domain,
-        )
-        
-        return engine
+
+            engines.append(DomainTransformerNEREngine(
+                model_name=model_name,
+                device=self.transformer_device,
+                domain=domain,
+            ))
+
+        return engines
 
     def _init_opf_engine(self):
         """Initialize OpenAI Privacy Filter runtime."""
