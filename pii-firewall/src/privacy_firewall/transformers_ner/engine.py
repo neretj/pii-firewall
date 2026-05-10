@@ -33,9 +33,11 @@ class TransformerNEREngine:
     """
     
     model_name: str
-    aggregation_strategy: str = "simple"
+    aggregation_strategy: str = "first"  # "first" avoids wordpiece fragment leakage
     device: int = -1  # CPU by default
     use_fast_tokenizer: bool = True
+    min_confidence: float = 0.50  # drop predictions below this threshold
+    min_word_length: int = 2     # drop single-character / pure-punctuation spans
     
     _pipeline: Any = field(default=None, init=False, repr=False)
     
@@ -107,23 +109,46 @@ class TransformerNEREngine:
         entities = []
         for item in results:
             raw_label = item["entity_group"]
+            word = item["word"]
+            score = float(item["score"])
+
+            # --- Post-processing filters ---
+            # 1. Drop BPE artifact spans: any token starting with ## is a subword
+            #    fragment that aggregation_strategy='first' should prevent, but keep
+            #    as a safety net for edge cases.
+            if word.startswith("##"):
+                _logger.debug("  SKIP wordpiece fragment: %r", word)
+                continue
+
+            # 2. Drop spans that are too short to be informative after stripping
+            #    leading/trailing whitespace and punctuation.
+            stripped = word.strip()
+            if len(stripped) < self.min_word_length:
+                _logger.debug("  SKIP too-short span: %r", word)
+                continue
+
+            # 3. Drop low-confidence predictions.
+            if score < self.min_confidence:
+                _logger.debug("  SKIP low-confidence %.3f span: %r", score, word)
+                continue
+
             normalized = self._normalize_entity_type(raw_label)
             _logger.debug(
                 "  label %r -> %r  score=%.3f  span=%d:%d  word=%r",
                 raw_label,
                 normalized,
-                item["score"],
+                score,
                 item["start"],
                 item["end"],
-                item["word"],
+                word,
             )
             entities.append(
                 Entity(
-                    text=item["word"],
+                    text=stripped,
                     entity_type=normalized,
                     start=item["start"],
                     end=item["end"],
-                    confidence=float(item["score"]),
+                    confidence=score,
                     source=f"transformer:{self.model_name}",
                 )
             )
