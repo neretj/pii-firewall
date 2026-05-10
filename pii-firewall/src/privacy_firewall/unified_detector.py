@@ -858,20 +858,31 @@ class UnifiedDetectionEngine:
     def _init_transformer_engines(self, language: str) -> list:
         """Initialize all transformer NER engines required by the profile.
 
-        Instead of one engine chosen by profile name, we inspect the profile's
-        dispositions to determine which model domains are needed, then load
-        one engine per domain. This ensures cross-domain PII is never missed:
-          - A finance profile loads FinBERT AND a biomedical model so that
-            medical leakage (e.g. a patient's diagnosis in a loan denial
-            letter) is caught and redacted.
-          - A healthcare profile loads the biomedical model (primary) AND
-            the general model baseline.
-          - Generic loads all domains.
+        Loads one engine per specialized model domain derived from the profile's
+        dispositions. The domain model stack is driven by WHAT the profile needs
+        to detect, not by which domain the document belongs to:
+
+          - Finance profile: OntoNotes NER (MONEY/PERCENT/LAW) + biomedical NER
+            (medical cross-domain leakage in loan/insurance documents)
+          - Healthcare profile: biomedical NER (primary domain) only
+          - Legal profile: OntoNotes NER (LAW label) + biomedical NER
+            (injury/malpractice filings) — OntoNotes model shared with finance
+          - Generic: medical NER (no assumptions about content)
+
+        The general CoNLL transformer is only loaded when Presidio is NOT running,
+        because spaCy already covers PERSON/LOCATION/ORG with equivalent accuracy.
+
+        Model deduplication: if financial and legal both resolve to the same
+        HuggingFace model (e.g. tner/roberta-large-ontonotes5, which covers all
+        relevant OntoNotes labels), the weights are loaded only once. The first
+        domain's normalizer is used; the financial normalizer already maps LAW
+        and ORG to their canonical types so no legal entity is lost.
         """
+        import warnings
         from .transformers_ner import get_model_for_domain, DomainTransformerNEREngine
         from .transformers_ner.models import get_required_model_domains
 
-        # If the caller pinned a specific model, honour it (single engine, legacy).
+        # Pinned model: honour the caller's explicit choice (testing / custom deployments).
         if self.transformer_model_id:
             return [DomainTransformerNEREngine(
                 model_name=self.transformer_model_id,
@@ -879,24 +890,31 @@ class UnifiedDetectionEngine:
                 domain="general",
             )]
 
-        required_domains = get_required_model_domains(self.profile)
+        # Derive specialized domains from profile dispositions (no profile coupling
+        # inside models.py — the dict is passed directly).
+        required_domains = get_required_model_domains(self.profile.dispositions)
+
+        # Add the general baseline transformer only when Presidio is NOT active.
+        # In "hybrid" or "presidio" mode, spaCy already detects PERSON/LOCATION/ORG
+        # with the same vocabulary, so loading an extra ~420 MB general model would
+        # waste memory and double latency for those labels with no accuracy gain.
+        presidio_active = self.detector_backend in ("presidio", "hybrid")
+        if not presidio_active:
+            required_domains.add("general")
 
         engines = []
+        loaded_model_ids: set[str] = set()  # prevents loading the same weights twice
+
         for domain in sorted(required_domains):  # sorted for determinism
             try:
                 model_config = get_model_for_domain(domain, language)
             except ValueError:
-                try:
-                    model_config = get_model_for_domain(domain, "multilingual")
-                except ValueError:
-                    # No model for this domain/language — skip, log, continue
-                    import warnings
-                    warnings.warn(
-                        f"No transformer model available for domain '{domain}' "
-                        f"and language '{language}' — skipping.",
-                        stacklevel=2,
-                    )
-                    continue
+                warnings.warn(
+                    f"No transformer model available for domain '{domain}' "
+                    f"and language '{language}' — skipping.",
+                    stacklevel=2,
+                )
+                continue
 
             model_name = model_config.model_id
 
@@ -911,6 +929,20 @@ class UnifiedDetectionEngine:
             ):
                 model_name = "Davlan/xlm-roberta-base-ner-hrl"
 
+            # Skip if this exact model is already in the engine list (e.g. financial and
+            # legal both resolve to tner/roberta-large-ontonotes5). The first domain's
+            # normalizer is used; since the financial normalizer already covers LAW→STATUTE
+            # and ORG→LEGAL_ENTITY, no label is lost when legal is skipped this way.
+            if model_name in loaded_model_ids:
+                import logging as _log
+                _log.getLogger(__name__).debug(
+                    "Skipping domain '%s': model %r already loaded for another domain.",
+                    domain,
+                    model_name,
+                )
+                continue
+
+            loaded_model_ids.add(model_name)
             engines.append(DomainTransformerNEREngine(
                 model_name=model_name,
                 device=self.transformer_device,

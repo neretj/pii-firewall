@@ -31,7 +31,6 @@ export function TraceSidebar({ selectedTurn, continuity }: TraceSidebarProps) {
           <div className="space-y-1.5">
             {[
               { label: "Trace ID", value: selectedTurn.response.trace.trace_id.slice(0, 8), mono: true },
-              { label: "k-anonymity", value: String(selectedTurn.response.trace.k_anonymity_score), mono: true },
               {
                 label: "Status",
                 value: selectedTurn.response.steps.blocked ? "Blocked" : "Allowed",
