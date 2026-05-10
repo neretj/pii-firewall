@@ -44,12 +44,12 @@ GENERAL_MULTILINGUAL = TransformerModelConfig(
 )
 
 GENERAL_ES = TransformerModelConfig(
-    model_id="PlanTL-GOB-ES/roberta-base-bne-finetuned-conll2002-es",
+    model_id="Davlan/xlm-roberta-base-ner-hrl",
     domain="general",
     language="es",
     entity_types=("PERSON", "ORGANIZATION", "LOCATION", "MISC"),
-    description="Spanish NER - fine-tuned on CoNLL-2002",
-    size_mb=470,
+    description="Spanish NER via multilingual XLM-RoBERTa",
+    size_mb=1100,
 )
 
 GENERAL_FR = TransformerModelConfig(

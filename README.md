@@ -39,12 +39,15 @@ Tip for VS Code: open [pii-firewall/docs/guide.html](pii-firewall/docs/guide.htm
 
 ```bash
 cd ../pii-web-next
-copy .env.example .env.local
+Copy-Item .env.example .env.local
 npm install
 npm run dev
 ```
 
 UI: http://127.0.0.1:3010
+
+The frontend talks to the backend through `PII_API_BASE_URL` in `pii-web-next/.env.local`.
+If you keep the default `http://127.0.0.1:8080`, no change is needed.
 
 ## 3) Use as a Dependency
 
@@ -55,15 +58,17 @@ cd pii-firewall
 pip install -e .
 ```
 
-For published versions:
+If you want to use it as a dependency from PyPI:
 
 ```bash
 pip install pii-firewall
 ```
 
-## Publish to PyPI
+## Open Source Use
 
-See [pii-firewall/PUBLISHING.md](pii-firewall/PUBLISHING.md).
+This repository is intended for open-source use, local development, and direct installation from PyPI or source.
+
+The backend guide is here: [pii-firewall/docs/guide.html](pii-firewall/docs/guide.html)
 
 ## License
 

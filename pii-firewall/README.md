@@ -276,30 +276,6 @@ npm run dev
 
 Access at http://127.0.0.1:3010
 
-## 📤 Publish To PyPI
-
-```bash
-cd pii-firewall
-python -m pip install --upgrade build twine
-python -m build
-python -m twine check dist/*
-
-# TestPyPI (recommended first)
-python -m twine upload --repository testpypi dist/*
-
-# Production PyPI
-python -m twine upload dist/*
-```
-
-Detailed publishing guide: **[PUBLISHING.md](PUBLISHING.md)**
-
-Suggested release order:
-1. Bump `version` in `pyproject.toml`
-2. Build + `twine check`
-3. Upload to TestPyPI and verify install
-4. Upload to PyPI
-5. Create git tag/release matching the published version
-
 ## 📊 Performance
 
 - **Language detection**: 1-2ms (first message), 0ms (cached)
@@ -402,7 +378,6 @@ Done! Dutch patterns now available automatically.
 ## 📚 Documentation
 
 - **[Developer Guide (HTML)](docs/guide.html)** - Complete implementation and usage guide
-- **[PUBLISHING.md](PUBLISHING.md)** - Package release checklist and PyPI flow
 - **[tests_integration/README.md](tests_integration/README.md)** - Integration test notes
 
 To show the guide in a panel in VS Code:

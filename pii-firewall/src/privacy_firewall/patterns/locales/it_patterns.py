@@ -25,7 +25,7 @@ IT_FISCAL_CODE = EntityPattern(
 IT_PHONE = EntityPattern(
     entity_type="PHONE",
     locale="IT",
-    pattern=re.compile(r"\b(?:\+39\s?)?3\d{9}\b"),
+    pattern=re.compile(r"(?:\+39\s?)?3\d{9}\b"),
     confidence=0.9,
     description="Italian mobile phone numbers",
 )

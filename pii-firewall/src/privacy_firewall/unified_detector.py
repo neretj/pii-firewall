@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import sys
 from typing import Any
 
 from .types import Entity
@@ -864,6 +865,17 @@ class UnifiedDetectionEngine:
                 # Fallback to general model
                 model_config = get_model_for_domain("general", language)
             model_name = model_config.model_id
+
+            # CamemBERT tokenizer is currently incompatible in this runtime.
+            # Use multilingual fallback for French generic mode.
+            if (
+                domain == "general"
+                and language == "fr"
+                and sys.platform == "win32"
+                and sys.version_info >= (3, 14)
+                and model_name == "Jean-Baptiste/camembert-ner"
+            ):
+                model_name = "Davlan/xlm-roberta-base-ner-hrl"
         
         # Create engine
         engine = DomainTransformerNEREngine(
@@ -876,6 +888,12 @@ class UnifiedDetectionEngine:
 
     def _init_opf_engine(self):
         """Initialize OpenAI Privacy Filter runtime."""
+        if sys.platform == "win32" and sys.version_info >= (3, 14):
+            raise ImportError(
+                "opf requires Python < 3.14 on Windows in this runtime "
+                "(native backend instability detected)."
+            )
+
         try:
             from opf._api import OPF  # type: ignore
         except ImportError as exc:
@@ -915,6 +933,12 @@ class UnifiedDetectionEngine:
 
     def _init_nemotron_engine(self):
         """Initialize OpenMed Nemotron checkpoint through OPF runtime."""
+        if sys.platform == "win32" and sys.version_info >= (3, 14):
+            raise ImportError(
+                "nemotron requires Python < 3.14 on Windows in this runtime "
+                "(native backend instability detected)."
+            )
+
         try:
             from opf._api import OPF  # type: ignore
         except ImportError as exc:

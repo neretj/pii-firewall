@@ -12,6 +12,8 @@ Standalone web app (Next.js + React) to test the Python `pii-firewall` API step 
 1. Copy `.env.example` to `.env.local`
 2. Update `PII_API_BASE_URL` if your Python API runs on a different URL
 
+Default backend URL: `http://127.0.0.1:8080`
+
 ## Development
 
 ```bash
@@ -20,6 +22,8 @@ npm run dev
 ```
 
 Open: http://127.0.0.1:3010
+
+The app proxies requests to the backend using `PII_API_BASE_URL`, so the backend must be running before you test the UI.
 
 ## What it shows
 

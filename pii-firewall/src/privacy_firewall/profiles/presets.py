@@ -166,6 +166,11 @@ HEALTHCARE_PROFILE = DomainProfile(
             action=DispositionAction.REDACT,
             description="Tax identification numbers",
         ),
+        "ACCOUNT_NUMBER": EntityDisposition(
+            entity_type="ACCOUNT_NUMBER",
+            action=DispositionAction.REDACT,
+            description="Bank account numbers and account identifiers",
+        ),
     },
 )
 
@@ -209,6 +214,12 @@ FINANCE_PROFILE = DomainProfile(
             action=DispositionAction.KEEP,
             description="Transaction dates (keep full precision for analysis)",
         ),
+        "DATE_TIME": EntityDisposition(
+            entity_type="DATE_TIME",
+            action=DispositionAction.GENERALIZE,
+            parameters={"level": "year"},
+            description="Date-time expressions (generalized to year)",
+        ),
         
         # Pseudonymize client identifiers (reversible for audit)
         "PERSON": EntityDisposition(
@@ -246,6 +257,16 @@ FINANCE_PROFILE = DomainProfile(
             entity_type="EMAIL",
             action=DispositionAction.REDACT,
             description="Email addresses",
+        ),
+        "NATIONAL_ID": EntityDisposition(
+            entity_type="NATIONAL_ID",
+            action=DispositionAction.REDACT,
+            description="National ID numbers (SSN, DNI, etc.)",
+        ),
+        "SSN": EntityDisposition(
+            entity_type="SSN",
+            action=DispositionAction.REDACT,
+            description="Social Security Numbers",
         ),
         "PHONE": EntityDisposition(
             entity_type="PHONE",
@@ -348,6 +369,12 @@ LEGAL_PROFILE = DomainProfile(
             parameters={"granularity": "month"},
             description="Dates (reduced to month/year)",
         ),
+        "DATE_TIME": EntityDisposition(
+            entity_type="DATE_TIME",
+            action=DispositionAction.GENERALIZE,
+            parameters={"level": "year"},
+            description="Dates and timestamps (reduced to year)",
+        ),
         
         # Redact all personal identifiers
         "EMAIL": EntityDisposition(
@@ -389,6 +416,11 @@ LEGAL_PROFILE = DomainProfile(
             entity_type="IBAN",
             action=DispositionAction.REDACT,
             description="Bank account numbers",
+        ),
+        "ACCOUNT_NUMBER": EntityDisposition(
+            entity_type="ACCOUNT_NUMBER",
+            action=DispositionAction.REDACT,
+            description="Bank account numbers and account identifiers",
         ),
         "TAX_ID": EntityDisposition(
             entity_type="TAX_ID",

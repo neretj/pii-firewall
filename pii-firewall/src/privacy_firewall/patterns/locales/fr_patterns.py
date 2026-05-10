@@ -11,7 +11,7 @@ from ..catalog import EntityPattern
 FR_INSEE = EntityPattern(
     entity_type="NATIONAL_ID",
     locale="FR",
-    pattern=re.compile(r"\b[12]\d{2}[01]\d[0-9AB]\d{8}\b"),
+    pattern=re.compile(r"\b[12]\d{12}\b"),
     confidence=0.95,
     context_words=("numéro de sécurité sociale", "nir", "insee", "sécurité sociale"),
     description="French INSEE number (Numéro de Sécurité Sociale)",
@@ -25,7 +25,7 @@ FR_INSEE = EntityPattern(
 FR_PHONE = EntityPattern(
     entity_type="PHONE",
     locale="FR",
-    pattern=re.compile(r"\b(?:\+33\s?)?[1-9](?:\s?\d{2}){4}\b"),
+    pattern=re.compile(r"(?<!\d)(?:\+33\s?)?[1-9](?:\s?\d{2}){4}(?!\d)"),
     confidence=0.9,
     description="French phone numbers (10 digits)",
 )

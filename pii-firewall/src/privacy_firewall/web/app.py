@@ -172,6 +172,8 @@ def create_app(firewall: PrivacyFirewallV2 | None = None) -> FastAPI:
             mapping = fw.vault.get_case_mapping(req.tenant_id, req.case_id, req.thread_id)
         except HTTPException:
             raise
+        except ImportError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
         except Exception as exc:
             raise HTTPException(status_code=500, detail="Internal processing error") from exc
 
@@ -220,6 +222,8 @@ def create_app(firewall: PrivacyFirewallV2 | None = None) -> FastAPI:
             return {"removed": removed}
         except HTTPException:
             raise
+        except ImportError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
         except Exception as exc:
             raise HTTPException(status_code=500, detail="Internal processing error") from exc
 

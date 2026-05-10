@@ -54,13 +54,24 @@ class TransformerNEREngine:
             ) from exc
         
         print(f"Loading transformer model: {self.model_name}...")
-        self._pipeline = pipeline(
-            "ner",
-            model=self.model_name,
-            aggregation_strategy=self.aggregation_strategy,
-            device=self.device,
-            use_fast=self.use_fast_tokenizer,
-        )
+        try:
+            self._pipeline = pipeline(
+                "ner",
+                model=self.model_name,
+                aggregation_strategy=self.aggregation_strategy,
+                device=self.device,
+                use_fast=self.use_fast_tokenizer,
+            )
+        except TypeError:
+            # Some model/tokenizer combos can fail with fast tokenizers in newer Python runtimes.
+            # Retry with the slow tokenizer to keep the backend operational.
+            self._pipeline = pipeline(
+                "ner",
+                model=self.model_name,
+                aggregation_strategy=self.aggregation_strategy,
+                device=self.device,
+                use_fast=False,
+            )
         print(f"✓ Model loaded: {self.model_name}")
     
     def analyze(self, text: str) -> list[Entity]:
