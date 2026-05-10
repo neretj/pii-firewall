@@ -4,7 +4,6 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen.svg)](#)
 [![PyPI](https://img.shields.io/pypi/v/pii-firewall.svg)](https://pypi.org/project/pii-firewall/)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/pii-firewall.svg)](https://pypi.org/project/pii-firewall/)
 
 Open-source PII firewall for LLM apps. Detect, anonymize and rehydrate sensitive data before it reaches OpenAI, Anthropic or any LLM provider.
 
