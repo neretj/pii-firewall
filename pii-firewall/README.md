@@ -265,7 +265,7 @@ from privacy_firewall import create_firewall
 firewall = create_firewall(
     "healthcare",
     detector_backend="transformers",
-    model_name="dslim/bert-base-NER",  # swap for any HF model ID
+    transformer_model_id="dslim/bert-base-NER",  # swap for any HF model ID
 )
 
 result = firewall.process(
@@ -283,7 +283,7 @@ The library ships a pre-vetted catalog of models in `transformers_ner/models.py`
 from privacy_firewall.transformers_ner.models import get_model_for_domain
 
 config = get_model_for_domain("medical", "en")
-firewall = create_firewall("healthcare", detector_backend="transformers", model_name=config.model_id)
+firewall = create_firewall("healthcare", detector_backend="transformers", transformer_model_id=config.model_id)
 ```
 
 | Domain | Language | Model |
@@ -303,8 +303,8 @@ firewall = create_firewall("healthcare", detector_backend="transformers", model_
 firewall = create_firewall(
     "healthcare",
     detector_backend="transformers",
-    model_name="d4data/biomedical-ner-all",
-    device=0,   # 0 = first GPU, -1 = CPU (default)
+    transformer_model_id="d4data/biomedical-ner-all",
+    transformer_device=0,   # 0 = first GPU, -1 = CPU (default)
 )
 ```
 

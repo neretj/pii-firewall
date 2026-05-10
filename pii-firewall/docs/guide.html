@@ -1102,7 +1102,7 @@ firewall = <span class="fn">create_firewall</span>(
 firewall = <span class="fn">create_firewall</span>(
     <span class="st">"healthcare"</span>,
     detector_backend=<span class="st">"transformers"</span>,
-    model_name=<span class="st">"dslim/bert-base-NER"</span>,
+    transformer_model_id=<span class="st">"dslim/bert-base-NER"</span>,
 )
 
 result = firewall.<span class="fn">process</span>(
@@ -1118,7 +1118,7 @@ result = firewall.<span class="fn">process</span>(
 <pre><code><span class="im">from</span> privacy_firewall.transformers_ner.models <span class="im">import</span> get_model_for_domain
 
 config = <span class="fn">get_model_for_domain</span>(<span class="st">"medical"</span>, <span class="st">"en"</span>)
-firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>, detector_backend=<span class="st">"transformers"</span>, model_name=config.model_id)
+firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>, detector_backend=<span class="st">"transformers"</span>, transformer_model_id=config.model_id)
 </code></pre>
 
     <table>
@@ -1139,8 +1139,8 @@ firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"
 <pre><code>firewall = <span class="fn">create_firewall</span>(
     <span class="st">"healthcare"</span>,
     detector_backend=<span class="st">"transformers"</span>,
-    model_name=<span class="st">"d4data/biomedical-ner-all"</span>,
-    device=<span class="nr">0</span>,   <span class="cm"># 0 = first GPU, -1 = CPU (default)</span>
+    transformer_model_id=<span class="st">"d4data/biomedical-ner-all"</span>,
+    transformer_device=<span class="nr">0</span>,   <span class="cm"># 0 = first GPU, -1 = CPU (default)</span>
 )
 </code></pre>
 
