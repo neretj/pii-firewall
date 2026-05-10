@@ -335,6 +335,7 @@
 
   <div class="nav-section">Advanced</div>
   <a href="#custom-patterns">Custom Patterns</a>
+  <a href="#huggingface-models">HuggingFace Models</a>
   <a href="#languages">Language Support</a>
   <a href="#gdpr">GDPR — Right to Forget</a>
   <a href="#reference">API Reference</a>
@@ -986,11 +987,18 @@ primary_region = "cdg"
 
   <!-- ── 12. CUSTOM PATTERNS ───────────────────────────────────────── -->
   <section id="custom-patterns">
-    <h2><span class="ico">🔧</span> Custom Patterns</h2>
-    <p>You can add your own entity detectors at runtime — no config files, just code.</p>
+    <h2><span class="ico">🔧</span> Custom PII Detectors</h2>
+    <p>You can plug in your own entity detectors at runtime — no config files, just code. There are two approaches depending on whether you need a simple regex rule or a full NLP/ML model.</p>
 
-    <h3>Quick regex pattern</h3>
-<pre><code>firewall.<span class="fn">add_custom_regex</span>(
+    <div class="callout info">
+      <p><strong>Option A</strong> (regex patterns) works with any detection backend. <strong>Option B</strong> (custom recognizers) requires <code>detector_backend="presidio"</code>.</p>
+    </div>
+
+    <h3>Option A — Regex / rule-based (any backend)</h3>
+    <p>The quickest way. No extra dependencies — just pass a regex string.</p>
+
+<pre><code><span class="cm"># One-liner helper</span>
+firewall.<span class="fn">add_custom_regex</span>(
     entity_type=<span class="st">"EMPLOYEE_ID"</span>,
     regex=<span class="st">r"\bEMP-\d{6}\b"</span>,
     locales=[<span class="st">"GLOBAL"</span>],           <span class="cm"># apply to all languages</span>
@@ -998,21 +1006,178 @@ primary_region = "cdg"
     context_words=[<span class="st">"employee"</span>, <span class="st">"staff"</span>],
     disposition_action=<span class="st">"redact"</span>,   <span class="cm"># keep / redact / pseudonymize …</span>
 )
-</code></pre>
 
-    <h3>Full EntityPattern object</h3>
-<pre><code><span class="im">import</span> re
-<span class="im">from</span> privacy_firewall <span class="im">import</span> EntityPattern
+<span class="cm"># Or build the full EntityPattern object for more control</span>
+<span class="im">import</span> re
+<span class="im">from</span> privacy_firewall.patterns.catalog <span class="im">import</span> EntityPattern
 
 firewall.<span class="fn">add_custom_pattern</span>(<span class="cl">EntityPattern</span>(
     entity_type=<span class="st">"CASE_NUMBER"</span>,
-    locale=<span class="st">"ES"</span>,
+    locale=<span class="st">"ES"</span>,                    <span class="cm"># or "GLOBAL" for all languages</span>
     pattern=re.<span class="fn">compile</span>(<span class="st">r"\bEXP-\d{4}/\d{6}\b"</span>),
     confidence=<span class="nr">0.98</span>,
     context_words=(<span class="st">"expediente"</span>, <span class="st">"exp"</span>),
     description=<span class="st">"Spanish legal case number"</span>,
 ))
 </code></pre>
+
+    <h3>Option B — Custom NLP / ML model (Presidio backend)</h3>
+    <p>
+      Pass a Presidio <code>EntityRecognizer</code> instance when creating the firewall.
+      This is the right approach for spaCy models, transformers, or any custom heuristic that needs access to full token sequences.
+    </p>
+
+<pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_firewall
+<span class="im">from</span> privacy_firewall.presidio_integration <span class="im">import</span> create_custom_recognizer
+
+<span class="cm"># Helper: wraps a list of regexes into a Presidio PatternRecognizer</span>
+employee_recognizer = <span class="fn">create_custom_recognizer</span>(
+    entity_type=<span class="st">"EMPLOYEE_ID"</span>,
+    patterns=[<span class="st">r"\bEMP\d{6}\b"</span>],
+    context_words=[<span class="st">"employee"</span>, <span class="st">"badge"</span>],
+    score=<span class="nr">0.9</span>,
+)
+
+firewall = <span class="fn">create_firewall</span>(
+    domain=<span class="st">"generic"</span>,
+    detector_backend=<span class="st">"presidio"</span>,   <span class="cm"># required for custom recognizers</span>
+    custom_recognizers=[employee_recognizer],
+)
+</code></pre>
+
+    <p>For a fully custom ML-based recognizer, subclass Presidio's <code>EntityRecognizer</code> directly:</p>
+
+<pre><code><span class="im">from</span> presidio_analyzer <span class="im">import</span> EntityRecognizer, RecognizerResult
+
+<span class="kw">class</span> <span class="cl">MyModelRecognizer</span>(<span class="cl">EntityRecognizer</span>):
+    <span class="cm">"""Wraps any ML model as a Presidio recognizer."""</span>
+
+    <span class="kw">def</span> <span class="fn">load</span>(self): ...
+
+    <span class="kw">def</span> <span class="fn">analyze</span>(self, text, entities, nlp_artifacts):
+        results = []
+        <span class="kw">for</span> span <span class="kw">in</span> my_model.<span class="fn">predict</span>(text):   <span class="cm"># your model call here</span>
+            results.<span class="fn">append</span>(<span class="cl">RecognizerResult</span>(
+                entity_type=<span class="st">"CUSTOM_ENTITY"</span>,
+                start=span.start,
+                end=span.end,
+                score=span.confidence,
+            ))
+        <span class="kw">return</span> results
+
+firewall = <span class="fn">create_firewall</span>(
+    domain=<span class="st">"generic"</span>,
+    detector_backend=<span class="st">"presidio"</span>,
+    custom_recognizers=[<span class="cl">MyModelRecognizer</span>(supported_entities=[<span class="st">"CUSTOM_ENTITY"</span>])],
+)
+</code></pre>
+
+    <h3>Which option to choose?</h3>
+    <table>
+      <thead><tr><th>Scenario</th><th>Approach</th></tr></thead>
+      <tbody>
+        <tr><td>Regex or rule-based custom entity</td><td>Option A — <code>add_custom_regex</code> / <code>add_custom_pattern</code></td></tr>
+        <tr><td>Locale-specific ID format (new country)</td><td>Option A with the matching locale code</td></tr>
+        <tr><td>Existing HuggingFace / spaCy NER model</td><td>Option B — wrap in <code>EntityRecognizer</code> subclass</td></tr>
+        <tr><td>Complex heuristic or external API call</td><td>Option B — implement <code>analyze()</code> freely</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+
+  <!-- ── 12b. HUGGINGFACE MODELS ───────────────────────────────── -->
+  <section id="huggingface-models">
+    <h2><span class="ico">🤗</span> Testing a HuggingFace PII Model</h2>
+    <p>
+      The library ships a built-in <code>transformers</code> backend. Pass any HuggingFace model ID and the model is downloaded automatically on first call.
+    </p>
+
+    <h3>Installation</h3>
+<pre><code>pip install <span class="st">"pii-firewall[transformers]"</span></code></pre>
+
+    <h3>Quickest path — built-in transformers backend</h3>
+<pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_firewall
+
+<span class="cm"># Swap model_name for any HF model ID</span>
+firewall = <span class="fn">create_firewall</span>(
+    <span class="st">"healthcare"</span>,
+    detector_backend=<span class="st">"transformers"</span>,
+    model_name=<span class="st">"dslim/bert-base-NER"</span>,
+)
+
+result = firewall.<span class="fn">process</span>(
+    text=<span class="st">"John Doe, SSN 123-45-6789, prescribed enalapril 10mg"</span>,
+    context={<span class="st">"tenant_id"</span>: <span class="st">"t1"</span>, <span class="st">"case_id"</span>: <span class="st">"c1"</span>, <span class="st">"thread_id"</span>: <span class="st">"th1"</span>, <span class="st">"actor_id"</span>: <span class="st">"a1"</span>},
+)
+<span class="fn">print</span>(result.sanitized_text)
+</code></pre>
+
+    <h3>Curated model catalog</h3>
+    <p>The library ships pre-vetted models in <code>transformers_ner/models.py</code>. Use <code>get_model_for_domain()</code> to pick the right one automatically:</p>
+
+<pre><code><span class="im">from</span> privacy_firewall.transformers_ner.models <span class="im">import</span> get_model_for_domain
+
+config = <span class="fn">get_model_for_domain</span>(<span class="st">"medical"</span>, <span class="st">"en"</span>)
+firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>, detector_backend=<span class="st">"transformers"</span>, model_name=config.model_id)
+</code></pre>
+
+    <table>
+      <thead><tr><th>Domain</th><th>Language</th><th>Model</th></tr></thead>
+      <tbody>
+        <tr><td>General</td><td><code>en</code></td><td><code>dslim/bert-base-NER</code></td></tr>
+        <tr><td>General</td><td>multilingual</td><td><code>Davlan/xlm-roberta-base-ner-hrl</code></td></tr>
+        <tr><td>General</td><td><code>fr</code></td><td><code>Jean-Baptiste/camembert-ner</code></td></tr>
+        <tr><td>Medical</td><td><code>en</code></td><td><code>d4data/biomedical-ner-all</code></td></tr>
+        <tr><td>Medical</td><td><code>en</code> (clinical)</td><td><code>emilyalsentzer/Bio_ClinicalBERT</code></td></tr>
+        <tr><td>Medical</td><td><code>es</code></td><td><code>PlanTL-GOB-ES/bsc-bio-ehr-es</code></td></tr>
+        <tr><td>Financial</td><td><code>en</code></td><td><code>ProsusAI/finbert</code></td></tr>
+        <tr><td>Legal</td><td><code>en</code></td><td><code>nlpaueb/legal-bert-base-uncased</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Run on GPU</h3>
+<pre><code>firewall = <span class="fn">create_firewall</span>(
+    <span class="st">"healthcare"</span>,
+    detector_backend=<span class="st">"transformers"</span>,
+    model_name=<span class="st">"d4data/biomedical-ner-all"</span>,
+    device=<span class="nr">0</span>,   <span class="cm"># 0 = first GPU, -1 = CPU (default)</span>
+)
+</code></pre>
+
+    <h3>Combine with regex patterns (Presidio hybrid)</h3>
+    <p>If you need the HF model to run alongside regex patterns in the same pipeline, wrap it as a Presidio recognizer and use <code>detector_backend="presidio"</code>:</p>
+
+<pre><code><span class="im">from</span> presidio_analyzer <span class="im">import</span> EntityRecognizer, RecognizerResult
+<span class="im">from</span> transformers <span class="im">import</span> pipeline
+
+<span class="kw">class</span> <span class="cl">HFPIIRecognizer</span>(<span class="cl">EntityRecognizer</span>):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, model_id: <span class="cl">str</span>):
+        <span class="fn">super().__init__</span>(supported_entities=[<span class="st">"PERSON"</span>, <span class="st">"ORGANIZATION"</span>, <span class="st">"LOCATION"</span>])
+        self._pipe = <span class="fn">pipeline</span>(<span class="st">"ner"</span>, model=model_id, aggregation_strategy=<span class="st">"simple"</span>)
+
+    <span class="kw">def</span> <span class="fn">load</span>(self): ...
+
+    <span class="kw">def</span> <span class="fn">analyze</span>(self, text, entities, nlp_artifacts):
+        <span class="kw">return</span> [
+            <span class="cl">RecognizerResult</span>(
+                entity_type=span[<span class="st">"entity_group"</span>],
+                start=span[<span class="st">"start"</span>],
+                end=span[<span class="st">"end"</span>],
+                score=span[<span class="st">"score"</span>],
+            )
+            <span class="kw">for</span> span <span class="kw">in</span> self._pipe(text)
+        ]
+
+firewall = <span class="fn">create_firewall</span>(
+    <span class="st">"healthcare"</span>,
+    detector_backend=<span class="st">"presidio"</span>,
+    custom_recognizers=[<span class="cl">HFPIIRecognizer</span>(<span class="st">"dslim/bert-base-NER"</span>)],
+)
+</code></pre>
+
+    <div class="callout tip">
+      <p><strong>Tip:</strong> Use <code>detector_backend="transformers"</code> for quick benchmarking of a single model. Switch to the Presidio wrapper when you need to combine it with locale-specific regex patterns for maximum coverage.</p>
+    </div>
   </section>
 
 

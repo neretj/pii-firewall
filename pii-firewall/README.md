@@ -1,11 +1,11 @@
-# Privacy Firewall V2 🛡️
+# LLM Pii Firewall 🛡️
 
 **Best-in-class multi-language, domain-aware anonymization library for AI applications**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🌟 Why Privacy Firewall V2?
+## 🌟 Why Pii Firewall?
 
 This library outperforms competitors by combining:
 - **Domain Awareness**: Keep relevant data (medical diagnoses in healthcare, transaction amounts in finance)
@@ -155,21 +155,190 @@ profile.add_disposition(EntityDisposition(
 firewall = PrivacyFirewallV2(profile=profile)
 ```
 
-### Custom Patterns
+### Adding Your Own Custom PII Detectors
+
+There are two approaches depending on whether you need regex rules or a full ML/NLP model.
+
+#### Option A — Regex pattern (no ML, any backend)
+
+Add patterns directly to the catalog at runtime. Works with all detection backends.
 
 ```python
 import re
-from privacy_firewall.patterns import EntityPattern
+from privacy_firewall.patterns.catalog import EntityPattern
 
-# Add custom pattern at runtime
-firewall.add_custom_pattern(EntityPattern(
+# Quick one-liner helper
+firewall.add_custom_regex(
     entity_type="EMPLOYEE_ID",
-    locale="US",
-    pattern=re.compile(r"\bEMP-\d{6}\b"),
+    regex=r"\bEMP-\d{6}\b",
+    locales=["GLOBAL"],          # or ["US"], ["ES"], etc.
     confidence=0.95,
-    context_words=("employee", "staff", "worker"),
-    description="Company employee IDs",
+    context_words=["employee", "staff"],
+    disposition_action="redact", # keep / redact / pseudonymize / mask …
+)
+
+# Or build the full EntityPattern object for more control
+firewall.add_custom_pattern(EntityPattern(
+    entity_type="CASE_NUMBER",
+    locale="ES",
+    pattern=re.compile(r"\bEXP-\d{4}/\d{6}\b"),
+    confidence=0.98,
+    context_words=("expediente", "exp"),
+    description="Spanish legal case number",
 ))
+```
+
+#### Option B — Custom NLP/ML recognizer (Presidio backend)
+
+Pass your own Presidio `EntityRecognizer` (or `PatternRecognizer`) when creating the firewall.
+This is the right approach when you want to use a spaCy model, a transformer, or any custom heuristic.
+
+```python
+from privacy_firewall import create_firewall
+from privacy_firewall.presidio_integration import create_custom_recognizer
+
+# Helper that wraps a regex list into a Presidio PatternRecognizer
+employee_recognizer = create_custom_recognizer(
+    entity_type="EMPLOYEE_ID",
+    patterns=[r"\bEMP\d{6}\b"],
+    context_words=["employee", "badge"],
+    score=0.9,
+)
+
+firewall = create_firewall(
+    domain="generic",
+    detector_backend="presidio",   # required for this approach
+    custom_recognizers=[employee_recognizer],
+)
+```
+
+For a fully custom ML-based recognizer, subclass Presidio's `EntityRecognizer` and pass the instance the same way:
+
+```python
+from presidio_analyzer import EntityRecognizer, RecognizerResult
+
+class MyModelRecognizer(EntityRecognizer):
+    """Example: wraps any ML model as a Presidio recognizer."""
+
+    def load(self): ...
+
+    def analyze(self, text, entities, nlp_artifacts):
+        results = []
+        # call your model here and yield RecognizerResult objects
+        for span in my_model.predict(text):
+            results.append(RecognizerResult(
+                entity_type="CUSTOM_ENTITY",
+                start=span.start,
+                end=span.end,
+                score=span.confidence,
+            ))
+        return results
+
+firewall = create_firewall(
+    domain="generic",
+    detector_backend="presidio",
+    custom_recognizers=[MyModelRecognizer(supported_entities=["CUSTOM_ENTITY"])],
+)
+```
+
+#### Which option to use?
+
+| Scenario | Approach |
+|---|---|
+| Regex or rule-based custom entity | Option A — `add_custom_regex` / `add_custom_pattern` |
+| Locale-specific ID format (new country) | Option A with the matching locale code |
+| Existing HuggingFace / spaCy NER model | Option B — wrap in `EntityRecognizer` subclass |
+| Complex heuristic or external API call | Option B — implement `analyze()` freely |
+
+### Testing a HuggingFace PII Model
+
+The library has a built-in `transformers` backend. The quickest way to try any HuggingFace NER model is:
+
+```bash
+pip install "pii-firewall[transformers]"
+```
+
+```python
+from privacy_firewall import create_firewall
+
+# Pass any HuggingFace model ID — downloaded automatically on first call
+firewall = create_firewall(
+    "healthcare",
+    detector_backend="transformers",
+    model_name="dslim/bert-base-NER",  # swap for any HF model ID
+)
+
+result = firewall.process(
+    text="John Doe, SSN 123-45-6789, prescribed enalapril 10mg",
+    context={"tenant_id": "t1", "case_id": "c1", "thread_id": "th1", "actor_id": "a1"},
+)
+print(result.sanitized_text)
+```
+
+#### Curated model catalog
+
+The library ships a pre-vetted catalog of models in `transformers_ner/models.py`:
+
+```python
+from privacy_firewall.transformers_ner.models import get_model_for_domain
+
+config = get_model_for_domain("medical", "en")
+firewall = create_firewall("healthcare", detector_backend="transformers", model_name=config.model_id)
+```
+
+| Domain | Language | Model |
+|---|---|---|
+| General | `en` | `dslim/bert-base-NER` |
+| General | multilingual | `Davlan/xlm-roberta-base-ner-hrl` |
+| General | `fr` | `Jean-Baptiste/camembert-ner` |
+| Medical | `en` | `d4data/biomedical-ner-all` |
+| Medical | `en` (clinical) | `emilyalsentzer/Bio_ClinicalBERT` |
+| Medical | `es` | `PlanTL-GOB-ES/bsc-bio-ehr-es` |
+| Financial | `en` | `ProsusAI/finbert` |
+| Legal | `en` | `nlpaueb/legal-bert-base-uncased` |
+
+#### Run on GPU
+
+```python
+firewall = create_firewall(
+    "healthcare",
+    detector_backend="transformers",
+    model_name="d4data/biomedical-ner-all",
+    device=0,   # 0 = first GPU, -1 = CPU (default)
+)
+```
+
+#### Combine with regex patterns (Presidio hybrid)
+
+If you need to mix the HF model with regex patterns in the same pipeline, wrap it as a Presidio recognizer:
+
+```python
+from presidio_analyzer import EntityRecognizer, RecognizerResult
+from transformers import pipeline
+
+class HFPIIRecognizer(EntityRecognizer):
+    def __init__(self, model_id: str):
+        super().__init__(supported_entities=["PERSON", "ORGANIZATION", "LOCATION"])
+        self._pipe = pipeline("ner", model=model_id, aggregation_strategy="simple")
+
+    def load(self): pass
+
+    def analyze(self, text, entities, nlp_artifacts):
+        return [
+            RecognizerResult(
+                entity_type=span["entity_group"],
+                start=span["start"],
+                end=span["end"],
+                score=span["score"],
+            )
+            for span in self._pipe(text)
+        ]
+
+firewall = create_firewall(
+    "healthcare",
+    detector_backend="presidio",
+    custom_recognizers=[HFPIIRecognizer("dslim/bert-base-NER")],
+)
 ```
 
 ### Reversible Pseudonymization
