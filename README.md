@@ -63,12 +63,12 @@ User text  ──→  [ PII Firewall ]  ──→  Sanitized prompt  ──→  
 
 | Scenario | Profile | Key benefit |
 |---|---|---|
-| Protect patient data before sending clinical notes to GPT-4 | `healthcare` | Medical terms kept; patient identifiers stripped |
-| Redact Spanish DNI, NIE and IBAN before LLM calls | `healthcare` / `finance` | Locale-aware patterns for ES/EU documents |
-| Rehydrate LLM responses without leaking real names | any | Vault restores original values transparently |
-| GDPR Art. 17 right-to-forget for LLM conversation history | any | `firewall.forget()` wipes all mappings by thread/case |
-| Customer support: anonymize tickets before sending to AI | `generic` | Zero PII reaches the model provider |
-| Legal discovery: pseudonymize party names in documents | `legal` | Reversible — case management still works |
+| Doctor dictates clinical notes into an LLM for diagnosis coding | `healthcare` | Patient demographics stripped; medical terminology preserved |
+| Loan officer sends a mortgage application to an LLM for risk summarization | `finance` | Account numbers, tax IDs and income figures never leave the org |
+| Support agent forwards a customer complaint to an AI triage bot | `generic` | Names, emails and phone numbers never reach the provider or its training pipeline |
+| Legal team runs e-discovery across contracts using an LLM | `legal` | Party names pseudonymized consistently across all documents; fully reversible |
+| HR platform sends CVs and reviews to an LLM for structured analysis | `generic` | Employee identity hidden from the model; real values restored in downstream output |
+| Multilingual SaaS routes support tickets through an AI agent | any | Language auto-detected; correct locale patterns applied with no per-language config |
 
 ---
 
