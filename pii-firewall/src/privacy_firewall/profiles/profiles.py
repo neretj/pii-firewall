@@ -18,14 +18,25 @@ from typing import Any
 
 class DispositionAction(Enum):
     """Actions that can be taken on detected entities."""
-    
-    KEEP = "keep"  # Keep entity as-is (domain-relevant data)
-    REDACT = "redact"  # Replace with [REDACTED] or generic token
-    PSEUDONYMIZE = "pseudonymize"  # Replace with reversible token (PERSON_1)
-    GENERALIZE = "generalize"  # Replace with coarser value (age 43 → 40-49)
-    MASK = "mask"  # Partial obscurement (credit card 4111...1111)
-    HASH = "hash"  # Deterministic hash (for linking without exposure)
-    SUPPRESS = "suppress"  # Remove entirely from text
+
+    KEEP = "keep"
+    # Replace with a reversible placeholder token (e.g. [PERSON_001]).
+    # The token mapping is stored in the vault and can be rehydrated.
+    # Scope (thread / case / tenant) is set at the profile level via `token_scope`.
+    PSEUDONYMIZE = "pseudonymize"
+    # Reduce precision: age → decade bucket, date → year/month, location → city.
+    # One-way — no vault entry, not rehydratable.
+    GENERALIZE = "generalize"
+    # Partial obscurement — keep a few visible characters (e.g. ****1111).
+    # One-way, not stored in vault.
+    MASK = "mask"
+    # Deterministic SHA-256 hash. Useful for analytics join-keys, NOT for the
+    # LLM pipeline (the hash string has no semantic value for the model).
+    HASH = "hash"
+    # Irreversible removal — the span is deleted from the text entirely.
+    # Use only when even a placeholder token must not appear (e.g. you want the
+    # LLM to be completely unaware the data existed).
+    REDACT = "redact"
 
 
 @dataclass(frozen=True)
@@ -143,13 +154,13 @@ class DomainProfile:
             "dispositions": {
                 "PERSON": {"action": "pseudonymize", "confidence_threshold": 0.8},
                 "DIAGNOSIS": {"action": "keep"},
-                "EMAIL": {"action": "redact"}
+                "EMAIL": {"action": "pseudonymize"}
             }
         }
         """
         dispositions = {}
         for entity_type, disp_config in config.get("dispositions", {}).items():
-            action = DispositionAction(disp_config.get("action", "redact"))
+            action = DispositionAction(disp_config.get("action", "pseudonymize"))
             dispositions[entity_type] = EntityDisposition(
                 entity_type=entity_type,
                 action=action,

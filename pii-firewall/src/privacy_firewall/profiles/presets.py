@@ -20,23 +20,26 @@ _DATE_THRESHOLD = 0.55
 # override specific entries and add domain-specific ones on top.
 #
 # Rationale for each default action:
-#   PERSON          → PSEUDONYMIZE  reversible tokens needed for cross-turn continuity
-#   EMAIL           → REDACT        high-risk direct identifier, no domain value
-#   PHONE_NUMBER    → REDACT        high-risk direct identifier
-#   NATIONAL_ID     → REDACT        legal identifier, highest risk
-#   SSN             → REDACT        legal identifier, highest risk
-#   IBAN            → REDACT        financial identifier — domain profiles may pseudonymize
-#   CREDIT_CARD     → MASK          partial visibility is sufficient for most integrations
-#   ACCOUNT_NUMBER  → REDACT        financial, high risk
-#   TAX_ID          → REDACT        legal-financial identifier
-#   ADDRESS         → REDACT        precise location, high re-identification risk
-#   POSTAL_CODE     → REDACT        quasi-identifier
-#   LOCATION        → GENERALIZE    useful context at city level, not at street level
-#   IP_ADDRESS      → REDACT        digital identifier
-#   URL             → REDACT        may embed credentials or session data
-#   SECRET          → REDACT        always redact; no legitimate downstream use
-#   DATE            → GENERALIZE    quasi-identifier; year granularity is safe by default
-#   DATE_TIME       → GENERALIZE    idem — full timestamp is high-risk
+#   PERSON          → PSEUDONYMIZE  reversible token; needed for cross-turn continuity
+#   EMAIL           → PSEUDONYMIZE  reversible token; LLM may need to reference it
+#   PHONE_NUMBER    → PSEUDONYMIZE  reversible token
+#   NATIONAL_ID     → PSEUDONYMIZE  reversible token; highest risk but still needs rehydration
+#   SSN             → PSEUDONYMIZE  reversible token
+#   IBAN            → PSEUDONYMIZE  reversible token; domain profiles control scope via token_scope
+#   CREDIT_CARD     → MASK          partial visibility sufficient; last 4 digits kept
+#   ACCOUNT_NUMBER  → PSEUDONYMIZE  reversible token
+#   TAX_ID          → PSEUDONYMIZE  reversible token
+#   ADDRESS         → PSEUDONYMIZE  reversible token; precise location, high re-identification risk
+#   POSTAL_CODE     → PSEUDONYMIZE  reversible token; quasi-identifier
+#   LOCATION        → GENERALIZE    useful at city level, not at street level (one-way)
+#   IP_ADDRESS      → PSEUDONYMIZE  reversible token; digital identifier
+#   URL             → PSEUDONYMIZE  reversible token; may embed credentials or session data
+#   SECRET          → PSEUDONYMIZE  reversible token; passwords/keys need rehydration in context
+#   DATE            → GENERALIZE    quasi-identifier; year granularity safe by default (one-way)
+#   DATE_TIME       → GENERALIZE    idem — full timestamp is high-risk (one-way)
+#
+# Token scope (thread / case / tenant) is NOT encoded in the action.
+# It is configured at the profile level via DomainProfile.token_scope.
 # =============================================================================
 
 _UNIVERSAL_DISPOSITIONS: dict[str, EntityDisposition] = {
@@ -44,32 +47,32 @@ _UNIVERSAL_DISPOSITIONS: dict[str, EntityDisposition] = {
         entity_type="PERSON",
         action=DispositionAction.PSEUDONYMIZE,
         confidence_threshold=0.75,
-        description="Person names — pseudonymized for cross-turn continuity",
+        description="Person names",
     ),
     "EMAIL": EntityDisposition(
         entity_type="EMAIL",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="Email addresses",
     ),
     "PHONE_NUMBER": EntityDisposition(
         entity_type="PHONE_NUMBER",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         confidence_threshold=_PHONE_THRESHOLD,
         description="Phone numbers",
     ),
     "NATIONAL_ID": EntityDisposition(
         entity_type="NATIONAL_ID",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="National ID numbers (DNI, INSEE, Codice Fiscale, etc.)",
     ),
     "SSN": EntityDisposition(
         entity_type="SSN",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="Social Security Numbers",
     ),
     "IBAN": EntityDisposition(
         entity_type="IBAN",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="Bank account numbers (IBAN)",
     ),
     "CREDIT_CARD": EntityDisposition(
@@ -80,22 +83,22 @@ _UNIVERSAL_DISPOSITIONS: dict[str, EntityDisposition] = {
     ),
     "ACCOUNT_NUMBER": EntityDisposition(
         entity_type="ACCOUNT_NUMBER",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="Bank account numbers and routing identifiers",
     ),
     "TAX_ID": EntityDisposition(
         entity_type="TAX_ID",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="Tax identification numbers",
     ),
     "ADDRESS": EntityDisposition(
         entity_type="ADDRESS",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="Street addresses",
     ),
     "POSTAL_CODE": EntityDisposition(
         entity_type="POSTAL_CODE",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="Postal / ZIP codes",
     ),
     "LOCATION": EntityDisposition(
@@ -106,17 +109,17 @@ _UNIVERSAL_DISPOSITIONS: dict[str, EntityDisposition] = {
     ),
     "IP_ADDRESS": EntityDisposition(
         entity_type="IP_ADDRESS",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="IP addresses",
     ),
     "URL": EntityDisposition(
         entity_type="URL",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="Web links and URLs",
     ),
     "SECRET": EntityDisposition(
         entity_type="SECRET",
-        action=DispositionAction.REDACT,
+        action=DispositionAction.PSEUDONYMIZE,
         description="Secrets, API keys, tokens, PINs, CVVs",
     ),
     "DATE": EntityDisposition(
@@ -164,11 +167,13 @@ HEALTHCARE_PROFILE = DomainProfile(
             parameters={"granularity": "year"},
             description="Dates (reduced to year — birth dates, admission dates)",
         ),
-        # IBAN/ACCOUNT_NUMBER/TAX_ID/CREDIT_CARD inherit REDACT from universal (correct for healthcare)        # CREDIT_CARD defaults to MASK in universal; healthcare should fully redact financial data
+        # CREDIT_CARD defaults to MASK in universal; override to PSEUDONYMIZE in
+        # healthcare because financial data is fully out of domain here and a
+        # masked value (****1111) has no clinical relevance.
         "CREDIT_CARD": EntityDisposition(
             entity_type="CREDIT_CARD",
-            action=DispositionAction.REDACT,
-            description="Credit card numbers (out of domain — fully redacted)",
+            action=DispositionAction.PSEUDONYMIZE,
+            description="Credit card numbers (out of domain — pseudonymized)",
         ),
         # Domain-specific: keep all clinical entities
         "DIAGNOSIS": EntityDisposition(
@@ -274,35 +279,35 @@ FINANCE_PROFILE = DomainProfile(
             description="Company and organization names (public record, not PII)",
         ),
 
-        # Redact medical data (out of domain for finance).
+        # Pseudonymize medical data that leaks into finance context.
         # Biomedical NER models score lower than regex, so use threshold 0.45.
         "DIAGNOSIS": EntityDisposition(
             entity_type="DIAGNOSIS",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             confidence_threshold=0.45,
             description="Medical diagnoses (out of domain)",
         ),
         "SYMPTOM": EntityDisposition(
             entity_type="SYMPTOM",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             confidence_threshold=0.45,
             description="Medical symptoms (cross-domain leakage)",
         ),
         "DRUG": EntityDisposition(
             entity_type="DRUG",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             confidence_threshold=0.45,
             description="Medication names (out of domain)",
         ),
         "PROCEDURE": EntityDisposition(
             entity_type="PROCEDURE",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             confidence_threshold=0.45,
             description="Medical procedures (out of domain)",
         ),
         "MEDICAL_RECORD": EntityDisposition(
             entity_type="MEDICAL_RECORD",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             description="Medical record numbers (out of domain)",
         ),
     },
@@ -337,10 +342,21 @@ LEGAL_PROFILE = DomainProfile(
             parameters={"granularity": "month"},
             description="Dates (reduced to month/year for legal filings)",
         ),
-        # CREDIT_CARD defaults to MASK in universal; legal should fully redact
+        # DATE_TIME — NLP backends (Presidio/spaCy) typically label calendar dates
+        # as DATE_TIME rather than DATE.  Override universal year-level to month-level
+        # so all date-like spans are consistently reduced to month/year in legal docs.
+        "DATE_TIME": EntityDisposition(
+            entity_type="DATE_TIME",
+            action=DispositionAction.GENERALIZE,
+            confidence_threshold=_DATE_THRESHOLD,
+            parameters={"granularity": "month"},
+            description="Date-time expressions (reduced to month/year for legal filings)",
+        ),
+        # CREDIT_CARD defaults to MASK in universal; override to PSEUDONYMIZE in
+        # legal because a masked value has no relevance in legal documents.
         "CREDIT_CARD": EntityDisposition(
             entity_type="CREDIT_CARD",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             description="Credit card numbers",
         ),
 
@@ -360,31 +376,31 @@ LEGAL_PROFILE = DomainProfile(
         # rule-based detectors, so use a relaxed threshold of 0.45.
         "DIAGNOSIS": EntityDisposition(
             entity_type="DIAGNOSIS",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             confidence_threshold=0.45,
             description="Medical diagnoses (injury/malpractice cross-domain leakage)",
         ),
         "SYMPTOM": EntityDisposition(
             entity_type="SYMPTOM",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             confidence_threshold=0.45,
             description="Medical symptoms (cross-domain leakage)",
         ),
         "DRUG": EntityDisposition(
             entity_type="DRUG",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             confidence_threshold=0.45,
             description="Medication names (cross-domain leakage)",
         ),
         "PROCEDURE": EntityDisposition(
             entity_type="PROCEDURE",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             confidence_threshold=0.45,
             description="Medical procedures (cross-domain leakage)",
         ),
         "MEDICAL_RECORD": EntityDisposition(
             entity_type="MEDICAL_RECORD",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             description="Medical record numbers (cross-domain leakage)",
         ),
     },
@@ -409,27 +425,27 @@ GENERIC_PROFILE = DomainProfile(
         # about domain context so any medical data is treated as sensitive PII.
         "DIAGNOSIS": EntityDisposition(
             entity_type="DIAGNOSIS",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             description="Medical diagnoses and conditions",
         ),
         "DRUG": EntityDisposition(
             entity_type="DRUG",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             description="Medication names",
         ),
         "PROCEDURE": EntityDisposition(
             entity_type="PROCEDURE",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             description="Medical procedures",
         ),
         "SYMPTOM": EntityDisposition(
             entity_type="SYMPTOM",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             description="Patient-reported symptoms",
         ),
         "MEDICAL_RECORD": EntityDisposition(
             entity_type="MEDICAL_RECORD",
-            action=DispositionAction.REDACT,
+            action=DispositionAction.PSEUDONYMIZE,
             description="Medical record numbers",
         ),
     },
@@ -494,7 +510,7 @@ def create_custom_profile(
             else:
                 dispositions[entity_type] = EntityDisposition(
                     entity_type=entity_type,
-                    action=DispositionAction(disp.get("action", "redact")),
+                    action=DispositionAction(disp.get("action", "pseudonymize")),
                     confidence_threshold=disp.get("confidence_threshold", 0.75),
                     parameters=disp.get("parameters", {}),
                     description=disp.get("description", ""),

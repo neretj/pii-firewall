@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -21,7 +22,13 @@
       --radius: 12px;
       --radius-sm: 6px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg);
@@ -31,7 +38,10 @@
     }
 
     /* ── Layout ─────────────────────────────── */
-    .layout { display: flex; min-height: 100vh; }
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
 
     nav {
       width: 260px;
@@ -50,12 +60,14 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 20px;
     }
+
     nav .logo span {
       display: block;
       font-size: 18px;
       font-weight: 700;
       letter-spacing: -.3px;
     }
+
     nav .logo small {
       color: var(--text-muted);
       font-size: 12px;
@@ -70,11 +82,14 @@
       border-left: 3px solid transparent;
       transition: all .15s;
     }
-    nav a:hover, nav a.active {
+
+    nav a:hover,
+    nav a.active {
       color: var(--text);
       border-left-color: var(--accent);
       background: rgba(108, 99, 255, .07);
     }
+
     nav .nav-section {
       font-size: 11px;
       font-weight: 600;
@@ -98,6 +113,7 @@
       padding: 40px 48px;
       margin-bottom: 48px;
     }
+
     .hero .badge {
       display: inline-block;
       background: rgba(108, 99, 255, .2);
@@ -109,16 +125,29 @@
       font-weight: 600;
       margin-bottom: 16px;
     }
-    .hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; letter-spacing: -.5px; }
-    .hero p { color: var(--text-muted); font-size: 16px; max-width: 540px; }
+
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: -.5px;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 16px;
+      max-width: 540px;
+    }
+
     .pillars {
       display: flex;
       gap: 12px;
       margin-top: 28px;
       flex-wrap: wrap;
     }
+
     .pillar {
-      background: rgba(255,255,255,.04);
+      background: rgba(255, 255, 255, .04);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 10px 16px;
@@ -127,15 +156,21 @@
       align-items: center;
       gap: 8px;
     }
+
     .pillar .dot {
-      width: 8px; height: 8px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--accent2);
       flex-shrink: 0;
     }
 
     /* ── Sections ─────────────────────────────── */
-    section { margin-bottom: 56px; scroll-margin-top: 24px; }
+    section {
+      margin-bottom: 56px;
+      scroll-margin-top: 24px;
+    }
+
     h2 {
       font-size: 22px;
       font-weight: 700;
@@ -146,10 +181,26 @@
       align-items: center;
       gap: 10px;
     }
-    h2 .ico { font-size: 20px; }
-    h3 { font-size: 16px; font-weight: 600; margin: 24px 0 10px; color: var(--text); }
-    p { color: var(--text-muted); margin-bottom: 14px; }
-    p strong { color: var(--text); }
+
+    h2 .ico {
+      font-size: 20px;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 24px 0 10px;
+      color: var(--text);
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    p strong {
+      color: var(--text);
+    }
 
     /* ── Code ─────────────────────────────────── */
     pre {
@@ -162,22 +213,76 @@
       line-height: 1.7;
       margin-bottom: 20px;
     }
-    code { font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; }
-    pre code { color: #c9d1d9; }
-    .kw  { color: #ff79c6; }   /* keyword / def / class */
-    .fn  { color: #8be9fd; }   /* function call */
-    .st  { color: #f1fa8c; }   /* string */
-    .cm  { color: #6272a4; font-style: italic; } /* comment */
-    .nr  { color: #bd93f9; }   /* number */
-    .cn  { color: #50fa7b; }   /* constant / True / False / None */
-    .cl  { color: #ffb86c; }   /* class name */
-    .im  { color: #ff79c6; }   /* import */
-    .sh  { color: #6272a4; }   /* shell / $ prompt */
-    .env { color: #50fa7b; }   /* env var name */
-    .hl  { background: rgba(108,99,255,.15); border-left: 3px solid var(--accent); padding-left: 12px; margin-left: -12px; display: block; }
+
+    code {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+
+    pre code {
+      color: #c9d1d9;
+    }
+
+    .kw {
+      color: #ff79c6;
+    }
+
+    /* keyword / def / class */
+    .fn {
+      color: #8be9fd;
+    }
+
+    /* function call */
+    .st {
+      color: #f1fa8c;
+    }
+
+    /* string */
+    .cm {
+      color: #6272a4;
+      font-style: italic;
+    }
+
+    /* comment */
+    .nr {
+      color: #bd93f9;
+    }
+
+    /* number */
+    .cn {
+      color: #50fa7b;
+    }
+
+    /* constant / True / False / None */
+    .cl {
+      color: #ffb86c;
+    }
+
+    /* class name */
+    .im {
+      color: #ff79c6;
+    }
+
+    /* import */
+    .sh {
+      color: #6272a4;
+    }
+
+    /* shell / $ prompt */
+    .env {
+      color: #50fa7b;
+    }
+
+    /* env var name */
+    .hl {
+      background: rgba(108, 99, 255, .15);
+      border-left: 3px solid var(--accent);
+      padding-left: 12px;
+      margin-left: -12px;
+      display: block;
+    }
 
     /* ── Inline code ──────────────────────────── */
-    :not(pre) > code {
+    :not(pre)>code {
       background: var(--tag-bg);
       border-radius: 4px;
       padding: 2px 7px;
@@ -186,24 +291,65 @@
     }
 
     /* ── Cards ────────────────────────────────── */
-    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 20px 22px;
     }
-    .card-accent-border { border-top: 3px solid var(--accent); }
-    .card-green-border  { border-top: 3px solid var(--accent2); }
-    .card-red-border    { border-top: 3px solid var(--accent3); }
-    .card-yellow-border { border-top: 3px solid var(--accent4); }
-    .card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
-    .card p  { font-size: 13px; margin: 0; }
-    .card ul { font-size: 13px; color: var(--text-muted); padding-left: 16px; }
-    .card ul li { margin-bottom: 4px; }
+
+    .card-accent-border {
+      border-top: 3px solid var(--accent);
+    }
+
+    .card-green-border {
+      border-top: 3px solid var(--accent2);
+    }
+
+    .card-red-border {
+      border-top: 3px solid var(--accent3);
+    }
+
+    .card-yellow-border {
+      border-top: 3px solid var(--accent4);
+    }
+
+    .card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .card ul {
+      font-size: 13px;
+      color: var(--text-muted);
+      padding-left: 16px;
+    }
+
+    .card ul li {
+      margin-bottom: 4px;
+    }
 
     /* ── Table ────────────────────────────────── */
-    table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-bottom: 24px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin-bottom: 24px;
+    }
+
     th {
       text-align: left;
       padding: 10px 16px;
@@ -214,8 +360,17 @@
       text-transform: uppercase;
       letter-spacing: .06em;
     }
-    td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
-    tr:last-child td { border-bottom: none; }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
     .tag {
       display: inline-block;
       background: var(--tag-bg);
@@ -225,10 +380,22 @@
       margin: 1px 2px;
       font-family: monospace;
     }
-    .tag.green { color: var(--accent2); }
-    .tag.purple { color: #bd93f9; }
-    .tag.red    { color: var(--accent3); }
-    .tag.yellow { color: var(--accent4); }
+
+    .tag.green {
+      color: var(--accent2);
+    }
+
+    .tag.purple {
+      color: #bd93f9;
+    }
+
+    .tag.red {
+      color: var(--accent3);
+    }
+
+    .tag.yellow {
+      color: var(--accent4);
+    }
 
     /* ── Callouts ─────────────────────────────── */
     .callout {
@@ -238,31 +405,70 @@
       font-size: 13.5px;
       border-left: 4px solid;
     }
-    .callout.info  { background: rgba(108,99,255,.1);  border-color: var(--accent);  }
-    .callout.tip   { background: rgba(0,212,170,.1);   border-color: var(--accent2); }
-    .callout.warn  { background: rgba(255,214,102,.1); border-color: var(--accent4); }
-    .callout.danger{ background: rgba(255,107,107,.1); border-color: var(--accent3); }
-    .callout p { margin: 0; color: var(--text); }
-    .callout strong { font-weight: 700; }
+
+    .callout.info {
+      background: rgba(108, 99, 255, .1);
+      border-color: var(--accent);
+    }
+
+    .callout.tip {
+      background: rgba(0, 212, 170, .1);
+      border-color: var(--accent2);
+    }
+
+    .callout.warn {
+      background: rgba(255, 214, 102, .1);
+      border-color: var(--accent4);
+    }
+
+    .callout.danger {
+      background: rgba(255, 107, 107, .1);
+      border-color: var(--accent3);
+    }
+
+    .callout p {
+      margin: 0;
+      color: var(--text);
+    }
+
+    .callout strong {
+      font-weight: 700;
+    }
 
     /* ── Steps ────────────────────────────────── */
-    .steps { counter-reset: step; }
+    .steps {
+      counter-reset: step;
+    }
+
     .step {
       display: flex;
       gap: 20px;
       margin-bottom: 28px;
       align-items: flex-start;
     }
+
     .step-num {
-      width: 32px; height: 32px;
+      width: 32px;
+      height: 32px;
       min-width: 32px;
       background: var(--accent);
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
     }
-    .step-body { flex: 1; }
-    .step-body h4 { font-size: 15px; font-weight: 600; margin-bottom: 8px;}
+
+    .step-body {
+      flex: 1;
+    }
+
+    .step-body h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
 
     /* ── Flow diagram ─────────────────────────── */
     .flow {
@@ -273,6 +479,7 @@
       overflow-x: auto;
       flex-wrap: nowrap;
     }
+
     .flow-box {
       background: var(--surface2);
       border: 1px solid var(--border);
@@ -283,170 +490,230 @@
       min-width: 120px;
       flex-shrink: 0;
     }
-    .flow-box .label { color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 4px; }
-    .flow-box .value { font-weight: 600; }
-    .flow-box.accent { background: rgba(108,99,255,.15); border-color: var(--accent); }
-    .flow-box.green  { background: rgba(0,212,170,.1);  border-color: var(--accent2); }
-    .flow-arrow { font-size: 18px; color: var(--text-muted); padding: 0 8px; flex-shrink: 0; }
+
+    .flow-box .label {
+      color: var(--text-muted);
+      font-size: 11px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .flow-box .value {
+      font-weight: 600;
+    }
+
+    .flow-box.accent {
+      background: rgba(108, 99, 255, .15);
+      border-color: var(--accent);
+    }
+
+    .flow-box.green {
+      background: rgba(0, 212, 170, .1);
+      border-color: var(--accent2);
+    }
+
+    .flow-arrow {
+      font-size: 18px;
+      color: var(--text-muted);
+      padding: 0 8px;
+      flex-shrink: 0;
+    }
 
     /* ── Misc ─────────────────────────────────── */
-    hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
-    a  { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    ul, ol { color: var(--text-muted); padding-left: 20px; margin-bottom: 14px; }
-    li { margin-bottom: 6px; }
-    li strong { color: var(--text); }
-    .mono { font-family: monospace; color: #bd93f9; }
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    ul,
+    ol {
+      color: var(--text-muted);
+      padding-left: 20px;
+      margin-bottom: 14px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    li strong {
+      color: var(--text);
+    }
+
+    .mono {
+      font-family: monospace;
+      color: #bd93f9;
+    }
 
     @media (max-width: 840px) {
-      nav { display: none; }
-      main { padding: 28px 22px; }
+      nav {
+        display: none;
+      }
+
+      main {
+        padding: 28px 22px;
+      }
     }
   </style>
 </head>
+
 <body>
 
-<div class="layout">
+  <div class="layout">
 
-<!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
-<nav>
-  <div class="logo">
-    <span>🛡️ Privacy Firewall</span>
-    <small>Developer Guide · v0.1</small>
-  </div>
-
-  <div class="nav-section">Getting Started</div>
-  <a href="#install">Installation</a>
-  <a href="#quickstart">Quick Start</a>
-  <a href="#flow">How It Works</a>
-
-  <div class="nav-section">Core Concepts</div>
-  <a href="#context-scoping">Context Scoping</a>
-  <a href="#profiles">Domain Profiles</a>
-  <a href="#backends">Detection Backends</a>
-  <a href="#dispositions">Dispositions</a>
-  <a href="#vault">Vault &amp; Rehydration</a>
-
-  <div class="nav-section">Usage Patterns</div>
-  <a href="#sdk">SDK Pattern</a>
-  <a href="#microservice">Microservice Pattern</a>
-  <a href="#docker">Docker / Fly.io</a>
-  <a href="#env">Environment Variables</a>
-
-  <div class="nav-section">Advanced</div>
-  <a href="#custom-patterns">Custom Patterns</a>
-  <a href="#huggingface-models">HuggingFace Models</a>
-  <a href="#languages">Language Support</a>
-  <a href="#gdpr">GDPR — Right to Forget</a>
-  <a href="#reference">API Reference</a>
-</nav>
-
-<!-- ── Main content ─────────────────────────────────────────────────────── -->
-<main>
-
-  <!-- HERO -->
-  <div class="hero">
-    <div class="badge">Open Source · Apache 2.0 License</div>
-    <h1>Privacy Firewall</h1>
-    <p>
-      A domain-aware PII anonymization library for AI applications. Detects, 
-      redacts, and restores personal data around LLM calls — in 55+ languages.
-    </p>
-    <div class="pillars">
-      <div class="pillar"><span class="dot"></span>Domain-aware anonymization</div>
-      <div class="pillar"><span class="dot"></span>Auto language detection</div>
-      <div class="pillar"><span class="dot"></span>Reversible pseudonymization</div>
-      <div class="pillar"><span class="dot"></span>GDPR right to be forgotten</div>
-      <div class="pillar"><span class="dot"></span>Multiple detection backends</div>
-    </div>
-  </div>
-
-  
-  <!-- ── 3. HOW IT WORKS ────────────────────────────────────────────── -->
-  <section id="flow">
-    <h2><span class="ico">🔄</span> How It Works</h2>
-    <p>
-      Privacy Firewall acts as an <strong>anonymization layer</strong> that sits between your application and the LLM.
-      Text is cleaned before going to the model, and restored after the model responds.
-    </p>
-
-    <div class="flow">
-      <div class="flow-box">
-        <span class="label">1. Input</span>
-        <span class="value">Raw text<br><small style="color:#6272a4">"Ana García, DNI 12345678A"</small></span>
+    <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+    <nav>
+      <div class="logo">
+        <span>🛡️ Privacy Firewall</span>
+        <small>Developer Guide · v0.1</small>
       </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box accent">
-        <span class="label">2. Detect</span>
-        <span class="value">Find PII<br><small>Presidio / regex / etc.</small></span>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box accent">
-        <span class="label">3. Anonymize</span>
-        <span class="value">Replace tokens<br><small>"PERSON_1, NATIONAL_ID_1"</small></span>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box green">
-        <span class="label">4. LLM</span>
-        <span class="value">Model sees<br><small>anonymized text only</small></span>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-box">
-        <span class="label">5. Rehydrate</span>
-        <span class="value">Restore names<br><small>"Ana García, DNI..."</small></span>
-      </div>
-    </div>
 
-    <p>
-      The <strong>vault</strong> stores the mapping between tokens and real values per thread.
-      If you call <code>process()</code> (which calls the LLM), rehydration is automatic.
-      If you only need anonymization (e.g., you're in a proxy microservice), use <code>anonymize()</code>
-      and <code>rehydrate()</code> separately.
-    </p>
-  </section>
+      <div class="nav-section">Getting Started</div>
+      <a href="#install">Installation</a>
+      <a href="#quickstart">Quick Start</a>
+      <a href="#flow">How It Works</a>
 
-  <!-- ── 1. INSTALL ─────────────────────────────────────────────────── -->
-  <section id="install">
-    <h2><span class="ico">📦</span> Installation</h2>
-    <p>
-      The package is named <code>pii-firewall</code> and the Python module is 
-      <code>privacy_firewall</code>. You import from <code>privacy_firewall</code>.
-    </p>
+      <div class="nav-section">Core Concepts</div>
+      <a href="#context-scoping">Context Scoping</a>
+      <a href="#profiles">Domain Profiles</a>
+      <a href="#backends">Detection Backends</a>
+      <a href="#dispositions">Dispositions</a>
+      <a href="#vault">Vault &amp; Rehydration</a>
 
-    <h3>Option A — Minimal (pattern-based only, no ML dependencies)</h3>
-<pre><code><span class="sh"># No extra system dependencies required</span>
+      <div class="nav-section">Usage Patterns</div>
+      <a href="#sdk">SDK Pattern</a>
+      <a href="#microservice">Microservice Pattern</a>
+      <a href="#docker">Docker / Fly.io</a>
+      <a href="#env">Environment Variables</a>
+
+      <div class="nav-section">Advanced</div>
+      <a href="#custom-patterns">Custom Patterns</a>
+      <a href="#huggingface-models">HuggingFace Models</a>
+      <a href="#languages">Language Support</a>
+      <a href="#gdpr">GDPR — Right to Forget</a>
+      <a href="#reference">API Reference</a>
+    </nav>
+
+    <!-- ── Main content ─────────────────────────────────────────────────────── -->
+    <main>
+
+      <!-- HERO -->
+      <div class="hero">
+        <div class="badge">Open Source · Apache 2.0 License</div>
+        <h1>Privacy Firewall</h1>
+        <p>
+          A domain-aware PII anonymization library for AI applications. Detects,
+          redacts, and restores personal data around LLM calls — in 55+ languages.
+        </p>
+        <div class="pillars">
+          <div class="pillar"><span class="dot"></span>Domain-aware anonymization</div>
+          <div class="pillar"><span class="dot"></span>Auto language detection</div>
+          <div class="pillar"><span class="dot"></span>Reversible pseudonymization</div>
+          <div class="pillar"><span class="dot"></span>GDPR right to be forgotten</div>
+          <div class="pillar"><span class="dot"></span>Multiple detection backends</div>
+        </div>
+      </div>
+
+
+      <!-- ── 3. HOW IT WORKS ────────────────────────────────────────────── -->
+      <section id="flow">
+        <h2><span class="ico">🔄</span> How It Works</h2>
+        <p>
+          Privacy Firewall acts as an <strong>anonymization layer</strong> that sits between your application and the
+          LLM.
+          Text is cleaned before going to the model, and restored after the model responds.
+        </p>
+
+        <div class="flow">
+          <div class="flow-box">
+            <span class="label">1. Input</span>
+            <span class="value">Raw text<br><small style="color:#6272a4">"Ana García, DNI 12345678A"</small></span>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box accent">
+            <span class="label">2. Detect</span>
+            <span class="value">Find PII<br><small>Presidio / regex / etc.</small></span>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box accent">
+            <span class="label">3. Anonymize</span>
+            <span class="value">Replace tokens<br><small>"[PERSON_001], [EMAIL_001]"</small></span>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box green">
+            <span class="label">4. LLM</span>
+            <span class="value">Model sees<br><small>anonymized text only</small></span>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">
+            <span class="label">5. Rehydrate</span>
+            <span class="value">Restore names<br><small>"Ana García, DNI..."</small></span>
+          </div>
+        </div>
+
+        <p>
+          The <strong>vault</strong> stores the mapping between tokens and real values per thread.
+          If you call <code>process()</code> (which calls the LLM), rehydration is automatic.
+          If you only need anonymization (e.g., you're in a proxy microservice), use <code>anonymize()</code>
+          and <code>rehydrate()</code> separately.
+        </p>
+      </section>
+
+      <!-- ── 1. INSTALL ─────────────────────────────────────────────────── -->
+      <section id="install">
+        <h2><span class="ico">📦</span> Installation</h2>
+        <p>
+          The package is named <code>pii-firewall</code> and the Python module is
+          <code>privacy_firewall</code>. You import from <code>privacy_firewall</code>.
+        </p>
+
+        <h3>Option A — Minimal (pattern-based only, no ML dependencies)</h3>
+        <pre><code><span class="sh"># No extra system dependencies required</span>
 pip install pii-firewall</code></pre>
-    <div class="callout warn">
-      <p>⚠️ Minimal install uses regex-only detection. Sufficient for well-structured data (IDs, emails, phones) but misses NER entities like people or organization names.</p>
-    </div>
+        <div class="callout warn">
+          <p>⚠️ Minimal install uses regex-only detection. Sufficient for well-structured data (IDs, emails, phones) but
+            misses NER entities like people or organization names.</p>
+        </div>
 
-    <h3>Option B — Recommended (Presidio + language detection)</h3>
-<pre><code>pip install "pii-firewall[presidio,langdetect]"
+        <h3>Option B — Recommended (Presidio + language detection)</h3>
+        <pre><code>pip install "pii-firewall[presidio,langdetect]"
 
 <span class="sh"># Then download the spaCy language model(s) you need:</span>
 python -m spacy download es_core_news_sm   <span class="cm"># Spanish</span>
 python -m spacy download en_core_web_sm   <span class="cm"># English</span>
 python -m spacy download fr_core_news_sm  <span class="cm"># French</span></code></pre>
 
-    <h3>Option C — Full features</h3>
-<pre><code>pip install "pii-firewall[all]"</code></pre>
+        <h3>Option C — Full features</h3>
+        <pre><code>pip install "pii-firewall[all]"</code></pre>
 
-    <h3>Option D — Local development (editable install from this repo)</h3>
-<pre><code>cd artifacts/pii-firewall
+        <h3>Option D — Local development (editable install from this repo)</h3>
+        <pre><code>cd artifacts/pii-firewall
 pip install -e ".[presidio,langdetect]"</code></pre>
 
-    <div class="callout tip">
-      <p><strong>Tip:</strong> If you only need one language and want to skip auto-detection, install without <code>[langdetect]</code> and always pass <code>language="es"</code> when creating a firewall. This avoids the <code>langdetect</code> dependency entirely.</p>
-    </div>
-  </section>
+        <div class="callout tip">
+          <p><strong>Tip:</strong> If you only need one language and want to skip auto-detection, install without
+            <code>[langdetect]</code> and always pass <code>language="es"</code> when creating a firewall. This avoids
+            the <code>langdetect</code> dependency entirely.</p>
+        </div>
+      </section>
 
 
-  <!-- ── 2. QUICKSTART ──────────────────────────────────────────────── -->
-  <section id="quickstart">
-    <h2><span class="ico">⚡</span> Quick Start</h2>
+      <!-- ── 2. QUICKSTART ──────────────────────────────────────────────── -->
+      <section id="quickstart">
+        <h2><span class="ico">⚡</span> Quick Start</h2>
 
-    <p>The absolute minimum to anonymize a text:</p>
-<pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_firewall
+        <p>The absolute minimum to anonymize a text:</p>
+        <pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_firewall
 
 <span class="sh"># Create a firewall for your domain</span>
 firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>)
@@ -465,109 +732,117 @@ result = firewall.<span class="fn">process</span>(
 )
 
 <span class="fn">print</span>(result.sanitized_text)
-<span class="cm"># → "PERSON_1, [AGE_40-49], hipertensión. enalapril 10mg."</span>
-<span class="cm">#    Medical terms are KEPT. Names and ages are anonymized.</span></code></pre>
+<span class="cm"># → "[PERSON_001], 40-49, hipertensión. enalapril 10mg."</span>
+<span class="cm">#    Medical terms are KEPT. Name pseudonymized, age generalized.</span></code></pre>
 
-    <div class="callout info">
-      <p><strong>context</strong> is how threads are tracked. Using the same <code>thread_id</code> across multiple messages allows the vault to maintain consistent token mappings — <code>PERSON_1</code> always refers to the same real person within that thread.</p>
-    </div>
+        <div class="callout info">
+          <p><strong>context</strong> is how threads are tracked. Using the same <code>thread_id</code> across multiple
+            messages allows the vault to maintain consistent token mappings — <code>[PERSON_001]</code> always refers to the
+            same real person within that thread.</p>
+        </div>
 
-    <h3 id="context-scoping">Why these context fields exist</h3>
-    <table>
-      <thead>
-        <tr><th>Field</th><th>What it does</th><th>Why it matters</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>tenant_id</code></td>
-          <td>Organization boundary</td>
-          <td>Hard isolation across customers. Same token in different tenants never shares mapping.</td>
-        </tr>
-        <tr>
-          <td><code>thread_id</code></td>
-          <td>Conversation bucket</td>
-          <td>Main isolation key for mappings. Same thread keeps stable tokens across turns.</td>
-        </tr>
-        <tr>
-          <td><code>case_id</code></td>
-          <td>Grouping key for related threads</td>
-          <td>Useful for GDPR and operations: lets you group multiple threads for one patient/case in your app layer.</td>
-        </tr>
-        <tr>
-          <td><code>actor_id</code></td>
-          <td>Audit actor identifier</td>
-          <td>Compliance/audit metadata. Does not change token mapping logic.</td>
-        </tr>
-      </tbody>
-    </table>
+        <h3 id="context-scoping">Why these context fields exist</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>What it does</th>
+              <th>Why it matters</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>tenant_id</code></td>
+              <td>Organization boundary</td>
+              <td>Hard isolation across customers. Same token in different tenants never shares mapping.</td>
+            </tr>
+            <tr>
+              <td><code>thread_id</code></td>
+              <td>Conversation bucket</td>
+              <td>Main isolation key for mappings. Same thread keeps stable tokens across turns.</td>
+            </tr>
+            <tr>
+              <td><code>case_id</code></td>
+              <td>Grouping key for related threads</td>
+              <td>Useful for GDPR and operations: lets you group multiple threads for one patient/case in your app
+                layer.</td>
+            </tr>
+            <tr>
+              <td><code>actor_id</code></td>
+              <td>Audit actor identifier</td>
+              <td>Compliance/audit metadata. Does not change token mapping logic.</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <div class="callout tip">
-      <p><strong>Practical rule:</strong> <code>thread_id</code> is the key that actually drives mapping continuity. <code>case_id</code> helps you organize related threads (for retention/GDPR workflows), and <code>actor_id</code> is for traceability.</p>
-    </div>
+        <div class="callout tip">
+          <p><strong>Practical rule:</strong> <code>thread_id</code> is the key that actually drives mapping continuity.
+            <code>case_id</code> helps you organize related threads (for retention/GDPR workflows), and
+            <code>actor_id</code> is for traceability.</p>
+        </div>
 
-    <h3>Without auto language detection</h3>
-<pre><code><span class="sh"># If you avoid langdetect, pass language explicitly</span>
+        <h3>Without auto language detection</h3>
+        <pre><code><span class="sh"># If you avoid langdetect, pass language explicitly</span>
 firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>, language=<span class="st">"es"</span>)
 </code></pre>
-  </section>
+      </section>
 
 
-  <!-- ── 4. DOMAIN PROFILES ─────────────────────────────────────────── -->
-  <section id="profiles">
-    <h2><span class="ico">🏥</span> Domain Profiles</h2>
-    <p>
-      The domain profile controls <strong>what counts as sensitive</strong> and what action to take on each entity type.
-      Some entities should be kept (they're useful to the LLM), others must be redacted.
-    </p>
+      <!-- ── 4. DOMAIN PROFILES ─────────────────────────────────────────── -->
+      <section id="profiles">
+        <h2><span class="ico">🏥</span> Domain Profiles</h2>
+        <p>
+          The domain profile controls <strong>what counts as sensitive</strong> and what action to take on each entity
+          type.
+          Some entities should be kept (they’re useful to the LLM), others must be anonymized.
+        </p>
 
-    <div class="cards">
-      <div class="card card-red-border">
-        <h4>🏥 healthcare</h4>
-        <ul>
-          <li><strong>Keeps:</strong> diagnoses, medications, procedures</li>
-          <li><strong>Redacts:</strong> names, IDs, addresses</li>
-          <li><strong>Generalizes:</strong> ages (43 → 40-49), dates</li>
-        </ul>
-      </div>
-      <div class="card card-yellow-border">
-        <h4>💼 finance</h4>
-        <ul>
-          <li><strong>Keeps:</strong> company names — amounts/rates pass through as non-PII</li>
-          <li><strong>Masks:</strong> credit card numbers (4111...1111)</li>
-          <li><strong>Pseudonymizes:</strong> account numbers, IBANs, tax IDs (reversible)</li>
-          <li><strong>Redacts:</strong> customer PII and cross-domain medical data</li>
-        </ul>
-      </div>
-      <div class="card card-accent-border">
-        <h4>⚖️ legal</h4>
-        <ul>
-          <li><strong>Keeps:</strong> company/firm names (courts, agencies — public record)</li>
-          <li><strong>Note:</strong> statutes, case numbers and citations are public record — not detected</li>
-          <li><strong>Pseudonymizes:</strong> party names (reversible)</li>
-          <li><strong>Generalizes:</strong> dates to month/year</li>
-          <li><strong>Redacts:</strong> strong identifiers and cross-domain medical data</li>
-        </ul>
-      </div>
-      <div class="card card-green-border">
-        <h4>🌐 generic</h4>
-        <ul>
-          <li>Sensible defaults for any domain</li>
-          <li>Good starting point for custom profiles</li>
-        </ul>
-      </div>
-    </div>
+        <div class="cards">
+          <div class="card card-red-border">
+            <h4>🏥 healthcare</h4>
+            <ul>
+              <li><strong>Keeps:</strong> diagnoses, medications, procedures</li>
+              <li><strong>Pseudonymizes:</strong> names, IDs, addresses (reversible tokens)</li>
+              <li><strong>Generalizes:</strong> ages (43 → 40-49), dates (→ year)</li>
+            </ul>
+          </div>
+          <div class="card card-yellow-border">
+            <h4>💼 finance</h4>
+            <ul>
+              <li><strong>Keeps:</strong> company names — amounts/rates pass through as non-PII</li>
+              <li><strong>Pseudonymizes:</strong> names, account numbers, IBANs, tax IDs (reversible)</li>
+              <li><strong>Masks:</strong> credit card numbers (************1111)</li>
+            </ul>
+          </div>
+          <div class="card card-accent-border">
+            <h4>⚖️ legal</h4>
+            <ul>
+              <li><strong>Keeps:</strong> company/firm names (courts, agencies — public record)</li>
+              <li><strong>Note:</strong> statutes, case numbers and citations are public record — not detected</li>
+              <li><strong>Pseudonymizes:</strong> party names, IDs (reversible)</li>
+              <li><strong>Generalizes:</strong> all dates to month/year</li>
+            </ul>
+          </div>
+          <div class="card card-green-border">
+            <h4>🌐 generic</h4>
+            <ul>
+              <li>Sensible defaults for any domain</li>
+              <li>Good starting point for custom profiles</li>
+            </ul>
+          </div>
+        </div>
 
-<pre><code>firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>)  <span class="cm"># or "finance", "legal", "generic"</span>
+        <pre><code>firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>)  <span class="cm"># or "finance", "legal", "generic"</span>
 </code></pre>
 
-    <h3>Custom Profiles</h3>
-<pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_custom_profile, EntityDisposition, DispositionAction
+        <h3>Custom Profiles</h3>
+        <pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_custom_profile, EntityDisposition, DispositionAction
 
 profile = <span class="fn">create_custom_profile</span>(<span class="st">"my_domain"</span>)
 
 profile.<span class="fn">add_disposition</span>(<span class="cl">EntityDisposition</span>(
     entity_type=<span class="st">"EMPLOYEE_ID"</span>,
-    action=<span class="cl">DispositionAction</span>.REDACT,
+    action=<span class="cl">DispositionAction</span>.PSEUDONYMIZE,
     confidence_threshold=<span class="nr">0.9</span>,
 ))
 
@@ -579,144 +854,150 @@ profile.<span class="fn">add_disposition</span>(<span class="cl">EntityDispositi
 
 firewall = <span class="fn">create_firewall</span>(<span class="st">"generic"</span>, profile=profile)
 </code></pre>
-  </section>
+      </section>
 
 
-  <!-- ── 5. DETECTION BACKENDS ──────────────────────────────────────── -->
-  <section id="backends">
-    <h2><span class="ico">🔍</span> Detection Backends</h2>
+      <!-- ── 5. DETECTION BACKENDS ──────────────────────────────────────── -->
+      <section id="backends">
+        <h2><span class="ico">🔍</span> Detection Backends</h2>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Backend</th>
-          <th>Install extra</th>
-          <th>Strengths</th>
-          <th>Latency</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>regex</code></td>
-          <td><span class="tag green">base</span> (no extra)</td>
-          <td>IDs, emails, phones, credit cards. Zero dependencies.</td>
-          <td>&lt; 1 ms</td>
-        </tr>
-        <tr>
-          <td><code>presidio</code></td>
-          <td><code>[presidio]</code> + spaCy model</td>
-          <td>Named entities (persons, orgs, locations). Best balance.</td>
-          <td>50–200 ms</td>
-        </tr>
-        <tr>
-          <td><code>transformers</code></td>
-          <td><code>[transformers]</code></td>
-          <td>Biomedical NER (<code>d4data</code>, BC5CDR). Highest accuracy for medical entities.</td>
-          <td>100–500 ms</td>
-        </tr>
-        <tr>
-          <td><code>gliner</code></td>
-          <td><code>[gliner]</code></td>
-          <td>Zero-shot NER, no fine-tuning needed.</td>
-          <td>100–400 ms</td>
-        </tr>
-        <tr>
-          <td><code>hybrid</code></td>
-          <td><code>[presidio,langdetect]</code></td>
-          <td>Combines regex + presidio for maximum coverage.</td>
-          <td>50–250 ms</td>
-        </tr>
-      </tbody>
-    </table>
+        <table>
+          <thead>
+            <tr>
+              <th>Backend</th>
+              <th>Install extra</th>
+              <th>Strengths</th>
+              <th>Latency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>regex</code></td>
+              <td><span class="tag green">base</span> (no extra)</td>
+              <td>IDs, emails, phones, credit cards. Zero dependencies.</td>
+              <td>&lt; 1 ms</td>
+            </tr>
+            <tr>
+              <td><code>presidio</code></td>
+              <td><code>[presidio]</code> + spaCy model</td>
+              <td>Named entities (persons, orgs, locations). Best balance.</td>
+              <td>50–200 ms</td>
+            </tr>
+            <tr>
+              <td><code>transformers</code></td>
+              <td><code>[transformers]</code></td>
+              <td>Biomedical NER (<code>d4data</code>, BC5CDR). Highest accuracy for medical entities.</td>
+              <td>100–500 ms</td>
+            </tr>
+            <tr>
+              <td><code>gliner</code></td>
+              <td><code>[gliner]</code></td>
+              <td>Zero-shot NER, no fine-tuning needed.</td>
+              <td>100–400 ms</td>
+            </tr>
+            <tr>
+              <td><code>hybrid</code></td>
+              <td><code>[presidio,langdetect]</code></td>
+              <td>Combines regex + presidio for maximum coverage.</td>
+              <td>50–250 ms</td>
+            </tr>
+          </tbody>
+        </table>
 
-<pre><code><span class="sh"># Recommended: Presidio for best speed/accuracy balance</span>
+        <pre><code><span class="sh"># Recommended: Presidio for best speed/accuracy balance</span>
 firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>, detector_backend=<span class="st">"presidio"</span>)
 
 <span class="sh"># Zero dependency option</span>
 firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>, detector_backend=<span class="st">"regex"</span>)
 </code></pre>
-  </section>
+      </section>
 
 
-  <!-- ── 6. DISPOSITIONS ────────────────────────────────────────────── -->
-  <section id="dispositions">
-    <h2><span class="ico">🎚️</span> Disposition Actions</h2>
-    <p>Each entity type in a profile has a <strong>disposition</strong> — what to do with it when found.</p>
+      <!-- ── 6. DISPOSITIONS ────────────────────────────────────────────── -->
+      <section id="dispositions">
+        <h2><span class="ico">🎚️</span> Disposition Actions</h2>
+        <p>Each entity type in a profile has a <strong>disposition</strong> — what to do with it when found.</p>
 
-    <table>
-      <thead>
-        <tr><th>Action</th><th>Result</th><th>Reversible?</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><span class="tag green">KEEP</span></td>
-          <td>Pass through unchanged <em>(e.g. medical diagnosis)</em></td>
-          <td>N/A</td>
-        </tr>
-        <tr>
-          <td><span class="tag purple">PSEUDONYMIZE</span></td>
-          <td><code>Ana García</code> → <code>PERSON_1</code> (stored in vault)</td>
-          <td>✅ Yes</td>
-        </tr>
-        <tr>
-          <td><span class="tag red">REDACT</span></td>
-          <td><code>john@example.com</code> → <code>[REDACTED]</code></td>
-          <td>❌ No</td>
-        </tr>
-        <tr>
-          <td><span class="tag yellow">GENERALIZE</span></td>
-          <td><code>43 años</code> → <code>[AGE_40-49]</code></td>
-          <td>❌ No</td>
-        </tr>
-        <tr>
-          <td><span class="tag">MASK</span></td>
-          <td><code>4111111111111111</code> → <code>4111...1111</code></td>
-          <td>❌ No</td>
-        </tr>
-        <tr>
-          <td><span class="tag">HASH</span></td>
-          <td>SHA-256 hash of the value</td>
-          <td>❌ No</td>
-        </tr>
-        <tr>
-          <td><span class="tag">SUPPRESS</span></td>
-          <td>Remove the entity entirely (no replacement)</td>
-          <td>❌ No</td>
-        </tr>
-      </tbody>
-    </table>
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Result</th>
+              <th>Reversible?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag green">KEEP</span></td>
+              <td>Pass through unchanged <em>(e.g. medical diagnosis)</em></td>
+              <td>N/A</td>
+            </tr>
+            <tr>
+              <td><span class="tag purple">PSEUDONYMIZE</span></td>
+              <td><code>Ana García</code> → <code>[PERSON_001]</code> (stored in vault, scope set by profile)</td>
+              <td>✅ Yes</td>
+            </tr>
+            <tr>
+              <td><span class="tag yellow">GENERALIZE</span></td>
+              <td><code>43 años</code> → <code>40-49</code> · <code>15/03/2024</code> → <code>Mar 2024</code></td>
+              <td>❌ No</td>
+            </tr>
+            <tr>
+              <td><span class="tag">MASK</span></td>
+              <td><code>4111111111111111</code> → <code>************1111</code></td>
+              <td>❌ No</td>
+            </tr>
+            <tr>
+              <td><span class="tag">HASH</span></td>
+              <td>SHA-256 hex string — for analytics join-keys, not the LLM pipeline</td>
+              <td>❌ No</td>
+            </tr>
+            <tr>
+              <td><span class="tag red">REDACT</span></td>
+              <td>Remove the entity entirely — no token, no replacement, no vault entry</td>
+              <td>❌ No</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <div class="callout info">
-      <p><strong>Why only PSEUDONYMIZE is reversible:</strong> it stores a token-to-original mapping in the vault (for example, <code>PERSON_1</code> → <code>Ana Garcia</code>). The other actions intentionally destroy or alter the original value without storing it for recovery: <code>REDACT</code> replaces with a constant marker, <code>GENERALIZE</code> keeps only a range/category, <code>MASK</code> keeps partial characters, <code>HASH</code> is one-way, and <code>SUPPRESS</code> removes the value entirely. <code>KEEP</code> is marked N/A because nothing is transformed, so there is nothing to "rehydrate".</p>
-    </div>
+        <div class="callout info">
+          <p><strong>Why only PSEUDONYMIZE is reversible:</strong> it stores a token-to-original mapping in the vault
+            (e.g. <code>[PERSON_001]</code> → <code>Ana García</code>). All other actions are one-way:
+            <code>GENERALIZE</code> keeps only a range or year, <code>MASK</code> keeps partial characters,
+            <code>HASH</code> is a one-way SHA-256 digest, and <code>REDACT</code> deletes the span entirely with no
+            record. <code>KEEP</code> is N/A — nothing is transformed. Token scope (thread / case / tenant) is set at
+            the profile level, not per action.</p>
+        </div>
 
-    <div class="callout tip">
-      <p><strong>If you need recoverability for a field (email, phone, account, person name), choose <code>PSEUDONYMIZE</code> for that entity type.</strong> If you choose any irreversible action, recovery is not possible by design.</p>
-    </div>
-  </section>
+        <div class="callout tip">
+          <p><strong>If you need recoverability for a field (email, phone, account, person name), use
+              <code>PSEUDONYMIZE</code>.</strong> Any other action permanently discards the original value.</p>
+        </div>
+      </section>
 
 
-  <!-- ── 7. VAULT & REHYDRATION ─────────────────────────────────────── -->
-  <section id="vault">
-    <h2><span class="ico">🗄️</span> Vault &amp; Rehydration</h2>
-    <p>
-      The vault stores the mapping from token (<code>PERSON_1</code>) to original value (<code>Ana García</code>)
-      per <em>tenant + case + thread</em>. This enables rehydration after the LLM responds.
-    </p>
+      <!-- ── 7. VAULT & REHYDRATION ─────────────────────────────────────── -->
+      <section id="vault">
+        <h2><span class="ico">🗄️</span> Vault &amp; Rehydration</h2>
+        <p>
+          The vault stores the mapping from token (<code>[PERSON_001]</code>) to original value (<code>Ana García</code>)
+          per <em>tenant + case + thread</em>. This enables rehydration after the LLM responds.
+        </p>
 
-    <h3>In-Memory Vault (default)</h3>
-    <p>Data lives in memory, wiped when the process restarts. Fine for development and short-lived microservices.</p>
+        <h3>In-Memory Vault (default)</h3>
+        <p>Data lives in memory, wiped when the process restarts. Fine for development and short-lived microservices.
+        </p>
 
-    <h3>SQLite Vault (persistent)</h3>
-<pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_firewall, SQLiteMappingVault
+        <h3>SQLite Vault (persistent)</h3>
+        <pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_firewall, SQLiteMappingVault
 
 vault = <span class="cl">SQLiteMappingVault</span>(<span class="st">"privacy_vault.db"</span>)
 firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>, vault=vault)
 </code></pre>
-    <p>Data survives restarts. Store <code>privacy_vault.db</code> on a persistent volume (e.g. Fly.io volume).</p>
+        <p>Data survives restarts. Store <code>privacy_vault.db</code> on a persistent volume (e.g. Fly.io volume).</p>
 
-    <h3>Manual rehydration</h3>
-<pre><code><span class="sh"># 1. Anonymize (before LLM call)</span>
+        <h3>Manual rehydration</h3>
+        <pre><code><span class="sh"># 1. Anonymize (before LLM call)</span>
 anon_result = firewall.<span class="fn">anonymize</span>(text=input_text, context=context)
 clean_text  = anon_result.sanitized_text
 
@@ -727,18 +1008,18 @@ llm_response = my_llm.<span class="fn">generate</span>(clean_text)
 final_text = firewall.<span class="fn">rehydrate</span>(text=llm_response, context=context)
 <span class="fn">print</span>(final_text)  <span class="cm"># Original names restored</span>
 </code></pre>
-  </section>
+      </section>
 
 
-  <!-- ── 8. SDK PATTERN ─────────────────────────────────────────────── -->
-  <section id="sdk">
-    <h2><span class="ico">🧩</span> SDK Pattern (provider-agnostic)</h2>
-    <p>
-      <code>PrivacyFirewallSDK</code> wraps the firewall with convenience methods ideal
-      for building LLM wrappers or middleware.
-    </p>
+      <!-- ── 8. SDK PATTERN ─────────────────────────────────────────────── -->
+      <section id="sdk">
+        <h2><span class="ico">🧩</span> SDK Pattern (provider-agnostic)</h2>
+        <p>
+          <code>PrivacyFirewallSDK</code> wraps the firewall with convenience methods ideal
+          for building LLM wrappers or middleware.
+        </p>
 
-<pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> PrivacyFirewallSDK
+        <pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> PrivacyFirewallSDK
 
 sdk = <span class="cl">PrivacyFirewallSDK</span>.<span class="fn">create</span>(
     domain=<span class="st">"healthcare"</span>,
@@ -755,10 +1036,10 @@ context = {
 
 <span class="sh"># ── Anonymize only ──────────────────────────────────────────────</span>
 result = sdk.<span class="fn">anonymize_text</span>(text=<span class="st">"Contact Ana García at ana@clinic.es"</span>, context=context)
-<span class="fn">print</span>(result.sanitized_text)  <span class="cm"># "Contact PERSON_1 at EMAIL_1"</span>
+<span class="fn">print</span>(result.sanitized_text)  <span class="cm"># "Contact [PERSON_001] at [EMAIL_001]"</span>
 
 <span class="sh"># ── Rehydrate after LLM ──────────────────────────────────────────</span>
-llm_out = <span class="st">"Please confirm with PERSON_1 at EMAIL_1"</span>
+llm_out = <span class="st">"Please confirm with [PERSON_001] at [EMAIL_001]"</span>
 final   = sdk.<span class="fn">rehydrate_text</span>(text=llm_out, context=context)
 <span class="fn">print</span>(final)  <span class="cm"># "Please confirm with Ana García at ana@clinic.es"</span>
 
@@ -776,8 +1057,8 @@ result = sdk.<span class="fn">secure_call</span>(
 <span class="fn">print</span>(result.final_text)      <span class="cm"># Restored output shown to user</span>
 </code></pre>
 
-    <h3>Anonymize/rehydrate whole JSON payloads</h3>
-<pre><code>payload = {
+        <h3>Anonymize/rehydrate whole JSON payloads</h3>
+        <pre><code>payload = {
     <span class="st">"patient"</span>: <span class="st">"Ana García"</span>,
     <span class="st">"notes"</span>: [<span class="st">"DNI: 12345678A"</span>, <span class="st">"Email: ana@clinic.es"</span>]
 }
@@ -785,19 +1066,19 @@ result = sdk.<span class="fn">secure_call</span>(
 safe_payload = sdk.<span class="fn">anonymize_payload</span>(payload=payload, context=context)
 <span class="cm"># deep-walks strings recursively — lists and nested dicts work too</span>
 </code></pre>
-  </section>
+      </section>
 
 
-  <!-- ── 9. MICROSERVICE PATTERN ───────────────────────────────────── -->
-  <section id="microservice">
-    <h2><span class="ico">🔌</span> Microservice Pattern</h2>
-    <p>
-      The best production pattern is a dedicated <strong>Python NLP microservice</strong>
-      that exposes HTTP endpoints. Your main backend calls it — language or framework agnostic.
-    </p>
+      <!-- ── 9. MICROSERVICE PATTERN ───────────────────────────────────── -->
+      <section id="microservice">
+        <h2><span class="ico">🔌</span> Microservice Pattern</h2>
+        <p>
+          The best production pattern is a dedicated <strong>Python NLP microservice</strong>
+          that exposes HTTP endpoints. Your main backend calls it — language or framework agnostic.
+        </p>
 
-    <h3>Minimal FastAPI microservice</h3>
-<pre><code><span class="sh"># main.py — Privacy Firewall Microservice</span>
+        <h3>Minimal FastAPI microservice</h3>
+        <pre><code><span class="sh"># main.py — Privacy Firewall Microservice</span>
 <span class="im">import</span> os, subprocess, sys, logging
 <span class="im">from</span> contextlib <span class="im">import</span> asynccontextmanager
 <span class="im">from</span> fastapi <span class="im">import</span> FastAPI, HTTPException
@@ -856,8 +1137,8 @@ app = <span class="fn">FastAPI</span>(lifespan=lifespan)
 <span class="kw">async def</span> <span class="fn">health</span>(): <span class="kw">return</span> {<span class="st">"status"</span>: <span class="st">"ok"</span>, <span class="st">"privacy_loaded"</span>: privacy_sdk <span class="kw">is not</span> <span class="cn">None</span>}
 </code></pre>
 
-    <h3>Calling from Node.js / TypeScript backend</h3>
-<pre><code><span class="sh">// nlp.service.ts</span>
+        <h3>Calling from Node.js / TypeScript backend</h3>
+        <pre><code><span class="sh">// nlp.service.ts</span>
 <span class="kw">const</span> NLP_URL = process.env.NLP_SERVICE_URL ?? <span class="st">"http://localhost:8000"</span>;
 
 <span class="kw">export async function</span> <span class="fn">sanitizeText</span>(text: string, context: Record&lt;string, string&gt;) {
@@ -870,71 +1151,81 @@ app = <span class="fn">FastAPI</span>(lifespan=lifespan)
   <span class="kw">return</span> sanitized_text as string;
 }
 </code></pre>
-  </section>
+      </section>
 
-  <!-- ── 11. ENVIRONMENT VARIABLES ─────────────────────────────────── -->
-  <section id="env">
-    <h2><span class="ico">⚙️</span> Environment Variables</h2>
+      <!-- ── 11. ENVIRONMENT VARIABLES ─────────────────────────────────── -->
+      <section id="env">
+        <h2><span class="ico">⚙️</span> Environment Variables</h2>
 
-    <table>
-      <thead>
-        <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>PII_FIREWALL_DOMAIN</code></td>
-          <td><code>healthcare</code></td>
-          <td>Domain profile: <code>healthcare</code>, <code>finance</code>, <code>legal</code>, <code>generic</code></td>
-        </tr>
-        <tr>
-          <td><code>PII_FIREWALL_LANGUAGE</code></td>
-          <td><em>(auto-detect)</em></td>
-          <td>Force a language code: <code>es</code>, <code>en</code>, <code>fr</code>, <code>de</code>…</td>
-        </tr>
-        <tr>
-          <td><code>PII_FIREWALL_DETECTOR_BACKEND</code></td>
-          <td><code>presidio</code></td>
-          <td>Detection engine: <code>presidio</code>, <code>regex</code>, <code>hybrid</code>, <code>gliner</code></td>
-        </tr>
-        <tr>
-          <td><code>PII_FIREWALL_SPACY_MODELS</code></td>
-          <td><code>es_core_news_sm</code></td>
-          <td>Comma-separated list of spaCy models to load/download</td>
-        </tr>
-        <tr>
-          <td><code>PII_FIREWALL_AUTO_DOWNLOAD_SPACY_MODELS</code></td>
-          <td><code>false</code></td>
-          <td>Set to <code>true</code> to auto-download missing models at startup</td>
-        </tr>
-      </tbody>
-    </table>
+        <table>
+          <thead>
+            <tr>
+              <th>Variable</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>PII_FIREWALL_DOMAIN</code></td>
+              <td><code>healthcare</code></td>
+              <td>Domain profile: <code>healthcare</code>, <code>finance</code>, <code>legal</code>,
+                <code>generic</code></td>
+            </tr>
+            <tr>
+              <td><code>PII_FIREWALL_LANGUAGE</code></td>
+              <td><em>(auto-detect)</em></td>
+              <td>Force a language code: <code>es</code>, <code>en</code>, <code>fr</code>, <code>de</code>…</td>
+            </tr>
+            <tr>
+              <td><code>PII_FIREWALL_DETECTOR_BACKEND</code></td>
+              <td><code>presidio</code></td>
+              <td>Detection engine: <code>presidio</code>, <code>regex</code>, <code>hybrid</code>, <code>gliner</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>PII_FIREWALL_SPACY_MODELS</code></td>
+              <td><code>es_core_news_sm</code></td>
+              <td>Comma-separated list of spaCy models to load/download</td>
+            </tr>
+            <tr>
+              <td><code>PII_FIREWALL_AUTO_DOWNLOAD_SPACY_MODELS</code></td>
+              <td><code>false</code></td>
+              <td>Set to <code>true</code> to auto-download missing models at startup</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <div class="callout warn">
-      <p>⚠️ <strong>These env vars are consumed by your microservice code</strong> — the library itself doesn't read them. Implement the <code>_bootstrap()</code> startup function as shown in the microservice pattern above.</p>
-    </div>
-  </section>
+        <div class="callout warn">
+          <p>⚠️ <strong>These env vars are consumed by your microservice code</strong> — the library itself doesn't read
+            them. Implement the <code>_bootstrap()</code> startup function as shown in the microservice pattern above.
+          </p>
+        </div>
+      </section>
 
 
-  <!-- ── 12. CUSTOM PATTERNS ───────────────────────────────────────── -->
-  <section id="custom-patterns">
-    <h2><span class="ico">🔧</span> Custom PII Detectors</h2>
-    <p>You can plug in your own entity detectors at runtime — no config files, just code. There are two approaches depending on whether you need a simple regex rule or a full NLP/ML model.</p>
+      <!-- ── 12. CUSTOM PATTERNS ───────────────────────────────────────── -->
+      <section id="custom-patterns">
+        <h2><span class="ico">🔧</span> Custom PII Detectors</h2>
+        <p>You can plug in your own entity detectors at runtime — no config files, just code. There are two approaches
+          depending on whether you need a simple regex rule or a full NLP/ML model.</p>
 
-    <div class="callout info">
-      <p><strong>Option A</strong> (regex patterns) works with any detection backend. <strong>Option B</strong> (custom recognizers) requires <code>detector_backend="presidio"</code>.</p>
-    </div>
+        <div class="callout info">
+          <p><strong>Option A</strong> (regex patterns) works with any detection backend. <strong>Option B</strong>
+            (custom recognizers) requires <code>detector_backend="presidio"</code>.</p>
+        </div>
 
-    <h3>Option A — Regex / rule-based (any backend)</h3>
-    <p>The quickest way. No extra dependencies — just pass a regex string.</p>
+        <h3>Option A — Regex / rule-based (any backend)</h3>
+        <p>The quickest way. No extra dependencies — just pass a regex string.</p>
 
-<pre><code><span class="cm"># One-liner helper</span>
+        <pre><code><span class="cm"># One-liner helper</span>
 firewall.<span class="fn">add_custom_regex</span>(
     entity_type=<span class="st">"EMPLOYEE_ID"</span>,
     regex=<span class="st">r"\bEMP-\d{6}\b"</span>,
     locales=[<span class="st">"GLOBAL"</span>],           <span class="cm"># apply to all languages</span>
     confidence=<span class="nr">0.95</span>,
     context_words=[<span class="st">"employee"</span>, <span class="st">"staff"</span>],
-    disposition_action=<span class="st">"redact"</span>,   <span class="cm"># keep / redact / pseudonymize …</span>
+    disposition_action=<span class="st">"pseudonymize"</span>,   <span class="cm"># keep / pseudonymize / generalize / mask / redact …</span>
 )
 
 <span class="cm"># Or build the full EntityPattern object for more control</span>
@@ -951,13 +1242,14 @@ firewall.<span class="fn">add_custom_pattern</span>(<span class="cl">EntityPatte
 ))
 </code></pre>
 
-    <h3>Option B — Custom NLP / ML model (Presidio backend)</h3>
-    <p>
-      Pass a Presidio <code>EntityRecognizer</code> instance when creating the firewall.
-      This is the right approach for spaCy models, transformers, or any custom heuristic that needs access to full token sequences.
-    </p>
+        <h3>Option B — Custom NLP / ML model (Presidio backend)</h3>
+        <p>
+          Pass a Presidio <code>EntityRecognizer</code> instance when creating the firewall.
+          This is the right approach for spaCy models, transformers, or any custom heuristic that needs access to full
+          token sequences.
+        </p>
 
-<pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_firewall
+        <pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_firewall
 <span class="im">from</span> privacy_firewall.presidio_integration <span class="im">import</span> create_custom_recognizer
 
 <span class="cm"># Helper: wraps a list of regexes into a Presidio PatternRecognizer</span>
@@ -975,9 +1267,9 @@ firewall = <span class="fn">create_firewall</span>(
 )
 </code></pre>
 
-    <p>For a fully custom ML-based recognizer, subclass Presidio's <code>EntityRecognizer</code> directly:</p>
+        <p>For a fully custom ML-based recognizer, subclass Presidio's <code>EntityRecognizer</code> directly:</p>
 
-<pre><code><span class="im">from</span> presidio_analyzer <span class="im">import</span> EntityRecognizer, RecognizerResult
+        <pre><code><span class="im">from</span> presidio_analyzer <span class="im">import</span> EntityRecognizer, RecognizerResult
 
 <span class="kw">class</span> <span class="cl">MyModelRecognizer</span>(<span class="cl">EntityRecognizer</span>):
     <span class="cm">"""Wraps any ML model as a Presidio recognizer."""</span>
@@ -1002,31 +1294,49 @@ firewall = <span class="fn">create_firewall</span>(
 )
 </code></pre>
 
-    <h3>Which option to choose?</h3>
-    <table>
-      <thead><tr><th>Scenario</th><th>Approach</th></tr></thead>
-      <tbody>
-        <tr><td>Regex or rule-based custom entity</td><td>Option A — <code>add_custom_regex</code> / <code>add_custom_pattern</code></td></tr>
-        <tr><td>Locale-specific ID format (new country)</td><td>Option A with the matching locale code</td></tr>
-        <tr><td>Existing HuggingFace / spaCy NER model</td><td>Option B — wrap in <code>EntityRecognizer</code> subclass</td></tr>
-        <tr><td>Complex heuristic or external API call</td><td>Option B — implement <code>analyze()</code> freely</td></tr>
-      </tbody>
-    </table>
-  </section>
+        <h3>Which option to choose?</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Approach</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Regex or rule-based custom entity</td>
+              <td>Option A — <code>add_custom_regex</code> / <code>add_custom_pattern</code></td>
+            </tr>
+            <tr>
+              <td>Locale-specific ID format (new country)</td>
+              <td>Option A with the matching locale code</td>
+            </tr>
+            <tr>
+              <td>Existing HuggingFace / spaCy NER model</td>
+              <td>Option B — wrap in <code>EntityRecognizer</code> subclass</td>
+            </tr>
+            <tr>
+              <td>Complex heuristic or external API call</td>
+              <td>Option B — implement <code>analyze()</code> freely</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
 
-  <!-- ── 12b. HUGGINGFACE MODELS ───────────────────────────────── -->
-  <section id="huggingface-models">
-    <h2><span class="ico">🤗</span> Testing a HuggingFace PII Model</h2>
-    <p>
-      The library ships a built-in <code>transformers</code> backend. Pass any HuggingFace model ID and the model is downloaded automatically on first call.
-    </p>
+      <!-- ── 12b. HUGGINGFACE MODELS ───────────────────────────────── -->
+      <section id="huggingface-models">
+        <h2><span class="ico">🤗</span> Testing a HuggingFace PII Model</h2>
+        <p>
+          The library ships a built-in <code>transformers</code> backend. Pass any HuggingFace model ID and the model is
+          downloaded automatically on first call.
+        </p>
 
-    <h3>Installation</h3>
-<pre><code>pip install <span class="st">"pii-firewall[transformers]"</span></code></pre>
+        <h3>Installation</h3>
+        <pre><code>pip install <span class="st">"pii-firewall[transformers]"</span></code></pre>
 
-    <h3>Quickest path — built-in transformers backend</h3>
-<pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_firewall
+        <h3>Quickest path — built-in transformers backend</h3>
+        <pre><code><span class="im">from</span> privacy_firewall <span class="im">import</span> create_firewall
 
 <span class="cm"># Swap model_name for any HF model ID</span>
 firewall = <span class="fn">create_firewall</span>(
@@ -1042,28 +1352,55 @@ result = firewall.<span class="fn">process</span>(
 <span class="fn">print</span>(result.sanitized_text)
 </code></pre>
 
-    <h3>Curated model catalog</h3>
-    <p>The library ships pre-vetted models in <code>transformers_ner/models.py</code>. Use <code>get_model_for_domain()</code> to pick the right one automatically:</p>
+        <h3>Curated model catalog</h3>
+        <p>The library ships pre-vetted models in <code>transformers_ner/models.py</code>. Use
+          <code>get_model_for_domain()</code> to pick the right one automatically:</p>
 
-<pre><code><span class="im">from</span> privacy_firewall.transformers_ner.models <span class="im">import</span> get_model_for_domain
+        <pre><code><span class="im">from</span> privacy_firewall.transformers_ner.models <span class="im">import</span> get_model_for_domain
 
 config = <span class="fn">get_model_for_domain</span>(<span class="st">"medical"</span>, <span class="st">"en"</span>)
 firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"</span>, detector_backend=<span class="st">"transformers"</span>, transformer_model_id=config.model_id)
 </code></pre>
 
-    <table>
-      <thead><tr><th>Domain</th><th>Language</th><th>Model</th></tr></thead>
-      <tbody>
-        <tr><td>General</td><td><code>en</code></td><td><code>dslim/bert-base-NER</code></td></tr>
-        <tr><td>General</td><td>multilingual</td><td><code>Davlan/xlm-roberta-base-ner-hrl</code></td></tr>
-        <tr><td>General</td><td><code>fr</code></td><td><code>Jean-Baptiste/camembert-ner</code></td></tr>
-        <tr><td>Medical</td><td><code>en</code></td><td><code>d4data/biomedical-ner-all</code></td></tr>
-        <tr><td>Medical</td><td><code>es</code></td><td><code>PlanTL-GOB-ES/bsc-bio-ehr-es</code></td></tr>
-      </tbody>
-    </table>
+        <table>
+          <thead>
+            <tr>
+              <th>Domain</th>
+              <th>Language</th>
+              <th>Model</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>General</td>
+              <td><code>en</code></td>
+              <td><code>dslim/bert-base-NER</code></td>
+            </tr>
+            <tr>
+              <td>General</td>
+              <td>multilingual</td>
+              <td><code>Davlan/xlm-roberta-base-ner-hrl</code></td>
+            </tr>
+            <tr>
+              <td>General</td>
+              <td><code>fr</code></td>
+              <td><code>Jean-Baptiste/camembert-ner</code></td>
+            </tr>
+            <tr>
+              <td>Medical</td>
+              <td><code>en</code></td>
+              <td><code>d4data/biomedical-ner-all</code></td>
+            </tr>
+            <tr>
+              <td>Medical</td>
+              <td><code>es</code></td>
+              <td><code>PlanTL-GOB-ES/bsc-bio-ehr-es</code></td>
+            </tr>
+          </tbody>
+        </table>
 
-    <h3>Run on GPU</h3>
-<pre><code>firewall = <span class="fn">create_firewall</span>(
+        <h3>Run on GPU</h3>
+        <pre><code>firewall = <span class="fn">create_firewall</span>(
     <span class="st">"healthcare"</span>,
     detector_backend=<span class="st">"transformers"</span>,
     transformer_model_id=<span class="st">"d4data/biomedical-ner-all"</span>,
@@ -1071,10 +1408,11 @@ firewall = <span class="fn">create_firewall</span>(<span class="st">"healthcare"
 )
 </code></pre>
 
-    <h3>Combine with regex patterns (Presidio hybrid)</h3>
-    <p>If you need the HF model to run alongside regex patterns in the same pipeline, wrap it as a Presidio recognizer and use <code>detector_backend="presidio"</code>:</p>
+        <h3>Combine with regex patterns (Presidio hybrid)</h3>
+        <p>If you need the HF model to run alongside regex patterns in the same pipeline, wrap it as a Presidio
+          recognizer and use <code>detector_backend="presidio"</code>:</p>
 
-<pre><code><span class="im">from</span> presidio_analyzer <span class="im">import</span> EntityRecognizer, RecognizerResult
+        <pre><code><span class="im">from</span> presidio_analyzer <span class="im">import</span> EntityRecognizer, RecognizerResult
 <span class="im">from</span> transformers <span class="im">import</span> pipeline
 
 <span class="kw">class</span> <span class="cl">HFPIIRecognizer</span>(<span class="cl">EntityRecognizer</span>):
@@ -1102,51 +1440,93 @@ firewall = <span class="fn">create_firewall</span>(
 )
 </code></pre>
 
-    <div class="callout tip">
-      <p><strong>Tip:</strong> Use <code>detector_backend="transformers"</code> for quick benchmarking of a single model. Switch to the Presidio wrapper when you need to combine it with locale-specific regex patterns for maximum coverage.</p>
-    </div>
-  </section>
+        <div class="callout tip">
+          <p><strong>Tip:</strong> Use <code>detector_backend="transformers"</code> for quick benchmarking of a single
+            model. Switch to the Presidio wrapper when you need to combine it with locale-specific regex patterns for
+            maximum coverage.</p>
+        </div>
+      </section>
 
 
-  <!-- ── 13. LANGUAGE SUPPORT ──────────────────────────────────────── -->
-  <section id="languages">
-    <h2><span class="ico">🌍</span> Language Support &amp; spaCy Models</h2>
+      <!-- ── 13. LANGUAGE SUPPORT ──────────────────────────────────────── -->
+      <section id="languages">
+        <h2><span class="ico">🌍</span> Language Support &amp; spaCy Models</h2>
 
-    <table>
-      <thead>
-        <tr><th>Language</th><th>Code</th><th>Locale patterns</th><th>spaCy model</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>Spanish</td><td><code>es</code></td><td>DNI, NIE, IBAN-ES, phone</td><td><code>es_core_news_sm</code></td></tr>
-        <tr><td>English (US)</td><td><code>en</code></td><td>SSN, EIN, US phone, ZIP</td><td><code>en_core_web_sm</code></td></tr>
-        <tr><td>French</td><td><code>fr</code></td><td>INSEE, SIREN, phone</td><td><code>fr_core_news_sm</code></td></tr>
-        <tr><td>German</td><td><code>de</code></td><td>Steuernummer, IBAN-DE</td><td><code>de_core_news_sm</code></td></tr>
-        <tr><td>Italian</td><td><code>it</code></td><td>Codice Fiscale, phone</td><td><code>it_core_news_sm</code></td></tr>
-        <tr><td>Portuguese</td><td><code>pt</code></td><td>NIF, NIS, phone</td><td><code>pt_core_news_sm</code></td></tr>
-        <tr><td>55+ others</td><td><em>auto</em></td><td>Global patterns only</td><td>—</td></tr>
-      </tbody>
-    </table>
+        <table>
+          <thead>
+            <tr>
+              <th>Language</th>
+              <th>Code</th>
+              <th>Locale patterns</th>
+              <th>spaCy model</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Spanish</td>
+              <td><code>es</code></td>
+              <td>DNI, NIE, IBAN-ES, phone</td>
+              <td><code>es_core_news_sm</code></td>
+            </tr>
+            <tr>
+              <td>English (US)</td>
+              <td><code>en</code></td>
+              <td>SSN, EIN, US phone, ZIP</td>
+              <td><code>en_core_web_sm</code></td>
+            </tr>
+            <tr>
+              <td>French</td>
+              <td><code>fr</code></td>
+              <td>INSEE, SIREN, phone</td>
+              <td><code>fr_core_news_sm</code></td>
+            </tr>
+            <tr>
+              <td>German</td>
+              <td><code>de</code></td>
+              <td>Steuernummer, IBAN-DE</td>
+              <td><code>de_core_news_sm</code></td>
+            </tr>
+            <tr>
+              <td>Italian</td>
+              <td><code>it</code></td>
+              <td>Codice Fiscale, phone</td>
+              <td><code>it_core_news_sm</code></td>
+            </tr>
+            <tr>
+              <td>Portuguese</td>
+              <td><code>pt</code></td>
+              <td>NIF, NIS, phone</td>
+              <td><code>pt_core_news_sm</code></td>
+            </tr>
+            <tr>
+              <td>55+ others</td>
+              <td><em>auto</em></td>
+              <td>Global patterns only</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <h3>Download spaCy models</h3>
-<pre><code>python -m spacy download es_core_news_sm
+        <h3>Download spaCy models</h3>
+        <pre><code>python -m spacy download es_core_news_sm
 python -m spacy download en_core_web_sm
 python -m spacy download fr_core_news_sm</code></pre>
 
-    <h3>Preload at startup (avoids lazy-load latency)</h3>
-<pre><code>firewall.<span class="fn">preload_languages</span>([<span class="st">"es"</span>, <span class="st">"en"</span>, <span class="st">"fr"</span>])
+        <h3>Preload at startup (avoids lazy-load latency)</h3>
+        <pre><code>firewall.<span class="fn">preload_languages</span>([<span class="st">"es"</span>, <span class="st">"en"</span>, <span class="st">"fr"</span>])
 </code></pre>
-  </section>
+      </section>
 
 
-  <!-- ── 14. GDPR ──────────────────────────────────────────────────── -->
-  <section id="gdpr">
-    <h2><span class="ico">🔐</span> GDPR — Right to Be Forgotten</h2>
-    <p>
-      Remove all stored mappings for a specific case or thread.
-      This satisfies Art. 17 GDPR right to erasure.
-    </p>
+      <!-- ── 14. GDPR ──────────────────────────────────────────────────── -->
+      <section id="gdpr">
+        <h2><span class="ico">🔐</span> GDPR — Right to Be Forgotten</h2>
+        <p>
+          Remove all stored mappings for a specific case or thread.
+          This satisfies Art. 17 GDPR right to erasure.
+        </p>
 
-<pre><code><span class="sh"># Forget all token↔value mappings for this thread</span>
+        <pre><code><span class="sh"># Forget all token↔value mappings for this thread</span>
 deleted = firewall.<span class="fn">forget</span>(
     tenant_id=<span class="st">"hospital-001"</span>,
     case_id=<span class="st">"patient-123"</span>,
@@ -1156,64 +1536,166 @@ deleted = firewall.<span class="fn">forget</span>(
 <span class="cm"># After this, rehydration will not restore original values for this thread.</span>
 </code></pre>
 
-    <div class="callout info">
-      <p><strong>Note:</strong> Only the vault mappings are deleted. Any already-sent LLM responses or logs your application stored are outside the library's scope.</p>
-    </div>
-  </section>
+        <div class="callout info">
+          <p><strong>Note:</strong> Only the vault mappings are deleted. Any already-sent LLM responses or logs your
+            application stored are outside the library's scope.</p>
+        </div>
+      </section>
 
 
-  <!-- ── 15. API REFERENCE ─────────────────────────────────────────── -->
-  <section id="reference">
-    <h2><span class="ico">📚</span> API Reference</h2>
+      <!-- ── 15. API REFERENCE ─────────────────────────────────────────── -->
+      <section id="reference">
+        <h2><span class="ico">📚</span> API Reference</h2>
 
-    <h3>create_firewall()</h3>
-    <table>
-      <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
-      <tbody>
-        <tr><td><code>domain</code></td><td>str</td><td><code>"generic"</code></td><td>Preset profile name</td></tr>
-        <tr><td><code>profile</code></td><td>DomainProfile</td><td>None</td><td>Custom profile (overrides domain)</td></tr>
-        <tr><td><code>language</code></td><td>str|None</td><td>None (auto)</td><td>Force a language code</td></tr>
-        <tr><td><code>detector_backend</code></td><td>str</td><td><code>"regex"</code></td><td>Detection engine</td></tr>
-        <tr><td><code>vault</code></td><td>MappingVaultProtocol</td><td>InMemory</td><td>Vault implementation</td></tr>
-      </tbody>
-    </table>
+        <h3>create_firewall()</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>domain</code></td>
+              <td>str</td>
+              <td><code>"generic"</code></td>
+              <td>Preset profile name</td>
+            </tr>
+            <tr>
+              <td><code>profile</code></td>
+              <td>DomainProfile</td>
+              <td>None</td>
+              <td>Custom profile (overrides domain)</td>
+            </tr>
+            <tr>
+              <td><code>language</code></td>
+              <td>str|None</td>
+              <td>None (auto)</td>
+              <td>Force a language code</td>
+            </tr>
+            <tr>
+              <td><code>detector_backend</code></td>
+              <td>str</td>
+              <td><code>"regex"</code></td>
+              <td>Detection engine</td>
+            </tr>
+            <tr>
+              <td><code>vault</code></td>
+              <td>MappingVaultProtocol</td>
+              <td>InMemory</td>
+              <td>Vault implementation</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <h3>PrivacyFirewall methods</h3>
-    <table>
-      <thead><tr><th>Method</th><th>Returns</th><th>Description</th></tr></thead>
-      <tbody>
-        <tr><td><code>anonymize(text, context)</code></td><td>ProcessResult</td><td>Detect and replace PII. Saves mapping to vault.</td></tr>
-        <tr><td><code>rehydrate(text, context)</code></td><td>str</td><td>Restore original values from vault.</td></tr>
-        <tr><td><code>process(text, context)</code></td><td>ProcessResult</td><td>anonymize + call LLM + rehydrate.</td></tr>
-        <tr><td><code>secure_call(text, context, llm_client)</code></td><td>ProcessResult</td><td>Same as process() with explicit LLM client.</td></tr>
-        <tr><td><code>forget(tenant_id, case_id, thread_id)</code></td><td>int</td><td>Delete vault entries. Returns deleted count.</td></tr>
-        <tr><td><code>add_custom_regex(...)</code></td><td>None</td><td>Add regex pattern at runtime.</td></tr>
-        <tr><td><code>preload_languages(list)</code></td><td>None</td><td>Pre-warm spaCy models.</td></tr>
-      </tbody>
-    </table>
+        <h3>PrivacyFirewall methods</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Returns</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>anonymize(text, context)</code></td>
+              <td>ProcessResult</td>
+              <td>Detect and replace PII. Saves mapping to vault.</td>
+            </tr>
+            <tr>
+              <td><code>rehydrate(text, context)</code></td>
+              <td>str</td>
+              <td>Restore original values from vault.</td>
+            </tr>
+            <tr>
+              <td><code>process(text, context)</code></td>
+              <td>ProcessResult</td>
+              <td>anonymize + call LLM + rehydrate.</td>
+            </tr>
+            <tr>
+              <td><code>secure_call(text, context, llm_client)</code></td>
+              <td>ProcessResult</td>
+              <td>Same as process() with explicit LLM client.</td>
+            </tr>
+            <tr>
+              <td><code>forget(tenant_id, case_id, thread_id)</code></td>
+              <td>int</td>
+              <td>Delete vault entries. Returns deleted count.</td>
+            </tr>
+            <tr>
+              <td><code>add_custom_regex(...)</code></td>
+              <td>None</td>
+              <td>Add regex pattern at runtime.</td>
+            </tr>
+            <tr>
+              <td><code>preload_languages(list)</code></td>
+              <td>None</td>
+              <td>Pre-warm spaCy models.</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <h3>ProcessResult fields</h3>
-    <table>
-      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
-      <tbody>
-        <tr><td><code>sanitized_text</code></td><td>str</td><td>Anonymized text sent to LLM</td></tr>
-        <tr><td><code>model_output</code></td><td>str</td><td>Raw LLM response (still anonymized)</td></tr>
-        <tr><td><code>final_text</code></td><td>str</td><td>Rehydrated LLM output (real values restored)</td></tr>
-        <tr><td><code>trace.detected_entities</code></td><td>list</td><td>All detected entities with type, text, confidence</td></tr>
-        <tr><td><code>trace.entities_kept</code></td><td>list</td><td>Entities that were KEPT (not anonymized)</td></tr>
-        <tr><td><code>trace.replacements</code></td><td>list</td><td>Applied token substitutions</td></tr>
-        <tr><td><code>trace.cleanup_warnings</code></td><td>list</td><td>Residual PII warnings after cleanup passes</td></tr>
-      </tbody>
-    </table>
-  </section>
+        <h3>ProcessResult fields</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>sanitized_text</code></td>
+              <td>str</td>
+              <td>Anonymized text sent to LLM</td>
+            </tr>
+            <tr>
+              <td><code>model_output</code></td>
+              <td>str</td>
+              <td>Raw LLM response (still anonymized)</td>
+            </tr>
+            <tr>
+              <td><code>final_text</code></td>
+              <td>str</td>
+              <td>Rehydrated LLM output (real values restored)</td>
+            </tr>
+            <tr>
+              <td><code>trace.detected_entities</code></td>
+              <td>list</td>
+              <td>All detected entities with type, text, confidence</td>
+            </tr>
+            <tr>
+              <td><code>trace.entities_kept</code></td>
+              <td>list</td>
+              <td>Entities that were KEPT (not anonymized)</td>
+            </tr>
+            <tr>
+              <td><code>trace.replacements</code></td>
+              <td>list</td>
+              <td>Applied token substitutions</td>
+            </tr>
+            <tr>
+              <td><code>trace.cleanup_warnings</code></td>
+              <td>list</td>
+              <td>Residual PII warnings after cleanup passes</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-  <hr>
-  <p style="color:var(--text-muted); font-size:13px; text-align:center;">
-    Privacy Firewall v0.1 · Apache 2.0 License · Built for privacy-first AI applications
-  </p>
+      <hr>
+      <p style="color:var(--text-muted); font-size:13px; text-align:center;">
+        Privacy Firewall v0.1 · Apache 2.0 License · Built for privacy-first AI applications
+      </p>
 
-</main>
-</div>
+    </main>
+  </div>
 
 </body>
+
 </html>

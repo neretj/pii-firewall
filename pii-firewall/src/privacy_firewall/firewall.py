@@ -262,7 +262,7 @@ class PrivacyFirewall:
         confidence: float = 0.95,
         context_words: list[str] | None = None,
         description: str = "",
-        disposition_action: str = "redact",
+        disposition_action: str = "pseudonymize",
         confidence_threshold: float = 0.75,
         disposition_parameters: dict[str, Any] | None = None,
     ) -> None:
