@@ -90,7 +90,7 @@ export const INITIAL_FORM: PipelineForm = {
   thread_id: "thread-1",
   actor_id: "user-demo",
   profile: "generic",
-  detector_backend: "presidio",
+  detector_backend: "hybrid",
   language: "auto",
 };
 

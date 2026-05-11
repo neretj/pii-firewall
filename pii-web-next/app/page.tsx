@@ -46,17 +46,33 @@ function App() {
   );
 
   const continuity = useMemo(() => {
-    const stats: Record<string, { original: string; turns: number[] }> = {};
+    // Track which turns each token was *actively detected* as an entity (not just in vault).
+    const detectionStats: Record<string, { original: string; turns: number[] }> = {};
+    const allTokens = new Set<string>();
+
     for (const [idx, turn] of chat.entries()) {
-      for (const [token, original] of Object.entries(turn.response.steps.mapping)) {
-        if (!stats[token]) stats[token] = { original, turns: [] };
-        if (!stats[token].turns.includes(idx + 1)) stats[token].turns.push(idx + 1);
+      const mapping = turn.response.steps.mapping as Record<string, string>;
+
+      // Accumulate total vault size across all turns.
+      for (const token of Object.keys(mapping)) allTokens.add(token);
+
+      // Reverse map: original value → token placeholder
+      const valueToToken: Record<string, string> = {};
+      for (const [token, original] of Object.entries(mapping)) valueToToken[original] = token;
+
+      // Only count a token in a turn if its entity was actively detected that turn.
+      for (const entity of turn.response.steps.detected_entities as Array<{ text: string }>) {
+        const token = valueToToken[entity.text];
+        if (!token) continue;
+        if (!detectionStats[token]) detectionStats[token] = { original: entity.text, turns: [] };
+        if (!detectionStats[token].turns.includes(idx + 1)) detectionStats[token].turns.push(idx + 1);
       }
     }
-    const rows = Object.entries(stats)
+
+    const rows = Object.entries(detectionStats)
       .map(([token, data]) => ({ token, original: data.original, turns: data.turns }))
       .sort((a, b) => a.token.localeCompare(b.token));
-    return { rows, repeated: rows.filter((r) => r.turns.length > 1).length, total: rows.length };
+    return { rows, repeated: rows.filter((r) => r.turns.length > 1).length, total: allTokens.size };
   }, [chat]);
 
   const toApiRequest = (input: PipelineForm): PipelineRequest => ({
@@ -126,7 +142,7 @@ function App() {
       <AppHeader />
 
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-        <div className="grid" style={{ gridTemplateColumns: "272px minmax(0,1fr) 320px" }}>
+        <div className="grid" style={{ gridTemplateColumns: "272px minmax(0,1fr) 400px" }}>
           <ConfigSidebar 
             form={form} 
             onChange={onChange} 
