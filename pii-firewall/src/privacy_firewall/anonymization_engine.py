@@ -24,15 +24,17 @@ class AnonymizationResult:
 
 class AnonymizationEngine:
     """Execute anonymization based on domain profile dispositions.
-    
-    This orchestrates different anonymization strategies per entity type:
-    - KEEP: Pass through unchanged
-    - REDACT: Replace with [REDACTED] or generic token
-    - PSEUDONYMIZE: Replace with reversible token (PERSON_1)
-    - GENERALIZE: Replace with coarser value (age 43 → 40-49)
-    - MASK: Partial obscurement (card ...1234)
-    - HASH: SHA256 hash
-    - SUPPRESS: Remove entirely
+
+    Actions:
+    - KEEP:         Pass through unchanged (domain-relevant data).
+    - PSEUDONYMIZE: Replace with a reversible token stored in the vault
+                    (e.g. [PERSON_001]).  Scope is set by profile.token_scope.
+    - GENERALIZE:   Reduce precision (age 43 → 40-49, date → year/month).
+                    One-way — no vault entry.
+    - MASK:         Partial obscurement (card 4111…1111 → ****1111).
+                    One-way.
+    - HASH:         SHA-256 hex string — for analytics join-keys, not LLM use.
+    - REDACT:       Irreversible removal — entity deleted from text entirely.
     """
     
     def __init__(
@@ -125,62 +127,33 @@ class AnonymizationEngine:
         context: dict,
     ) -> str:
         """Apply specific anonymization action to entity."""
-        
-        if action == DispositionAction.REDACT:
-            return self._redact(entity, context, parameters)
-        
-        elif action == DispositionAction.PSEUDONYMIZE:
+
+        if action == DispositionAction.PSEUDONYMIZE:
             return self._pseudonymize(entity, context, parameters)
-        
+
         elif action == DispositionAction.GENERALIZE:
             return self._generalize(entity, context, parameters)
-        
+
         elif action == DispositionAction.MASK:
             return self._mask(entity, parameters)
-        
+
         elif action == DispositionAction.HASH:
             return self._hash(entity, parameters)
-        
-        elif action == DispositionAction.SUPPRESS:
-            return ""  # Remove entirely
-        
+
+        elif action == DispositionAction.REDACT:
+            return ""  # Irreversible removal — entity deleted from text entirely
+
         else:
-            # Default: redact
-            return "[REDACTED]"
-    
-    def _redact(self, entity: Entity, context: dict, parameters: dict) -> str:
-        """Replace with unique reversible token and store mapping.
-        
-        Note: REDACT now stores mappings for rehydration. Privacy is enforced
-        by what the LLM sees (sanitized tokens), not by what we store.
-        This ensures users always see their original data back, even if the
-        LLM echoes redacted tokens in its response.
-        """
-        # Use resolver to get unique token (same as PSEUDONYMIZE)
-        token = self.resolver.resolve_token(
-            tenant_id=context["tenant_id"],
-            case_id=context["case_id"],
-            thread_id=context["thread_id"],
-            entity_type=entity.entity_type,
-            value=entity.text,
-            token_scope="thread",
-        )
-        
-        # Store in vault for rehydration
-        ttl = parameters.get("ttl_seconds", self.default_ttl_seconds)
-        self.vault.put(
-            context["tenant_id"],
-            context["case_id"],
-            context["thread_id"],
-            token,
-            entity.text,
-            ttl_seconds=ttl,
-        )
-        
-        return token
+            # Fallback: pseudonymize
+            return self._pseudonymize(entity, context, parameters)
     
     def _pseudonymize(self, entity: Entity, context: dict, parameters: dict) -> str:
-        """Replace with reversible token and store mapping."""
+        """Replace with a reversible placeholder token and store the mapping in the vault.
+
+        Token scope (thread / case / tenant) is governed by the profile's
+        ``token_scope`` field — not by the action name.  All cross-session /
+        cross-thread consistency decisions belong to the caller via context.
+        """
         # Use resolver to get consistent token
         token = self.resolver.resolve_token(
             tenant_id=context["tenant_id"],
@@ -205,41 +178,132 @@ class AnonymizationEngine:
         return token
     
     def _generalize(self, entity: Entity, context: dict, parameters: dict) -> str:
-        """Replace with unique reversible token and store original value.
-        
-        Uses unique tokens (like PSEUDONYMIZE) to avoid collisions.
-        Stores original value for full rehydration.
-        
-        Note: Generalization metadata (e.g., age bucket, year-only date) can be
-        computed separately for display/logging purposes, but the token itself
-        is unique to avoid collisions when multiple entities of the same type
-        appear in the conversation.
+        """Replace entity with a coarsened/generalized representation.
+
+        GENERALIZE is intentionally one-way: the coarsened value (e.g., an age
+        range or a year) is the final form seen by the LLM and the end user.
+        No vault entry is created — there is nothing to rehydrate.
+
+        Dispatch rules:
+          - AGE / DATE_TIME that looks like an age → decade bucket (43 → 40-49)
+          - DATE / DATE_TIME that looks like a calendar date → year or month/year
+          - LOCATION → handled by caller (city-level generalization; falls back
+            to a numbered token when geocoding is not available)
+          - Everything else → numbered token stored in vault (same as REDACT)
         """
-        # Use resolver to get unique token
+        entity_type = entity.entity_type
+        text = entity.text
+
+        if entity_type == "AGE":
+            return self._generalize_age(text, parameters)
+
+        if entity_type in ("DATE", "DATE_TIME"):
+            granularity = parameters.get("granularity") or parameters.get("level", "year")
+            result = self._generalize_date(text, granularity)
+            if result is not None:
+                return result
+            # Text looks like an age ("43 years old", "43 años") — treat as age
+            age_result = self._generalize_age(text, {})
+            if age_result != "[AGE]":
+                return age_result
+
+        # Fall back: numbered token + vault (covers LOCATION and unknown types)
         token = self.resolver.resolve_token(
             tenant_id=context["tenant_id"],
             case_id=context["case_id"],
             thread_id=context["thread_id"],
-            entity_type=entity.entity_type,
-            value=entity.text,
-            token_scope="thread",
+            entity_type=entity_type,
+            value=text,
+            token_scope=self.profile.token_scope,
         )
-        
-        # Store original value (not generalized form) for full rehydration
         ttl = parameters.get("ttl_seconds", self.default_ttl_seconds)
         self.vault.put(
             context["tenant_id"],
             context["case_id"],
             context["thread_id"],
             token,
-            entity.text,  # Store original: "43 años", "today", etc.
+            text,
             ttl_seconds=ttl,
         )
-        
         return token
-    
-    # Note: Age/date generalization helpers removed - tokens are now unique identifiers
-    # Generalization metadata can be computed separately for display/logging if needed
+
+    def _generalize_age(self, text: str, parameters: dict) -> str:
+        """Return decade bucket for an age value, e.g., 43 → '40-49'."""
+        import re
+        m = re.search(r"\b(\d{1,3})\b", text)
+        if not m:
+            return "[AGE]"
+        age = int(m.group(1))
+        if not (0 <= age <= 130):
+            return "[AGE]"
+        bucket_size = parameters.get("bucket_size", 10)
+        low = (age // bucket_size) * bucket_size
+        high = low + bucket_size - 1
+        return f"{low}-{high}"
+
+    def _generalize_date(self, text: str, granularity: str) -> str | None:
+        """Reduce date precision to year or month/year.
+
+        Returns None when the text does not contain a recognisable calendar date
+        (so the caller can try other generalization strategies).
+        """
+        import re
+        import calendar as cal
+
+        # Must contain a 4-digit year in the range 1900-2099
+        m = re.search(r"\b((?:19|20)\d{2})\b", text)
+        if not m:
+            return None
+        year = m.group(1)
+
+        if granularity == "year":
+            return year
+
+        # ── month/year ────────────────────────────────────────────────────
+        month_map: dict[str, int] = {
+            # English
+            "january": 1, "february": 2, "march": 3, "april": 4,
+            "may": 5, "june": 6, "july": 7, "august": 8,
+            "september": 9, "october": 10, "november": 11, "december": 12,
+            # Spanish
+            "enero": 1, "febrero": 2, "marzo": 3, "abril": 4,
+            "mayo": 5, "junio": 6, "julio": 7, "agosto": 8,
+            "septiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12,
+            # French
+            "janvier": 1, "février": 2, "mars": 3, "avril": 4,
+            "mai": 5, "juin": 6, "juillet": 7, "août": 8,
+            "septembre": 9, "octobre": 10, "novembre": 11, "décembre": 12,
+            # German
+            "januar": 1, "februar": 2, "märz": 3,
+            "juni": 6, "juli": 7, "september": 9, "oktober": 10, "dezember": 12,
+            # Italian
+            "gennaio": 1, "febbraio": 2, "marzo": 3, "aprile": 4,
+            "maggio": 5, "giugno": 6, "luglio": 7, "agosto": 8,
+            "settembre": 9, "ottobre": 10, "novembre": 11, "dicembre": 12,
+            # Portuguese
+            "janeiro": 1, "fevereiro": 2, "marco": 3, "abril": 4,
+            "junho": 6, "julho": 7, "setembro": 9, "outubro": 10, "dezembro": 12,
+        }
+        text_lower = text.lower()
+        for name, num in month_map.items():
+            if name in text_lower:
+                return f"{cal.month_abbr[num]} {year}"
+
+        # Numeric: YYYY-MM[-DD]
+        m2 = re.search(r"(?:19|20)\d{2}[/\-\.](\d{1,2})", text)
+        if m2:
+            num = int(m2.group(1))
+            if 1 <= num <= 12:
+                return f"{cal.month_abbr[num]} {year}"
+
+        # Numeric: DD/MM/YYYY or MM/DD/YYYY — assume DD/MM (European)
+        m3 = re.search(r"(\d{1,2})[/\-\.](\d{1,2})[/\-\.](?:19|20)\d{2}", text)
+        if m3:
+            num = int(m3.group(2))
+            if 1 <= num <= 12:
+                return f"{cal.month_abbr[num]} {year}"
+
+        return year  # year-only fallback
     
     def _mask(self, entity: Entity, parameters: dict) -> str:
         """Partially obscure entity."""

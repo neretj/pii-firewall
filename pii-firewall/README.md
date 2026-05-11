@@ -61,8 +61,9 @@ result = firewall.process(
 )
 
 print(result.sanitized_text)
-# Output: "PERSON_1, [AGE_40-49], hipertensión. enalapril 10mg."
+# Output: "[PERSON_001], 40-49, hipertensión. enalapril 10mg."
 # Notice: Medical terms (hipertensión, enalapril) are KEPT!
+# Age is generalized to a decade range (not a token); PERSON gets a reversible token.
 ```
 
 ## 🎯 Domain Profiles
@@ -83,9 +84,9 @@ Protects customer PII and financial identifiers. Amounts and transaction context
 firewall = create_firewall("finance")
 
 # Keeps: company names, transaction context (amounts pass through as non-PII)
-# Masks: credit card numbers (4111...1111)
-# Pseudonymizes: account numbers, IBANs, tax IDs (reversible)
-# Redacts: customer PII (names, addresses) and medical data
+# Pseudonymizes: customer names, account numbers, IBANs, tax IDs (reversible tokens)
+# Masks: credit card numbers (************1111 — last 4 visible, not stored in vault)
+# Redacts: medical data (diagnoses, drugs — out of domain)
 ```
 
 ### Legal
@@ -348,10 +349,10 @@ firewall = create_firewall(
 # Anonymize
 result = firewall.process(text="Contact John Doe at john@example.com", context={...})
 print(result.sanitized_text)
-# "Contact PERSON_1 at EMAIL_1"
+# "Contact [PERSON_001] at [EMAIL_001]"
 
 # LLM processes anonymized text
-llm_response = "PERSON_1 should verify EMAIL_1 is correct"
+llm_response = "[PERSON_001] should verify [EMAIL_001] is correct"
 
 # Rehydrate (restore original values)
 from privacy_firewall.anonymization_engine import rehydrate_text
@@ -384,7 +385,7 @@ anon = sdk.anonymize_text(text="Contact John Doe at john@example.com", context=c
 
 # 2) Call any model client (callable or object with .generate)
 def my_llm(prompt: str) -> str:
-    return f"Please verify PERSON_1 at EMAIL_1. Input was: {prompt}"
+    return f"Please verify [PERSON_001] at [EMAIL_001]. Input was: {prompt}"
 
 # 3) Rehydrate output
 result = sdk.secure_call(

@@ -154,8 +154,8 @@ def create_app(firewall: PrivacyFirewall | None = None) -> FastAPI:
             "token_scope": ["profile-default", "thread", "case", "tenant"],
             "profile_descriptions": {
                 "generic": "General-purpose PII protection with safe defaults",
-                "healthcare": "Keeps medical data (diagnoses, medications), redacts PII",
-                "finance": "Keeps transaction amounts and financial data, redacts medical info",
+                "healthcare": "Keeps medical data (diagnoses, medications), pseudonymizes PII",
+                "finance": "Keeps transaction amounts and financial data, pseudonymizes medical info",
                 "legal": "Keeps case references and legal data with stricter entity matching"
             },
             "backend_descriptions": {

@@ -7,6 +7,8 @@
 
 Open-source PII firewall for LLM apps. Detect, anonymize and rehydrate sensitive data before it reaches OpenAI, Anthropic or any LLM provider.
 
+https://pii-firewall.com/
+
 ```
 pip install "pii-firewall[presidio,langdetect]"
 ```
@@ -443,9 +445,6 @@ uvicorn privacy_firewall.web.app:create_app --factory --reload --port 8080
 ```
 
 - Interactive API docs: http://127.0.0.1:8080/docs
-- Full developer guide: [pii-firewall/docs/guide.html](pii-firewall/docs/guide.html)
-
-> **VS Code tip:** open [pii-firewall/docs/guide.html](pii-firewall/docs/guide.html) and press `Ctrl+Shift+V` to preview it.
 
 ### 2. Frontend playground
 
