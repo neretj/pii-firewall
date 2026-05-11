@@ -38,7 +38,7 @@ User text  ──→  [ PII Firewall ]  ──→  Sanitized prompt  ──→  
 ```
 
 1. **Detect** — finds PII entities using one or more configurable backends (regex patterns, Presidio/spaCy, OPF, GLiNER-PII, Nemotron, Transformers NER).
-2. **Anonymize** — transforms each entity according to the active domain profile: redact, pseudonymize, generalize, mask, hash, or suppress.
+2. **Anonymize** — transforms each entity according to the active domain profile: pseudonymize, generalize, mask, hash, or redact.
 3. **LLM call** — the sanitized prompt is forwarded to any LLM. The model never sees real personal data.
 4. **Rehydrate** — the model's response is restored by substituting tokens back from a secure in-memory vault, so the end-user sees real values.
 
@@ -48,7 +48,7 @@ User text  ──→  [ PII Firewall ]  ──→  Sanitized prompt  ──→  
 |---|---|
 | **Domain profiles** | Built-in presets for Healthcare, Finance, Legal, and Generic; fully customizable |
 | **Domain-aware keep rules** | Medical terms (diagnoses, medications, procedures) are *kept* — not redacted — in healthcare and related profiles |
-| **7 disposition actions** | Keep, Redact, Pseudonymize, Generalize, Mask, Hash, Suppress |
+| **6 disposition actions** | Keep, Pseudonymize, Generalize, Mask, Hash, Redact |
 | **Reversible pseudonymization** | Secure vault stores the original→token mapping for rehydration |
 | **55+ language auto-detection** | Thread-level caching adds zero latency after the first call |
 | **Locale-specific patterns** | Spanish DNI, US SSN, French INSEE, German Personalausweis, Italian CF, Portuguese NIF, and more |
@@ -95,7 +95,7 @@ result = firewall.process(
 )
 
 print(result.sanitized_text)
-# → "Patient PERSON_1, [REDACTED], diagnosed with hypertension. Prescribed lisinopril 10mg."
+# → "Patient [PERSON_001], [REDACTED], diagnosed with hypertension. Prescribed lisinopril 10mg."
 #   Medical terms (hypertension, lisinopril) are preserved — the LLM still understands the case.
 
 print(result.final_text)
@@ -208,8 +208,8 @@ result = firewall.process(
     context={...},
 )
 print(result.sanitized_text)
-# → "PERSON_1, [AGE_40-49], hipertensión. enalapril 10mg."
-#   Diagnosis and medication are preserved. Name and age are anonymized.
+# → "[PERSON_001], 40-49, hipertensión. enalapril 10mg."
+#   Diagnosis and medication are preserved. Name is pseudonymized; age is generalized.
 ```
 
 ### Finance
@@ -223,7 +223,7 @@ result = firewall.process(
     context={...},
 )
 print(result.sanitized_text)
-# → "Cliente PERSON_1, tarjeta 4111...1111, transferencia de 2.500€ a cuenta ACCOUNT_1."
+# → "Cliente [PERSON_001], tarjeta ************1111, transferencia de 2.500€ a cuenta [ACCOUNT_NUMBER_001]."
 #   Amount is preserved for the LLM. Card and account are masked/pseudonymized.
 ```
 
@@ -238,7 +238,7 @@ result = firewall.process(
     context={...},
 )
 print(result.sanitized_text)
-# → "El demandante PERSON_1 presentó recurso en 2024, expediente EXP-2024/001234."
+# → "El demandante [PERSON_001] presentó recurso en 2024, expediente EXP-2024/001234."
 #   Case number kept. Party name pseudonymized. Date generalized to year.
 ```
 
@@ -391,7 +391,7 @@ context = {"tenant_id": "hospital-001", "case_id": "patient-123",
 
 # Anonymize only
 anon = sdk.anonymize_text(text="John Doe, SSN 123-45-6789", context=context)
-print(anon.sanitized_text)  # "PERSON_1, [REDACTED]"
+print(anon.sanitized_text)  # "[PERSON_001], [REDACTED]"
 
 # Full round-trip with any LLM client
 def my_llm(prompt: str) -> str:

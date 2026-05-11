@@ -14,7 +14,7 @@ Most PII tools were built for data pipelines, not for LLM calls. PII Firewall is
 - **Auto language detection** — 55+ languages detected automatically with thread-level caching (0 ms after the first call)
 - **Locale-specific patterns** — country-specific ID formats: Spanish DNI, US SSN, French INSEE, German Steuernummer, Italian Codice Fiscale, Portuguese NIF, and more
 - **7 detection backends** — regex, Presidio, Hybrid, GLiNER, Transformers, OPF, Nemotron — switch with one parameter
-- **7 disposition actions** — Keep, Redact, Pseudonymize, Generalize, Mask, Hash, Suppress
+- **6 disposition actions** — Keep, Pseudonymize, Generalize, Mask, Hash, Redact
 - **Reversible pseudonymization** — vault stores original↔token mappings; real names are restored in LLM responses
 - **Streaming support** — `secure_call_stream()` yields rehydrated tokens in real-time
 - **GDPR Art. 17 right to forget** — `firewall.forget()` wipes all mappings for a thread or case
@@ -74,7 +74,7 @@ Keeps medical data relevant for diagnosis while protecting patient identity:
 firewall = create_firewall("healthcare")
 
 # Keeps: diagnoses, medications, procedures, lab values
-# Redacts: names, IDs, addresses
+# Pseudonymizes: names, IDs, addresses (reversible tokens)
 # Generalizes: ages (43 → 40-49), dates (specific → month/year)
 ```
 
@@ -86,7 +86,7 @@ firewall = create_firewall("finance")
 # Keeps: company names, transaction context (amounts pass through as non-PII)
 # Pseudonymizes: customer names, account numbers, IBANs, tax IDs (reversible tokens)
 # Masks: credit card numbers (************1111 — last 4 visible, not stored in vault)
-# Redacts: medical data (diagnoses, drugs — out of domain)
+# Pseudonymizes: medical data (diagnoses, drugs — out of domain, still tokenized)
 ```
 
 ### Legal
@@ -96,9 +96,8 @@ firewall = create_firewall("legal")
 
 # Keeps: company/firm names (courts, agencies — public record)
 # Note: statutes, case numbers, legal citations are public record and pass through
-# Pseudonymizes: party names (reversible for case management)
+# Pseudonymizes: party names and strong identifiers (reversible for case management)
 # Generalizes: all dates to month/year
-# Redacts: strong identifiers and cross-domain medical data
 ```
 
 ## 🌍 Multi-Language Support
@@ -179,7 +178,7 @@ firewall.add_custom_regex(
     locales=["GLOBAL"],          # or ["US"], ["ES"], etc.
     confidence=0.95,
     context_words=["employee", "staff"],
-    disposition_action="redact", # keep / redact / pseudonymize / mask …
+    disposition_action="pseudonymize", # keep / pseudonymize / generalize / mask / hash / redact
 )
 
 # Or build the full EntityPattern object for more control
