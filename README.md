@@ -21,17 +21,17 @@ pip install "pii-firewall[presidio,langdetect]"
 ## How it works
 
 ```
-User text  --?  [ PII Firewall ]  --?  Sanitized prompt  --?  LLM
-                      �                                          �
-                 Secure vault                             Model response
-                      �                                          �
-                      +----------  Re-hydrated reply  ?---------+
+User text  -->  [ PII Firewall ]  -->  Sanitized prompt  -->  LLM
+                     |                                          |
+                Secure vault                             Model response
+                     |                                          |
+                     +----------  Re-hydrated reply  <----------+
 ```
 
-1. **Detect** � finds PII using configurable backends (regex, Presidio, GLiNER, Transformers NER, and more).
-2. **Anonymize** � transforms each entity: pseudonymize, generalize, mask, hash, or redact.
-3. **LLM call** � the sanitized prompt is forwarded. The model never sees real personal data.
-4. **Rehydrate** � the response is restored from a secure in-memory vault before reaching the user.
+1. **Detect** - finds PII using configurable backends (regex, Presidio, GLiNER, Transformers NER, and more).
+2. **Anonymize** - transforms each entity: pseudonymize, generalize, mask, hash, or redact.
+3. **LLM call** - the sanitized prompt is forwarded. The model never sees real personal data.
+4. **Rehydrate** - the response is restored from a secure in-memory vault before reaching the user.
 
 ---
 
@@ -58,8 +58,8 @@ result = firewall.process(
 )
 
 print(result.sanitized_text)
-# ? "Patient [PERSON_001], [REDACTED], diagnosed with hypertension. Prescribed lisinopril 10mg."
-#   Medical terms (hypertension, lisinopril) are preserved � the LLM still understands the case.
+# -> "Patient [PERSON_001], [REDACTED], diagnosed with hypertension. Prescribed lisinopril 10mg."
+#    Medical terms (hypertension, lisinopril) are preserved -- the LLM still understands the case.
 
 # After the LLM responds, real names are restored for the end-user:
 print(result.final_text)
@@ -135,10 +135,10 @@ async def chat(req: dict):
 | Backend | Install extra | Best for |
 |---|---|---|
 | `regex` | *(none)* | Structured IDs, emails, phones |
-| `presidio` | `[presidio,langdetect]` | Named entities � recommended default |
+| `presidio` | `[presidio,langdetect]` | Named entities -- recommended default |
 | `hybrid` | `[presidio,langdetect]` | Regex + Presidio for maximum coverage |
 | `gliner` | `[gliner]` | Zero-shot NER, no fine-tuning |
-| `transformers` | `[transformers]` | Biomedical NER � highest accuracy for medical |
+| `transformers` | `[transformers]` | Biomedical NER -- highest accuracy for medical |
 | `nemotron` | `[opf]` | NVIDIA fine-tune, high recall on free text |
 
 ```python
@@ -149,7 +149,7 @@ firewall = create_firewall("healthcare", detector_backend="presidio")
 
 ## Multi-language support
 
-Language is detected automatically � no configuration needed. Locale-specific patterns are applied for Spanish DNI/NIE, US SSN/EIN, French INSEE, German Steuernummer, Italian Codice Fiscale, Portuguese NIF, and more.
+Language is detected automatically -- no configuration needed. Locale-specific patterns are applied for Spanish DNI/NIE, US SSN/EIN, French INSEE, German Steuernummer, Italian Codice Fiscale, Portuguese NIF, and more.
 
 ---
 
@@ -166,7 +166,7 @@ print(f"Deleted {deleted} token mappings")
 
 **Prerequisites:** Python 3.10+, Node.js 18+
 
-### 1 � Backend
+### 1 - Backend
 
 ```bash
 cd pii-firewall
@@ -176,7 +176,7 @@ uvicorn privacy_firewall.web.app:create_app --factory --reload --port 8080
 
 API docs: http://127.0.0.1:8080/docs
 
-### 2 � Frontend
+### 2 - Frontend
 
 ```bash
 cd pii-web-next
