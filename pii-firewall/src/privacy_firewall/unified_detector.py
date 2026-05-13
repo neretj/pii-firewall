@@ -42,7 +42,7 @@ GLINER_LABEL_TO_ENTITY: dict[str, str] = {
     "healthcare number":     ET.MEDICAL_RECORD,
     "account number":        ET.ACCOUNT_NUMBER,
     "bank account":          ET.ACCOUNT_NUMBER,
-    "routing number":        ET.ACCOUNT_NUMBER,
+    "routing number":        ET.ROUTING_NUMBER,
     "credit card":           ET.CREDIT_CARD,
     "url":                   ET.URL,
     "ip address":            ET.IP_ADDRESS,
@@ -265,22 +265,35 @@ class UnifiedDetectionEngine:
     def _detect_with_patterns(self, text: str, locale: str) -> list[Entity]:
         """Detect entities using pattern catalog."""
         entities = []
-        
+        text_lower = text.lower()
+
         # Get all patterns for locale (includes GLOBAL)
         patterns = self.pattern_catalog.get_all_patterns_for_locale(locale)
-        
+
         for pattern in patterns:
             matches = pattern.match(text)
             for matched_text, start, end in matches:
+                # Boost confidence when context words appear near the match.
+                # Patterns share the same generic regex (e.g. \b\d{9}\b for both
+                # SSN and PASSPORT); context words are the only signal that
+                # disambiguates them, so they must actually affect scoring.
+                confidence = pattern.confidence
+                if pattern.context_words:
+                    window_start = max(0, start - 100)
+                    window_end = min(len(text), end + 100)
+                    window = text_lower[window_start:window_end]
+                    if any(cw.lower() in window for cw in pattern.context_words):
+                        confidence = min(1.0, confidence + 0.25)
+
                 entities.append(Entity(
                     text=matched_text,
                     entity_type=pattern.entity_type,
                     start=start,
                     end=end,
-                    confidence=pattern.confidence,
+                    confidence=confidence,
                     source=f"pattern:{locale}",
                 ))
-        
+
         return entities
     
     def _trim_entity_boundaries(self, entities: list[Entity], text: str, language: str) -> list[Entity]:
@@ -347,7 +360,7 @@ class UnifiedDetectionEngine:
         
         Uses POS tagging to detect separators vs connectors (no hardcoded keywords).
         
-        Example: "Ana" and "Garcia" separated by "is" → "Ana Garcia"
+        Example: "Ana" and "García" separated by "de" (DET) → "Ana de García"
         Example: "Ana García" and "Ana García" separated by "con" → DON'T merge
         
         This handles cases where spaCy splits a full name into separate entities.
@@ -685,7 +698,7 @@ class UnifiedDetectionEngine:
             "vehicle_identifier":             ET.NATIONAL_ID,
             "ipv4":                           ET.IP_ADDRESS,
             "ipv6":                           ET.IP_ADDRESS,
-            "mac_address":                    ET.IP_ADDRESS,
+            "mac_address":                    ET.MAC_ADDRESS,
             "device_identifier":              ET.NATIONAL_ID,
             "api_key":                        ET.SECRET,
             "http_cookie":                    ET.SECRET,
@@ -777,10 +790,22 @@ class UnifiedDetectionEngine:
                 if entity.end <= existing.start or entity.start >= existing.end:
                     continue  # No overlap
                 
-                # Overlap detected - use specificity hierarchy to decide
+                # Exact same span: use confidence directly so that context-word
+                # boosted patterns win over generic same-regex patterns regardless
+                # of their entity-type tier (e.g. PASSPORT beats raw-SSN/ROUTING_NUMBER
+                # when "passport" appears near the match).
+                if entity.start == existing.start and entity.end == existing.end:
+                    if entity.confidence > existing.confidence:
+                        remove_existing.append(i)
+                    else:
+                        should_add = False
+                        break
+                    continue
+
+                # Partial overlap - use specificity hierarchy to decide
                 entity_spec = self._get_entity_specificity(entity.entity_type)
                 existing_spec = self._get_entity_specificity(existing.entity_type)
-                
+
                 if entity_spec > existing_spec:
                     # Entity is more specific - remove existing, add entity
                     remove_existing.append(i)

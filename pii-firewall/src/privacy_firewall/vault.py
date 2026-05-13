@@ -25,24 +25,42 @@ class MappingVaultProtocol(Protocol):
 class InMemoryMappingVault:
     # key: (tenant, case, thread) -> token -> original
     _store: Dict[Tuple[str, str, str], Dict[str, str]] = field(default_factory=dict)
+    # key: (tenant, case, thread) -> token -> unix expiry timestamp (None = no expiry)
+    _expiry: Dict[Tuple[str, str, str], Dict[str, int]] = field(default_factory=dict)
 
     def put(self, tenant_id: str, case_id: str, thread_id: str, token: str, original: str, ttl_seconds: int | None = None) -> None:
         key = (tenant_id, case_id, thread_id)
         if key not in self._store:
             self._store[key] = {}
+            self._expiry[key] = {}
         self._store[key][token] = original
+        if ttl_seconds and ttl_seconds > 0:
+            self._expiry[key][token] = int(time.time()) + ttl_seconds
+        else:
+            self._expiry[key].pop(token, None)
 
     def get_case_mapping(self, tenant_id: str, case_id: str, thread_id: str) -> dict[str, str]:
+        self.purge_expired()
         return dict(self._store.get((tenant_id, case_id, thread_id), {}))
 
     def forget_case(self, tenant_id: str, case_id: str, thread_id: str) -> int:
         key = (tenant_id, case_id, thread_id)
         mapping = self._store.pop(key, {})
+        self._expiry.pop(key, None)
         return len(mapping)
 
     def purge_expired(self) -> int:
-        # In-memory vault keeps entries until explicit forget in MVP.
-        return 0
+        now = int(time.time())
+        count = 0
+        for key in list(self._store.keys()):
+            expiry_map = self._expiry.get(key, {})
+            store_map = self._store[key]
+            expired = [t for t, exp in expiry_map.items() if exp <= now]
+            for token in expired:
+                store_map.pop(token, None)
+                expiry_map.pop(token, None)
+                count += 1
+        return count
 
 
 @dataclass

@@ -9,8 +9,11 @@ Routes detected language to appropriate:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import logging
 import os
 from typing import Any, Protocol
+
+_logger = logging.getLogger(__name__)
 
 
 class NLPEngineProtocol(Protocol):
@@ -125,7 +128,7 @@ class LanguageRouter:
             return self.language_configs[language]
         
         # Fallback to multilingual
-        print(f"⚠ Language '{language}' not configured. Falling back to multilingual model.")
+        _logger.warning("Language '%s' not configured, falling back to multilingual model.", language)
         return self.language_configs["xx"]
     
     def get_engine(self, language: str):

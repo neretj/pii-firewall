@@ -185,11 +185,12 @@ class AnonymizationEngine:
         No vault entry is created — there is nothing to rehydrate.
 
         Dispatch rules:
-          - AGE / DATE_TIME that looks like an age → decade bucket (43 → 40-49)
+          - AGE → decade bucket (43 → 40-49)
           - DATE / DATE_TIME that looks like a calendar date → year or month/year
-          - LOCATION → handled by caller (city-level generalization; falls back
-            to a numbered token when geocoding is not available)
-          - Everything else → numbered token stored in vault (same as REDACT)
+          - DATE_TIME that looks like an age → treated as AGE
+          - Everything else (LOCATION, unknown types) → non-reversible label
+            e.g. ``[LOCATION]``.  All distinct values collapse to the same
+            label — specificity loss is intentional.
         """
         entity_type = entity.entity_type
         text = entity.text
@@ -207,25 +208,9 @@ class AnonymizationEngine:
             if age_result != "[AGE]":
                 return age_result
 
-        # Fall back: numbered token + vault (covers LOCATION and unknown types)
-        token = self.resolver.resolve_token(
-            tenant_id=context["tenant_id"],
-            case_id=context["case_id"],
-            thread_id=context["thread_id"],
-            entity_type=entity_type,
-            value=text,
-            token_scope=self.profile.token_scope,
-        )
-        ttl = parameters.get("ttl_seconds", self.default_ttl_seconds)
-        self.vault.put(
-            context["tenant_id"],
-            context["case_id"],
-            context["thread_id"],
-            token,
-            text,
-            ttl_seconds=ttl,
-        )
-        return token
+        # Fall back: non-reversible generic label (covers LOCATION and unknown types).
+        # GENERALIZE is one-way — no vault entry is created.
+        return f"[{entity_type}]"
 
     def _generalize_age(self, text: str, parameters: dict) -> str:
         """Return decade bucket for an age value, e.g., 43 → '40-49'."""
@@ -323,7 +308,7 @@ class AnonymizationEngine:
         result = (
             text[:visible_start] +
             mask_char * masked_count +
-            text[-visible_end:] if visible_end > 0 else ""
+            (text[-visible_end:] if visible_end > 0 else "")
         )
         
         return result
@@ -331,22 +316,18 @@ class AnonymizationEngine:
     def _hash(self, entity: Entity, parameters: dict) -> str:
         """Hash entity value (deterministic, non-reversible)."""
         import hashlib
-        
+
         algorithm = parameters.get("algorithm", "sha256")
         salt = parameters.get("salt", "")
-        
         value = entity.text + salt
-        
-        if algorithm == "sha256":
-            hash_obj = hashlib.sha256(value.encode())
-        elif algorithm == "md5":
-            hash_obj = hashlib.md5(value.encode())
-        else:
-            hash_obj = hashlib.sha256(value.encode())
-        
-        hash_hex = hash_obj.hexdigest()
-        
-        # Optionally shorten
+
+        supported = {"sha256": hashlib.sha256, "sha512": hashlib.sha512}
+        if algorithm not in supported:
+            raise ValueError(
+                f"Unsupported hash algorithm '{algorithm}'. "
+                f"Supported: {sorted(supported)}"
+            )
+        hash_hex = supported[algorithm](value.encode()).hexdigest()
         length = parameters.get("length", 16)
         return f"[{entity.entity_type}_HASH_{hash_hex[:length]}]"
     

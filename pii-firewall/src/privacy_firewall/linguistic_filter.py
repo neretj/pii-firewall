@@ -178,14 +178,7 @@ class SpaCyNLPEngine:
                 continue
             if self._is_abbrev_like(token.text):
                 continue
-            # Some models label abbreviations as punctuation tokens (e.g., "Dra.").
-            # Keep them if they look like short title abbreviations.
-            if token.i == 0 and len(tokens) > 1 and self._is_abbrev_like(token.text):
-                continue
-            
-            
-            
-                return False
+            return False
         
         # Require at least one proper noun (PROPN) for multi-word entities
         # Single-word entities pass if capitalized (could be abbreviated)

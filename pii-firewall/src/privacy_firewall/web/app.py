@@ -37,6 +37,13 @@ class RunRequest(BaseModel):
     mapping_override: dict[str, str] | None = None  # optional external mapping for rehydration
 
 
+class ForgetRequest(BaseModel):
+    """Request model for /api/forget endpoint — only needs scope identifiers."""
+    tenant_id: str = "tenant-demo"
+    case_id: str = "case-demo"
+    thread_id: str = "thread-1"
+
+
 @dataclass(frozen=True)
 class RuntimeKey:
     """Cache key for firewall instances."""
@@ -131,9 +138,14 @@ def create_app(firewall: PrivacyFirewall | None = None) -> FastAPI:
         }
     
     # Enable CORS for Next.js frontend
+    _cors_origins = [
+        o.strip()
+        for o in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3010").split(",")
+        if o.strip()
+    ]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000", "http://localhost:3010"],
+        allow_origins=_cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -231,21 +243,19 @@ def create_app(firewall: PrivacyFirewall | None = None) -> FastAPI:
         }
 
     @app.post("/api/forget")
-    def forget(req: RunRequest, x_api_key: str | None = Header(default=None)) -> dict:
+    def forget(req: ForgetRequest, x_api_key: str | None = Header(default=None)) -> dict:
         """GDPR right to be forgotten - delete all mappings for a case."""
         validate_api_key(x_api_key)
         try:
-            fw = static_fw or runtime_factory.get(req)
-            removed = fw.forget(
+            vault = static_fw.vault if static_fw else runtime_factory._shared_vault
+            removed = vault.forget_case(
                 tenant_id=req.tenant_id,
                 case_id=req.case_id,
-                thread_id=req.thread_id
+                thread_id=req.thread_id,
             )
             return {"removed": removed}
         except HTTPException:
             raise
-        except ImportError as exc:
-            raise HTTPException(status_code=500, detail=str(exc)) from exc
         except Exception as exc:
             raise HTTPException(status_code=500, detail="Internal processing error") from exc
 

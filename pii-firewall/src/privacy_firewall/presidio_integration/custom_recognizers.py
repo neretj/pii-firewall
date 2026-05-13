@@ -87,5 +87,3 @@ def create_enhanced_recognizers(language: str = "en") -> list[Any]:
     #     recognizers.extend(create_german_recognizers())
     
     return recognizers
-
-    return recognizers

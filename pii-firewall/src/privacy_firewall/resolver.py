@@ -217,20 +217,27 @@ class ContextualEntityResolver:
         if key not in self.memory:
             self.memory[key] = {}
 
-        canonical = _normalize_name(value)
-        
-        # Find best match among existing entities
-        best_match = None
-        best_score = 0.0
-        
-        for token, known in self.memory[key].items():
-            score = _similarity_score(canonical, known)
-            if score > best_score and score >= self.similarity_threshold:
-                best_score = score
-                best_match = token
-        
-        if best_match:
-            return best_match
+        # For PERSON entities use fuzzy matching so that "John Smith", "J. Smith"
+        # and "JOHN SMITH" all map to the same pseudonym.
+        # For every other entity type (EMAIL, IBAN, SSN, phone, …) use exact
+        # matching only — structurally similar values (e.g. john.doe@ vs
+        # jane.doe@) must never share a token.
+        if entity_type == "PERSON":
+            canonical = _normalize_name(value)
+            best_match = None
+            best_score = 0.0
+            for token, known in self.memory[key].items():
+                score = _similarity_score(canonical, known)
+                if score > best_score and score >= self.similarity_threshold:
+                    best_score = score
+                    best_match = token
+            if best_match:
+                return best_match
+        else:
+            canonical = value.lower().strip()
+            for token, known in self.memory[key].items():
+                if known == canonical:
+                    return token
 
         # No match found, create new token.
         # Use square brackets because LLM outputs and report templates

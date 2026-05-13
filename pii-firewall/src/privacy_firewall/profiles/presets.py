@@ -78,7 +78,7 @@ _UNIVERSAL_DISPOSITIONS: dict[str, EntityDisposition] = {
     "CREDIT_CARD": EntityDisposition(
         entity_type="CREDIT_CARD",
         action=DispositionAction.MASK,
-        parameters={"visible_digits": 4},
+        parameters={"visible_end": 4},
         description="Credit/debit card numbers (last 4 digits visible)",
     ),
     "ACCOUNT_NUMBER": EntityDisposition(
@@ -134,6 +134,32 @@ _UNIVERSAL_DISPOSITIONS: dict[str, EntityDisposition] = {
         confidence_threshold=_DATE_THRESHOLD,
         parameters={"level": "year"},
         description="Date-time expressions (reduced to year)",
+    ),
+    "PASSPORT": EntityDisposition(
+        entity_type="PASSPORT",
+        action=DispositionAction.PSEUDONYMIZE,
+        description="Passport numbers",
+    ),
+    "DRIVERS_LICENSE": EntityDisposition(
+        entity_type="DRIVERS_LICENSE",
+        action=DispositionAction.PSEUDONYMIZE,
+        description="Driver's license numbers",
+    ),
+    "MAC_ADDRESS": EntityDisposition(
+        entity_type="MAC_ADDRESS",
+        action=DispositionAction.PSEUDONYMIZE,
+        description="Network hardware MAC addresses",
+    ),
+    "ROUTING_NUMBER": EntityDisposition(
+        entity_type="ROUTING_NUMBER",
+        action=DispositionAction.PSEUDONYMIZE,
+        description="Bank routing numbers",
+    ),
+    "AGE": EntityDisposition(
+        entity_type="AGE",
+        action=DispositionAction.GENERALIZE,
+        parameters={"bucket_size": 10},
+        description="Age in years (bucketed by decade)",
     ),
 }
 
