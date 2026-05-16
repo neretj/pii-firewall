@@ -135,7 +135,8 @@ Choose the right backend for your accuracy/latency needs:
 | `hybrid` | `[presidio,langdetect]` | Regex + Presidio for maximum coverage | 50–250 ms |
 | `gliner` | `[gliner]` | Zero-shot NER, no fine-tuning needed | 100–400 ms |
 | `transformers` | `[transformers]` | Domain-specific models (biomedical, legal) | 100–500 ms |
-| `nemotron` | `[opf]` | NVIDIA fine-tune, high recall on free text | 100–300 ms |
+| `opf` | `[opf]` | OpenAI Privacy Filter — token-level classifier, language-agnostic | 50–200 ms |
+| `nemotron` | `[opf]` | NVIDIA Nemotron fine-tune on OPF, high recall on free text | 100–300 ms |
 
 ```python
 firewall = create_firewall("healthcare", detector_backend="hybrid")

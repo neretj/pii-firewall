@@ -247,6 +247,18 @@ HEALTHCARE_PROFILE = DomainProfile(
             parameters={"bucket_size": 10},
             description="Age in years (bucketed by decade)",
         ),
+
+        # Bibliographic identifiers — keep untouched; they are NOT patient data
+        "DOI": EntityDisposition(
+            entity_type="DOI",
+            action=DispositionAction.KEEP,
+            description="DOI references to academic publications (must not be anonymized)",
+        ),
+        "PMID": EntityDisposition(
+            entity_type="PMID",
+            action=DispositionAction.KEEP,
+            description="PubMed identifiers for biomedical literature (must not be anonymized)",
+        ),
     },
 )
 

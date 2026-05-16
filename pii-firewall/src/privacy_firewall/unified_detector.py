@@ -731,6 +731,7 @@ class UnifiedDetectionEngine:
         if entity_type in {
             ET.PHONE_NUMBER, ET.EMAIL,
             ET.SSN, ET.IBAN, ET.CREDIT_CARD, ET.IP_ADDRESS, ET.URL, ET.SECRET,
+            ET.DOI, ET.PMID,
         }:
             return 100
         

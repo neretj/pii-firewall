@@ -80,6 +80,46 @@ GLOBAL_MAC_ADDRESS = EntityPattern(
 
 
 # =============================================================================
+# DOI  (Digital Object Identifier)
+# Bibliographic reference — must NOT be anonymized in academic/health contexts.
+# Format: 10.<registrant>/<suffix>
+# Examples: 10.7417/CT.2025.5288  10.1016/j.cell.2024.01.001
+# =============================================================================
+
+GLOBAL_DOI = EntityPattern(
+    entity_type=ET.DOI,
+    locale="GLOBAL",
+    pattern=re.compile(
+        r"\b10\.\d{4,9}/[^\s\"'<>{}\[\]|\\^`]{1,200}",
+        re.IGNORECASE,
+    ),
+    confidence=0.99,
+    context_words=("doi", "doi.org", "https://doi.org"),
+    description="DOI — Digital Object Identifier for academic publications",
+)
+
+
+# =============================================================================
+# PMID  (PubMed identifier)
+# Bibliographic reference — must NOT be anonymized in academic/health contexts.
+# Format: pure numeric string of 1–8 digits, typically preceded by 'PMID'
+# Examples: PMID: 41267587   PMID 41267587   pmid:41267587
+# =============================================================================
+
+GLOBAL_PMID = EntityPattern(
+    entity_type=ET.PMID,
+    locale="GLOBAL",
+    pattern=re.compile(
+        r"\bPMID[:\s]+\d{1,8}\b",
+        re.IGNORECASE,
+    ),
+    confidence=0.99,
+    context_words=("pmid", "pubmed", "ncbi"),
+    description="PMID — PubMed identifier for biomedical literature",
+)
+
+
+# =============================================================================
 # EXPORT
 # =============================================================================
 
@@ -90,4 +130,6 @@ GLOBAL_PATTERNS = [
     GLOBAL_CREDIT_CARD,
     GLOBAL_URL,
     GLOBAL_MAC_ADDRESS,
+    GLOBAL_DOI,
+    GLOBAL_PMID,
 ]

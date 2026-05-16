@@ -175,6 +175,14 @@ SYMPTOM = "SYMPTOM"
 ANATOMICAL_SITE = "ANATOMICAL_SITE"
 """Body part or anatomical location."""
 
+DOI = "DOI"
+"""Digital Object Identifier for academic publications (e.g., 10.1016/j.cell.2024.01.001).
+These are bibliographic references, NOT patient data — must not be anonymized."""
+
+PMID = "PMID"
+"""PubMed identifier for biomedical literature (e.g., 41267587).
+These are bibliographic references, NOT patient data — must not be anonymized."""
+
 # =============================================================================
 # LEGAL
 # =============================================================================
@@ -214,6 +222,7 @@ ALL_ENTITY_TYPES: frozenset[str] = frozenset({
     # Medical
     MEDICAL_RECORD, DIAGNOSIS, DRUG, PROCEDURE, LAB_VALUE,
     VITAL_SIGN, SYMPTOM, ANATOMICAL_SITE,
+    DOI, PMID,
     # Legal
     CASE_NUMBER, STATUTE, LEGAL_CITATION, LEGAL_ENTITY,
 })

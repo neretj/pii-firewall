@@ -523,3 +523,211 @@ class TestCustomRecognizersNoDuplicateReturn:
                 assert len(returns) == 1, (
                     f"Expected exactly 1 return, found {len(returns)}"
                 )
+
+
+# ── Healthcare: DOI and PMID must not be anonymized ────────────────────────
+
+class TestHealthcareBibliographicIdentifiers:
+    """DOI and PMID are bibliographic references, not PII.
+    The healthcare profile must detect them as known entity types and KEEP them
+    untouched instead of pseudonymizing or masking them.
+    """
+
+    # ── entity_types registry ──────────────────────────────────────────────
+
+    def test_doi_registered_in_entity_types(self):
+        import privacy_firewall.entity_types as ET
+        assert ET.DOI == "DOI"
+        assert "DOI" in ET.ALL_ENTITY_TYPES
+
+    def test_pmid_registered_in_entity_types(self):
+        import privacy_firewall.entity_types as ET
+        assert ET.PMID == "PMID"
+        assert "PMID" in ET.ALL_ENTITY_TYPES
+
+    # ── global patterns ────────────────────────────────────────────────────
+
+    def test_doi_pattern_matches_example(self):
+        from privacy_firewall.patterns.locales.global_patterns import GLOBAL_DOI
+        matches = GLOBAL_DOI.match("See DOI 10.7417/CT.2025.5288 for details.")
+        assert len(matches) == 1
+        assert "10.7417/CT.2025.5288" in matches[0][0]
+
+    def test_doi_pattern_matches_cell_doi(self):
+        from privacy_firewall.patterns.locales.global_patterns import GLOBAL_DOI
+        matches = GLOBAL_DOI.match("Reference: 10.1016/j.cell.2024.01.001")
+        assert len(matches) == 1
+
+    def test_doi_pattern_does_not_match_plain_number(self):
+        from privacy_firewall.patterns.locales.global_patterns import GLOBAL_DOI
+        matches = GLOBAL_DOI.match("Call us at 10.2345 or visit the website.")
+        # Must not match a number that lacks the /suffix
+        assert all("/" not in m[0] for m in matches) or len(matches) == 0
+
+    def test_pmid_pattern_matches_with_colon(self):
+        from privacy_firewall.patterns.locales.global_patterns import GLOBAL_PMID
+        matches = GLOBAL_PMID.match("Source: PMID: 41267587")
+        assert len(matches) == 1
+        assert "41267587" in matches[0][0]
+
+    def test_pmid_pattern_matches_with_space(self):
+        from privacy_firewall.patterns.locales.global_patterns import GLOBAL_PMID
+        matches = GLOBAL_PMID.match("PMID 41267587")
+        assert len(matches) == 1
+
+    def test_pmid_pattern_matches_lowercase(self):
+        from privacy_firewall.patterns.locales.global_patterns import GLOBAL_PMID
+        matches = GLOBAL_PMID.match("pmid:41267587")
+        assert len(matches) == 1
+
+    def test_pmid_pattern_does_not_match_bare_number(self):
+        """A bare 8-digit number without PMID prefix must not match."""
+        from privacy_firewall.patterns.locales.global_patterns import GLOBAL_PMID
+        matches = GLOBAL_PMID.match("Patient ID: 41267587")
+        assert len(matches) == 0
+
+    # ── healthcare profile dispositions ────────────────────────────────────
+
+    def test_doi_disposition_is_keep_in_healthcare(self):
+        from privacy_firewall.profiles.presets import HEALTHCARE_PROFILE
+        from privacy_firewall.profiles.profiles import DispositionAction
+        assert "DOI" in HEALTHCARE_PROFILE.dispositions
+        assert HEALTHCARE_PROFILE.dispositions["DOI"].action == DispositionAction.KEEP
+
+    def test_pmid_disposition_is_keep_in_healthcare(self):
+        from privacy_firewall.profiles.presets import HEALTHCARE_PROFILE
+        from privacy_firewall.profiles.profiles import DispositionAction
+        assert "PMID" in HEALTHCARE_PROFILE.dispositions
+        assert HEALTHCARE_PROFILE.dispositions["PMID"].action == DispositionAction.KEEP
+
+    # ── end-to-end pipeline ────────────────────────────────────────────────
+
+    def test_doi_preserved_end_to_end(self):
+        """DOI in text must survive the healthcare firewall unchanged."""
+        fw = _regex_firewall(domain="healthcare", language="en")
+        doi = "10.7417/CT.2025.5288"
+        text = f"See the study at DOI {doi} for the protocol."
+        result = fw.secure_call(text=text, context=CTX)
+        assert doi in result.sanitized_text, (
+            f"DOI was altered or removed. sanitized={result.sanitized_text!r}"
+        )
+
+    def test_pmid_preserved_end_to_end(self):
+        """PMID in text must survive the healthcare firewall unchanged."""
+        fw = _regex_firewall(domain="healthcare", language="en")
+        text = "Source article: PMID: 41267587, patient admitted with chest pain."
+        result = fw.secure_call(text=text, context=CTX)
+        assert "41267587" in result.sanitized_text, (
+            f"PMID was altered or removed. sanitized={result.sanitized_text!r}"
+        )
+
+    def test_doi_and_patient_name_in_same_text(self):
+        """DOI must be kept regardless of other entities present in the text.
+        Note: the regex backend does not perform NER so PERSON names are not
+        detected — the assertion here only covers DOI preservation.
+        """
+        fw = _regex_firewall(domain="healthcare", language="en")
+        text = "Patient John Smith was treated per protocol DOI 10.1016/j.cell.2024.01.001."
+        result = fw.secure_call(text=text, context=CTX)
+        # DOI kept — this must hold regardless of backend
+        assert "10.1016/j.cell.2024.01.001" in result.sanitized_text, (
+            "DOI must not be anonymized"
+        )
+
+
+# ── Healthcare: DOI/PMID with Presidio + medical transformers ──────────────
+
+def _presidio_healthcare_firewall(language: str = "en"):
+    """Firewall using Presidio (which auto-activates medical transformers for
+    the healthcare profile) — the same setup users actually run in production.
+    """
+    from privacy_firewall.firewall import create_firewall
+    from privacy_firewall.vault import InMemoryMappingVault
+    from privacy_firewall.llm import MockLLMClient
+
+    return create_firewall(
+        domain="healthcare",
+        language=language,
+        detector_backend="presidio",
+        vault=InMemoryMappingVault(),
+        llm_client=MockLLMClient(prefix=""),
+    )
+
+
+@pytest.mark.slow
+class TestHealthcareBibliographicIdentifiersPresidio:
+    """Verify DOI and PMID are preserved when the full Presidio + medical-
+    transformer pipeline is active (d4data/biomedical-ner-all).
+
+    Marked `slow` because the transformer model (~265 MB) must be loaded.
+    Run with:  pytest -m slow tests_integration/test_fixes.py
+    """
+
+    def test_doi_preserved_presidio(self):
+        """DOI must survive the Presidio + biomedical-NER pipeline unchanged."""
+        fw = _presidio_healthcare_firewall()
+        doi = "10.7417/CT.2025.5288"
+        text = f"Protocol published at DOI {doi} was followed during treatment."
+        result = fw.secure_call(text=text, context=CTX)
+        assert doi in result.sanitized_text, (
+            f"DOI was altered by presidio+transformers pipeline. "
+            f"sanitized={result.sanitized_text!r}"
+        )
+
+    def test_pmid_preserved_presidio(self):
+        """PMID must survive the Presidio + biomedical-NER pipeline unchanged."""
+        fw = _presidio_healthcare_firewall()
+        text = "Source: PMID: 41267587. Patient presents with chest pain."
+        result = fw.secure_call(text=text, context=CTX)
+        assert "41267587" in result.sanitized_text, (
+            f"PMID was altered by presidio+transformers pipeline. "
+            f"sanitized={result.sanitized_text!r}"
+        )
+
+    def test_doi_kept_patient_name_anonymized_presidio(self):
+        """With NER active: DOI stays intact and patient name is pseudonymized."""
+        fw = _presidio_healthcare_firewall()
+        doi = "10.1016/j.cell.2024.01.001"
+        text = f"Patient John Smith was treated per protocol DOI {doi}."
+        result = fw.secure_call(text=text, context=CTX)
+        # DOI must be preserved
+        assert doi in result.sanitized_text, (
+            f"DOI removed by presidio+transformers. sanitized={result.sanitized_text!r}"
+        )
+        # PERSON must be replaced by a token (Presidio + spaCy detects names)
+        assert "John Smith" not in result.sanitized_text, (
+            f"Patient name was NOT anonymized. sanitized={result.sanitized_text!r}"
+        )
+
+    def test_multiple_dois_all_preserved_presidio(self):
+        """Multiple DOIs in the same text must all survive unchanged."""
+        fw = _presidio_healthcare_firewall()
+        doi1 = "10.7417/CT.2025.5288"
+        doi2 = "10.1056/NEJMoa2400001"
+        text = f"Studies DOI {doi1} and DOI {doi2} informed the protocol."
+        result = fw.secure_call(text=text, context=CTX)
+        assert doi1 in result.sanitized_text, (
+            f"First DOI was altered. sanitized={result.sanitized_text!r}"
+        )
+        assert doi2 in result.sanitized_text, (
+            f"Second DOI was altered. sanitized={result.sanitized_text!r}"
+        )
+
+    def test_doi_and_diagnosis_both_preserved_presidio(self):
+        """DOI (bibliographic) and DIAGNOSIS (clinical) must both be kept."""
+        fw = _presidio_healthcare_firewall()
+        doi = "10.7417/CT.2025.5288"
+        text = f"Type 2 diabetes management per DOI {doi}."
+        result = fw.secure_call(text=text, context=CTX)
+        assert doi in result.sanitized_text, (
+            f"DOI was anonymized. sanitized={result.sanitized_text!r}"
+        )
+
+    def test_pmid_alongside_medical_record_presidio(self):
+        """PMID kept, medical record number pseudonymized."""
+        fw = _presidio_healthcare_firewall()
+        text = "Patient MRN-00123456 discharged. Protocol: PMID: 41267587."
+        result = fw.secure_call(text=text, context=CTX)
+        assert "41267587" in result.sanitized_text, (
+            f"PMID was anonymized. sanitized={result.sanitized_text!r}"
+        )
