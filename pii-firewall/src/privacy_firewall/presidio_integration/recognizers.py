@@ -97,18 +97,14 @@ class MedicalEntityRecognizer:
             "ANATOMICAL_SITE",
         ]
     
-    def load(self):
-        """Load medical NER model.
-        
+    def load(self) -> None:
+        """Load medical NER model (not yet implemented).
+
         Future implementation:
         - For English: Load scispaCy en_ner_bc5cdr_md
         - For Spanish: Load Spanish medical NER model
         - For others: Use BioBERT fine-tuned on medical NER
         """
-        # Placeholder for future implementation
-        print(f"⚠ MedicalEntityRecognizer for {self.language} not yet implemented")
-        print(f"  Supported entities: {', '.join(self.supported_entities)}")
-        print(f"  Future: Will use scispaCy/BioBERT for medical NER")
     
     def analyze(self, text: str) -> list:
         """Analyze text for medical entities.
@@ -119,7 +115,6 @@ class MedicalEntityRecognizer:
         Returns:
             List of medical entities (Presidio RecognizerResult format)
         """
-        # Placeholder - would return actual medical entities
         return []
 
 
@@ -144,11 +139,11 @@ class FinancialEntityRecognizer:
             "TRANSACTION_TYPE",
         ]
     
-    def load(self):
-        """Load financial NER model."""
-        print(f"⚠ FinancialEntityRecognizer for {self.language} not yet implemented")
-        print(f"  Supported entities: {', '.join(self.supported_entities)}")
-        print(f"  Future: Will use FinBERT or similar for financial NER")
+    def load(self) -> None:
+        """Load financial NER model (not yet implemented).
+
+        Future implementation: FinBERT or similar financial-domain model.
+        """
     
     def analyze(self, text: str) -> list:
         """Analyze text for financial entities."""
@@ -216,7 +211,6 @@ def create_custom_recognizer(
 DOMAIN_RECOGNIZERS = {
     "medical_entities": MedicalEntityRecognizer,
     "financial_entities": FinancialEntityRecognizer,
-    # Future: Add more domain recognizers here
 }
 
 

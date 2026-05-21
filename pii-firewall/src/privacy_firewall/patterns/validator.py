@@ -105,7 +105,7 @@ def validate_pattern(pattern: Any) -> list[ValidationIssue]:
             if not word or not word.strip():
                 issues.append(ValidationIssue(
                     severity="warning",
-                    message=f"Empty context word found",
+                    message="Empty context word found",
                     pattern_name=f"{pattern.entity_type}_{pattern.locale}",
                     entity_type=pattern.entity_type,
                 ))
@@ -115,26 +115,21 @@ def validate_pattern(pattern: Any) -> list[ValidationIssue]:
 
 def validate_catalog(catalog: Any) -> dict[str, list[ValidationIssue]]:
     """Validate entire pattern catalog.
-    
+
     Args:
         catalog: PatternCatalog to validate
-    
+
     Returns:
         Dict mapping locale to list of issues found in that locale
     """
-    results = {}
-    
-    for locale in catalog._patterns.keys():
-        locale_issues = []
-        patterns = catalog.get_all_patterns_for_locale(locale)
-        
-        for pattern in patterns:
+    results: dict[str, list[ValidationIssue]] = {}
+
+    for (_, locale), pattern_list in catalog._patterns.items():
+        for pattern in pattern_list:
             issues = validate_pattern(pattern)
-            locale_issues.extend(issues)
-        
-        if locale_issues:
-            results[locale] = locale_issues
-    
+            if issues:
+                results.setdefault(locale, []).extend(issues)
+
     return results
 
 
@@ -180,7 +175,6 @@ def print_validation_report(results: dict[str, list[ValidationIssue]]) -> None:
 
 
 if __name__ == "__main__":
-    """Run validation on default catalog."""
     from privacy_firewall.patterns import create_default_catalog
     
     print("Loading default pattern catalog...")

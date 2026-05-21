@@ -25,8 +25,8 @@ class TraceRecord:
     blocked: bool = False
     block_reason: str | None = None
     cleanup_warnings: list[str] = field(default_factory=list)
-    language: str = "unknown"  # Detected language
-    entities_kept: list[dict[str, Any]] = field(default_factory=list)  # Entities kept (domain-relevant)
+    language: str = "unknown"
+    entities_kept: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass

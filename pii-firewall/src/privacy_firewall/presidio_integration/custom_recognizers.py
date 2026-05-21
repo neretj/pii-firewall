@@ -58,32 +58,18 @@ def create_enhanced_recognizers(language: str = "en") -> list[Any]:
         - French-specific: INSEE, "15 mars 1980" (when implemented)
     """
     recognizers = []
-    
-    # 1. Add universal recognizers (work for ALL languages)
+
     try:
         from .universal_recognizers import create_universal_recognizers
         recognizers.extend(create_universal_recognizers(language))
     except ImportError:
-        pass  # Universal recognizers not available
-    
-    # 2. Add Spanish-specific recognizers if target is Spanish
-    # Note: We always include Spanish recognizers since Spanish names/IDs 
-    # can appear in multilingual contexts (e.g., Spanish patient in English hospital)
+        pass
+
     if language == "es":
         try:
             from .spanish_recognizers import create_spanish_recognizers
             recognizers.extend(create_spanish_recognizers())
         except ImportError:
-            pass  # Spanish recognizers not available
-    
-    # 3. [Future] Add French-specific recognizers
-    # if language == "fr":
-    #     from .french_recognizers import create_french_recognizers
-    #     recognizers.extend(create_french_recognizers())
-    
-    # 4. [Future] Add German-specific recognizers
-    # if language == "de":
-    #     from .german_recognizers import create_german_recognizers
-    #     recognizers.extend(create_german_recognizers())
-    
+            pass
+
     return recognizers

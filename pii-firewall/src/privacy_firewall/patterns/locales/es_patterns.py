@@ -112,7 +112,7 @@ ES_LICENSE_PLATE = EntityPattern(
 ES_AGE = EntityPattern(
     entity_type=ET.AGE,
     locale="ES",
-    pattern=re.compile(r"\b(\d{1,3})\s*(?:años?|a\u00f1os?)\b", re.IGNORECASE),
+    pattern=re.compile(r"\b\d{1,3}\s*años?\b", re.IGNORECASE),
     confidence=0.9,
     description="Age in Spanish (años)",
 )

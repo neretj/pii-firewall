@@ -12,7 +12,6 @@ from .de_patterns import DE_PATTERNS
 from .it_patterns import IT_PATTERNS
 from .pt_patterns import PT_PATTERNS
 
-# Combine all patterns
 LOCALE_PATTERNS = (
     GLOBAL_PATTERNS +
     ES_PATTERNS +

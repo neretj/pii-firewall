@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import calendar as cal
+import hashlib
+import re
 from dataclasses import dataclass
 from collections.abc import Iterable, Iterator
 from typing import Any
@@ -69,37 +72,33 @@ class AnonymizationEngine:
         entities_processed = []
         entities_kept = []
         
-        # Sort entities by position (reverse to maintain offsets)
+        # Sort in reverse order so replacements don't shift offsets of later entities
         sorted_entities = sorted(entities, key=lambda e: e.start, reverse=True)
-        
+
         anonymized = text
-        
+
         for entity in sorted_entities:
             disposition = self.profile.get_disposition(entity.entity_type)
-            
+
             if disposition is None:
-                # No disposition - skip (shouldn't happen after filtering)
+                # No disposition — shouldn't happen after profile filtering
                 continue
-            
+
             action = disposition.action
-            
+
             if action == DispositionAction.KEEP:
-                # Keep as-is
                 entities_kept.append(entity)
                 continue
-            
-            # Apply anonymization action
+
             replacement_text = self._apply_action(
                 entity=entity,
                 action=action,
                 parameters=disposition.parameters,
                 context=context,
             )
-            
-            # Replace in text
+
             anonymized = anonymized[:entity.start] + replacement_text + anonymized[entity.end:]
-            
-            # Record replacement
+
             replacements.append({
                 "entity_type": entity.entity_type,
                 "source": entity.source,
@@ -141,7 +140,7 @@ class AnonymizationEngine:
             return self._hash(entity, parameters)
 
         elif action == DispositionAction.REDACT:
-            return ""  # Irreversible removal — entity deleted from text entirely
+            return ""
 
         else:
             # Fallback: pseudonymize
@@ -154,7 +153,6 @@ class AnonymizationEngine:
         ``token_scope`` field — not by the action name.  All cross-session /
         cross-thread consistency decisions belong to the caller via context.
         """
-        # Use resolver to get consistent token
         token = self.resolver.resolve_token(
             tenant_id=context["tenant_id"],
             case_id=context["case_id"],
@@ -164,7 +162,6 @@ class AnonymizationEngine:
             token_scope=self.profile.token_scope,
         )
         
-        # Store in vault for rehydration
         ttl = parameters.get("ttl_seconds", self.default_ttl_seconds)
         self.vault.put(
             context["tenant_id"],
@@ -208,13 +205,11 @@ class AnonymizationEngine:
             if age_result != "[AGE]":
                 return age_result
 
-        # Fall back: non-reversible generic label (covers LOCATION and unknown types).
-        # GENERALIZE is one-way — no vault entry is created.
+        # Non-reversible label for LOCATION and any unrecognised types.
         return f"[{entity_type}]"
 
     def _generalize_age(self, text: str, parameters: dict) -> str:
         """Return decade bucket for an age value, e.g., 43 → '40-49'."""
-        import re
         m = re.search(r"\b(\d{1,3})\b", text)
         if not m:
             return "[AGE]"
@@ -232,9 +227,6 @@ class AnonymizationEngine:
         Returns None when the text does not contain a recognisable calendar date
         (so the caller can try other generalization strategies).
         """
-        import re
-        import calendar as cal
-
         # Must contain a 4-digit year in the range 1900-2099
         m = re.search(r"\b((?:19|20)\d{2})\b", text)
         if not m:
@@ -244,7 +236,6 @@ class AnonymizationEngine:
         if granularity == "year":
             return year
 
-        # ── month/year ────────────────────────────────────────────────────
         month_map: dict[str, int] = {
             # English
             "january": 1, "february": 2, "march": 3, "april": 4,
@@ -295,14 +286,12 @@ class AnonymizationEngine:
         visible_start = parameters.get("visible_start", 0)
         visible_end = parameters.get("visible_end", 4)
         mask_char = parameters.get("mask_char", "*")
-        
+
         text = entity.text
-        
+
         if len(text) <= visible_start + visible_end:
-            # Too short to mask meaningfully
             return mask_char * len(text)
-        
-        # Show first N and last M characters
+
         masked_count = len(text) - visible_start - visible_end
         
         result = (
@@ -315,8 +304,6 @@ class AnonymizationEngine:
     
     def _hash(self, entity: Entity, parameters: dict) -> str:
         """Hash entity value (deterministic, non-reversible)."""
-        import hashlib
-
         algorithm = parameters.get("algorithm", "sha256")
         salt = parameters.get("salt", "")
         value = entity.text + salt
@@ -342,8 +329,6 @@ def rehydrate_text(text: str, mapping: dict[str, str]) -> str:
         Text with original values restored
     """
     rehydrated = text
-    
-    # Sort by token length (longest first) to avoid partial replacements
     for token, original in sorted(mapping.items(), key=lambda x: len(x[0]), reverse=True):
         rehydrated = rehydrated.replace(token, original)
     

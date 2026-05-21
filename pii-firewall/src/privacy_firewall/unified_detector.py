@@ -650,17 +650,13 @@ class UnifiedDetectionEngine:
     @staticmethod
     def _map_nemotron_label(label: str) -> str | None:
         """Map Nemotron (OPF-compatible) labels to canonical entity types."""
+        # Nemotron emits the same coarse labels as OPF — reuse that mapping.
+        coarse = UnifiedDetectionEngine._map_opf_label(label)
+        if coarse is not None:
+            return coarse
+
         label_norm = label.strip().lower()
         mapping: dict[str, str] = {
-            # OPF-compatible coarse labels
-            "private_person":  ET.PERSON,
-            "private_email":   ET.EMAIL,
-            "private_phone":   ET.PHONE_NUMBER,
-            "private_date":    ET.DATE_TIME,
-            "private_address": ET.ADDRESS,
-            "private_url":     ET.URL,
-            "account_number":  ET.ACCOUNT_NUMBER,
-            "secret":          ET.SECRET,
             # Nemotron fine-grained labels
             "first_name":                     ET.PERSON,
             "last_name":                      ET.PERSON,
@@ -997,8 +993,7 @@ class UnifiedDetectionEngine:
             # normalizer is used; since the financial normalizer already covers LAW→STATUTE
             # and ORG→LEGAL_ENTITY, no label is lost when legal is skipped this way.
             if model_name in loaded_model_ids:
-                import logging as _log
-                _log.getLogger(__name__).debug(
+                _logger.debug(
                     "Skipping domain '%s': model %r already loaded for another domain.",
                     domain,
                     model_name,

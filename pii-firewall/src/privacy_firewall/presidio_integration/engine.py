@@ -48,7 +48,7 @@ class PresidioAnalyzerEngine:
         except ImportError as exc:
             raise ImportError(
                 "Presidio dependencies not installed. "
-                 "Install with: pip install 'pii-firewall[presidio]'"
+                "Install with: pip install 'pii-firewall[presidio]'"
             ) from exc
         
         # Determine spaCy model for this language
@@ -223,7 +223,7 @@ class PresidioAnonymizerEngine:
         except ImportError as exc:
             raise ImportError(
                 "presidio-anonymizer not installed. "
-                 "Install with: pip install 'pii-firewall[presidio]'"
+                "Install with: pip install 'pii-firewall[presidio]'"
             ) from exc
         
         self._AnonymizerEngine = AnonymizerEngine

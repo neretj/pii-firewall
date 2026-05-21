@@ -94,7 +94,7 @@ US_PASSPORT = EntityPattern(
 US_AGE = EntityPattern(
     entity_type=ET.AGE,
     locale="US",
-    pattern=re.compile(r"\b(\d{1,3})\s*(?:years?\s+old|y\.?o\.?|yrs?\s+old)\b", re.IGNORECASE),
+    pattern=re.compile(r"\b\d{1,3}\s*(?:years?\s+old|y\.?o\.?|yrs?\s+old)\b", re.IGNORECASE),
     confidence=0.9,
     description="Age in English (years old, y.o., etc.)",
 )

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Dict, Tuple
 
 
 def _normalize_name(value: str) -> str:
@@ -180,7 +179,7 @@ class ContextualEntityResolver:
     """
     
     # key: (tenant, scope, entity_type) -> token -> canonical
-    memory: Dict[Tuple[str, str, str], Dict[str, str]] = field(default_factory=dict)
+    memory: dict[tuple[str, str, str], dict[str, str]] = field(default_factory=dict)
     
     # Similarity threshold for matching (0.0 to 1.0)
     # Higher = stricter matching, Lower = more fuzzy matching

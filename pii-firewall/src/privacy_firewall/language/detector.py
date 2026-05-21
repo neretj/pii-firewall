@@ -13,7 +13,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Protocol
+import logging
 import time
+
+_logger = logging.getLogger(__name__)
 
 
 class LanguageDetectorProtocol(Protocol):
@@ -153,10 +156,10 @@ class FastTextLanguageDetector:
                 self.model_path = str(model_dir / "lid.176.bin")
                 
                 if not Path(self.model_path).exists():
-                    print(f"Downloading FastText language model to {self.model_path}...")
+                    _logger.info("Downloading FastText language model to %s...", self.model_path)
                     url = "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
                     urllib.request.urlretrieve(url, self.model_path)
-                    print("✓ Model downloaded")
+                    _logger.info("FastText language model downloaded.")
             
             # Load model (suppresses FastText warnings)
             self._model = fasttext.load_model(self.model_path)

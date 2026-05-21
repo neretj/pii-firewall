@@ -60,7 +60,7 @@ class PrivacyFirewall:
     pattern_catalog: PatternCatalog | None = None
 
     detector_backend: str = "regex"
-    custom_recognizers: list[Any] = None
+    custom_recognizers: list[Any] | None = None
     transformer_model_id: str | None = None
     transformer_device: int = -1
     gliner_model_id: str = "knowledgator/gliner-pii-base-v1.0"
@@ -208,7 +208,7 @@ class PrivacyFirewall:
         mapping: dict[str, str] | None = None,
     ) -> ProcessResult:
         anon_result = self.anonymize(text=text, context=context)
-        capsule = self._build_context_capsule(context=context, sanitized_text=anon_result.sanitized_text)
+        capsule = self._build_context_capsule(context=context)
         selected_client = llm_client if llm_client is not None else self.llm_client
         model_output = call_model(selected_client, anon_result.sanitized_text, capsule)
         final_text = self.rehydrate(text=model_output, context=context, mapping=mapping)
@@ -230,7 +230,7 @@ class PrivacyFirewall:
     ) -> Iterator[str]:
         """Stream rehydrated output chunks for the secure call flow."""
         anon_result = self.anonymize(text=text, context=context)
-        capsule = self._build_context_capsule(context=context, sanitized_text=anon_result.sanitized_text)
+        capsule = self._build_context_capsule(context=context)
         selected_client = llm_client if llm_client is not None else self.llm_client
 
         active_mapping = mapping
@@ -316,7 +316,7 @@ class PrivacyFirewall:
             raise ValueError(f"Missing context keys: {', '.join(missing)}")
 
     @staticmethod
-    def _build_context_capsule(*, context: dict, sanitized_text: str) -> dict:
+    def _build_context_capsule(*, context: dict) -> dict:
         return {
             "tenant_id": context["tenant_id"],
             "case_id": context["case_id"],

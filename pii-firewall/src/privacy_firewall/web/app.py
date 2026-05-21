@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 import logging
 import os
-from typing import Dict
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,10 +54,10 @@ class RuntimeKey:
 
 class RuntimeFactory:
     """Factory for creating and caching PrivacyFirewall instances."""
-    
+
     def __init__(self) -> None:
-        self._runtimes: Dict[RuntimeKey, PrivacyFirewall] = {}
-        self._shared_vault = InMemoryMappingVault()
+        self._runtimes: dict[RuntimeKey, PrivacyFirewall] = {}
+        self.vault = InMemoryMappingVault()
         self._shared_resolver = ContextualEntityResolver()
 
     def get(self, req: RunRequest) -> PrivacyFirewall:
@@ -78,7 +77,7 @@ class RuntimeFactory:
             language=req.language,
             detector_backend=req.detector_backend,
             token_scope=req.token_scope,
-            vault=self._shared_vault,
+            vault=self.vault,
             resolver=self._shared_resolver,
             llm_client=MockLLMClient(prefix="[MOCK_LLM]"),
         )
@@ -223,9 +222,9 @@ def create_app(firewall: PrivacyFirewall | None = None) -> FastAPI:
                 },
             },
             "steps": {
-                "detected_language": getattr(result.trace, 'language', None),
+                "detected_language": result.trace.language,
                 "detected_entities": result.trace.detected_entities,
-                "entities_kept": getattr(result.trace, 'entities_kept', []),
+                "entities_kept": result.trace.entities_kept,
                 "sanitized_text": result.sanitized_text,
                 "blocked": result.trace.blocked,
                 "block_reason": result.trace.block_reason,
@@ -247,7 +246,7 @@ def create_app(firewall: PrivacyFirewall | None = None) -> FastAPI:
         """GDPR right to be forgotten - delete all mappings for a case."""
         validate_api_key(x_api_key)
         try:
-            vault = static_fw.vault if static_fw else runtime_factory._shared_vault
+            vault = static_fw.vault if static_fw else runtime_factory.vault
             removed = vault.forget_case(
                 tenant_id=req.tenant_id,
                 case_id=req.case_id,
@@ -260,5 +259,3 @@ def create_app(firewall: PrivacyFirewall | None = None) -> FastAPI:
             raise HTTPException(status_code=500, detail="Internal processing error") from exc
 
     return app
-
-

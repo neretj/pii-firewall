@@ -15,7 +15,6 @@ Architecture:
 """
 
 from presidio_analyzer import Pattern, PatternRecognizer
-from typing import List
 
 
 def create_universal_phone_recognizer(language: str) -> PatternRecognizer:
@@ -161,7 +160,7 @@ def create_universal_abbreviated_name_recognizer(language: str) -> PatternRecogn
     )
 
 
-def create_universal_recognizers(language: str) -> List[PatternRecognizer]:
+def create_universal_recognizers(language: str) -> list[PatternRecognizer]:
     """Create all universal recognizers for a given language.
     
     These recognizers work for ANY language using language-agnostic patterns.

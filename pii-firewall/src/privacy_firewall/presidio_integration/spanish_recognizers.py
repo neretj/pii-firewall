@@ -17,7 +17,6 @@ Architecture:
 """
 
 from presidio_analyzer import Pattern, PatternRecognizer
-from typing import List
 
 
 def create_spanish_dni_recognizer() -> PatternRecognizer:
@@ -203,7 +202,7 @@ def create_spanish_name_recognizer() -> PatternRecognizer:
     )
 
 
-def create_spanish_recognizers() -> List[PatternRecognizer]:
+def create_spanish_recognizers() -> list[PatternRecognizer]:
     """Create all Spanish-specific recognizers.
     
     Returns:

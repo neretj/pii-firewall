@@ -7,26 +7,22 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 from .types import Entity
 
 
 class NLPEngineProtocol(Protocol):
     """Protocol for NLP engines that provide linguistic analysis."""
-    
+
     def has_verb_at_start(self, text: str, start_pos: int, end_pos: int) -> bool:
         """Check if entity starts with a verb (e.g., 'Compare Ana' - 'Compare' is a verb)."""
         ...
-    
+
     def is_likely_name(self, text: str) -> bool:
         """Use POS tags and dependency parsing to validate if text is a name."""
         ...
-    
-    def get_language(self, text: str) -> str:
-        """Detect the language of the text."""
-        ...
-    
+
     def trim_non_name_tokens(self, text: str, start_pos: int, end_pos: int) -> tuple[int, int]:
         """Trim non-name tokens from entity boundaries using POS tagging."""
         ...
@@ -62,7 +58,7 @@ class SpaCyNLPEngine:
     so there's no additional memory overhead.
     """
     
-    nlp_model: any  # spaCy Language object
+    nlp_model: Any  # spaCy Language object
     
     def __post_init__(self) -> None:
         self._nlp = self.nlp_model
@@ -206,15 +202,6 @@ class SpaCyNLPEngine:
         
         # Otherwise, conservatively accept it as a potential name
         return True
-    
-    def get_language(self, text: str) -> str:
-        """Detect language of text.
-        
-        Note: Language detection is not implemented in this version.
-        This method exists to satisfy the Protocol interface.
-        """
-        # Return empty string - not used in current implementation
-        return ""
     
     def trim_non_name_tokens(self, text: str, start_pos: int, end_pos: int) -> tuple[int, int]:
         """Trim non-name tokens from entity boundaries using POS tagging.

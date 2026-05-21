@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import re
 
-# Defensive residual patterns used post-sanitization.
-# These are last-resort checks run after the main anonymization pipeline to
-# catch anything that may have slipped through.
+# Last-resort patterns run after the main pipeline to catch anything that slipped through.
 DNI_REGEX = re.compile(r"\b\d{8}[A-Z]\b")
 EMAIL_REGEX = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 PHONE_REGEX = re.compile(r"\b(?:\+34\s?)?(?:6|7|9)\d{8}\b")

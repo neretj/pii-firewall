@@ -48,7 +48,7 @@ class TransformerNEREngine:
         except ImportError as exc:
             raise ImportError(
                 "transformers is not installed. "
-                    "Install with: pip install 'pii-firewall[transformers]'"
+                "Install with: pip install 'pii-firewall[transformers]'"
             ) from exc
         
         _logger.info("Loading transformer model: %s", self.model_name)

@@ -163,7 +163,7 @@ class LanguageRouter:
         
         try:
             nlp = spacy.load(model_name)
-            print(f"[OK] Loaded spaCy model: {model_name}")
+            _logger.debug("Loaded spaCy model: %s", model_name)
             return nlp
         except OSError:
             if not self.auto_download:
@@ -171,9 +171,8 @@ class LanguageRouter:
                     f"spaCy model '{model_name}' not found. "
                     f"Install with: python -m spacy download {model_name}"
                 )
-            
-            # Auto-download
-            print(f"⚠ Model {model_name} not found. Downloading...")
+
+            _logger.info("spaCy model '%s' not found — downloading...", model_name)
             try:
                 subprocess.run(
                     [sys.executable, "-m", "spacy", "download", model_name],
@@ -182,22 +181,16 @@ class LanguageRouter:
                     text=True,
                 )
                 nlp = spacy.load(model_name)
-                print(f"✓ Successfully downloaded and loaded: {model_name}")
+                _logger.info("Downloaded and loaded spaCy model: %s", model_name)
                 return nlp
             except (subprocess.CalledProcessError, OSError) as e:
-                print(f"✗ Failed to download {model_name}: {e}")
-                print(f"  Falling back to multilingual model")
-                
+                _logger.warning("Failed to download '%s': %s — falling back to multilingual model", model_name, e)
+
                 # Try multilingual fallback
                 fallback = self.language_configs["xx"]
                 return self._load_spacy_engine(fallback)
     
     def _load_transformer_engine(self, config: LanguageConfig):
-        """Load HuggingFace transformers NLP engine for language.
-        
-        This is a placeholder for transformer-based NER.
-        Full implementation would use transformers.pipeline with custom NER.
-        """
         model_name = config.transformer_model
         if not model_name:
             raise ValueError(f"No transformer model configured for language {config.language_code}")
@@ -210,11 +203,9 @@ class LanguageRouter:
                 "Install with: pip install 'pii-firewall[transformers]'"
             ) from exc
         
-        # Load NER pipeline
-        # Note: This downloads the model automatically from HuggingFace Hub
-        print(f"Loading transformer model: {model_name}...")
+        _logger.info("Loading transformer NER model: %s", model_name)
         nlp = pipeline("ner", model=model_name, aggregation_strategy="simple")
-        print(f"✓ Loaded transformer model: {model_name}")
+        _logger.info("Loaded transformer NER model: %s", model_name)
         
         return nlp
     
@@ -244,4 +235,4 @@ class LanguageRouter:
             try:
                 self.get_engine(lang)
             except Exception as e:
-                print(f"✗ Failed to preload {lang}: {e}")
+                _logger.warning("Failed to preload language '%s': %s", lang, e)

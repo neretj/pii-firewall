@@ -4,7 +4,7 @@ import sqlite3
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Protocol, Tuple
+from typing import Protocol
 
 
 class MappingVaultProtocol(Protocol):
@@ -24,9 +24,9 @@ class MappingVaultProtocol(Protocol):
 @dataclass
 class InMemoryMappingVault:
     # key: (tenant, case, thread) -> token -> original
-    _store: Dict[Tuple[str, str, str], Dict[str, str]] = field(default_factory=dict)
+    _store: dict[tuple[str, str, str], dict[str, str]] = field(default_factory=dict)
     # key: (tenant, case, thread) -> token -> unix expiry timestamp (None = no expiry)
-    _expiry: Dict[Tuple[str, str, str], Dict[str, int]] = field(default_factory=dict)
+    _expiry: dict[tuple[str, str, str], dict[str, int]] = field(default_factory=dict)
 
     def put(self, tenant_id: str, case_id: str, thread_id: str, token: str, original: str, ttl_seconds: int | None = None) -> None:
         key = (tenant_id, case_id, thread_id)

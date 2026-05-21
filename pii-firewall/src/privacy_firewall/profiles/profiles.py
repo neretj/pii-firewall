@@ -1,8 +1,5 @@
 """Domain profile system with entity dispositions.
 
-This module replaces the simple Policy class with a rich profile system that
-declares what to do with each entity type based on domain context.
-
 Key concepts:
 - DispositionAction: What to do with an entity (keep, redact, pseudonymize, etc.)
 - EntityDisposition: Maps entity type to action + parameters
