@@ -180,6 +180,14 @@ def get_model_for_domain(domain: str, language: str) -> TransformerModelConfig:
     )
 
 
+def get_domain_for_model_id(model_id: str) -> str:
+    """Return the catalog domain for a known model ID, or 'general' for unknown models."""
+    for cfg in TRANSFORMER_MODELS.values():
+        if cfg.model_id == model_id:
+            return cfg.domain
+    return "general"
+
+
 def list_available_models(domain: str | None = None, language: str | None = None) -> list[TransformerModelConfig]:
     """List available transformer models, optionally filtered.
     

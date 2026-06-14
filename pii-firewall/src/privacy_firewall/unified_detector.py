@@ -83,6 +83,7 @@ class UnifiedDetectionEngine:
     detector_backend: str = "regex"  # "presidio", "opf", "gliner", "nemotron", "transformers", "hybrid", "regex"
     custom_recognizers: list[Any] = field(default_factory=list)
     transformer_model_id: str | None = None
+    transformer_model_ids: list[str] | None = None
     transformer_device: int = -1
     # Remote transformers configuration
     transformer_use_remote: bool = False
@@ -967,6 +968,39 @@ class UnifiedDetectionEngine:
         import warnings
         from .transformers_ner import get_model_for_domain, DomainTransformerNEREngine, RemoteTransformerNEREngine
         from .transformers_ner.models import get_required_model_domains
+
+        # Explicit model list: user controls exactly which models are loaded.
+        # An empty list means no transformer models (e.g. pure presidio+patterns).
+        if self.transformer_model_ids is not None:
+            from .transformers_ner.models import get_domain_for_model_id
+            engines = []
+            loaded_model_ids: set[str] = set()
+            for model_id in self.transformer_model_ids:
+                if model_id in loaded_model_ids:
+                    continue
+                loaded_model_ids.add(model_id)
+                domain = get_domain_for_model_id(model_id)
+                if self.transformer_use_remote:
+                    if not self.transformer_remote_url:
+                        raise ValueError(
+                            "transformer_use_remote=True requires transformer_remote_url."
+                        )
+                    engines.append(RemoteTransformerNEREngine(
+                        model_name=model_id,
+                        device=self.transformer_device,
+                        domain=domain,
+                        remote_url=self.transformer_remote_url,
+                        api_key=self.transformer_remote_api_key,
+                        timeout=self.transformer_remote_timeout,
+                        batch_size=self.transformer_batch_size,
+                    ))
+                else:
+                    engines.append(DomainTransformerNEREngine(
+                        model_name=model_id,
+                        device=self.transformer_device,
+                        domain=domain,
+                    ))
+            return engines
 
         if self.transformer_model_id and not self.transformer_use_remote:
             return [DomainTransformerNEREngine(

@@ -96,6 +96,7 @@ class PrivacyFirewall:
     detector_backend: str = "regex"
     custom_recognizers: list[Any] | None = None
     transformer_model_id: str | None = None
+    transformer_model_ids: list[str] | None = None
     transformer_device: int = -1
     # Transformer remote inference configuration
     transformer_use_remote: bool = False
@@ -151,6 +152,7 @@ class PrivacyFirewall:
             detector_backend=self.detector_backend,
             custom_recognizers=self.custom_recognizers,
             transformer_model_id=self.transformer_model_id,
+            transformer_model_ids=self.transformer_model_ids,
             transformer_device=self.transformer_device,
             transformer_use_remote=self.transformer_use_remote,
             transformer_remote_url=self.transformer_remote_url,

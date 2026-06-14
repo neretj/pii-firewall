@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pii-firewall"
-version = "0.3.3"
+version = "0.3.4"
 description = "Open-source PII firewall for LLM apps. Detect, anonymize and rehydrate sensitive data before it reaches OpenAI, Anthropic or any LLM provider."
 readme = "README.md"
 requires-python = ">=3.10"
