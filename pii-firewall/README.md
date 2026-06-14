@@ -309,6 +309,41 @@ firewall = create_firewall(
 )
 ```
 
+#### Remote HTTP Inference
+
+Offload inference to an external API (HuggingFace, custom server) to avoid GPU memory overhead:
+
+```python
+# HuggingFace Inference API (requires API key from huggingface.co/settings/tokens)
+firewall = create_firewall(
+    "healthcare",
+    detector_backend="transformers",
+    transformer_use_remote=True,
+    transformer_remote_url="https://api-inference.huggingface.co/models/dslim/bert-base-NER",
+    transformer_remote_api_key="hf_xxxxxxxxxxxxx",
+    transformer_remote_timeout=30.0,
+)
+
+# Custom inference server (local or managed)
+firewall = create_firewall(
+    "healthcare",
+    detector_backend="transformers",
+    transformer_use_remote=True,
+    transformer_remote_url="https://your-inference-server.com/ner",
+    transformer_remote_api_key="your-api-key",
+)
+
+result = firewall.process(
+    text="John Doe, SSN 123-45-6789, prescribed enalapril 10mg",
+    context={"tenant_id": "t1", "case_id": "c1", "thread_id": "th1", "actor_id": "a1"},
+)
+```
+
+**Supported providers:**
+- **HuggingFace Inference API** — Managed service, auto model loading
+- **Local inference servers** — vLLM, Text Generation WebUI, Ollama, custom Flask/FastAPI
+- **Any HTTP endpoint** that accepts `{"text": "...", "model_id": "...", ...}` and returns `[{"entity_group": "...", "word": "...", "start": ..., "end": ..., "score": ...}]`
+
 #### Combine with regex patterns (Presidio hybrid)
 
 If you need to mix the HF model with regex patterns in the same pipeline, wrap it as a Presidio recognizer:

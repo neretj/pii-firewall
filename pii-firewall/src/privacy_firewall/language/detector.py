@@ -98,26 +98,28 @@ class LanguageDetector:
             ) from exc
     
     def detect(self, text: str) -> str:
-        """Detect language from text. Returns ISO 639-1 code.
-        
-        Returns fallback_language if:
-        - Text is too short
-        - Detection fails
-        - Confidence is low
+        """Detect language from text. Returns ISO 639-1 code."""
+        lang, _ = self.detect_with_confidence(text)
+        return lang
+
+    def detect_with_confidence(self, text: str) -> tuple[str, float]:
+        """Detect language and return (lang_code, probability 0-1).
+
+        Returns (fallback_language, 0.0) on short, ambiguous, or failed input.
         """
         if not text or len(text.strip()) < self.min_text_length:
-            return self.fallback_language
-        
+            return self.fallback_language, 0.0
+
         try:
-            # langdetect.detect() returns ISO 639-1 code directly
-            detected = self._detect(text)
-            return detected
+            candidates = self._detect_langs(text)
+            if not candidates:
+                return self.fallback_language, 0.0
+            top = candidates[0]
+            return top.lang, getattr(top, "prob", 0.0)
         except self._exception:
-            # Detection failed (e.g., no features, ambiguous text)
-            return self.fallback_language
+            return self.fallback_language, 0.0
         except Exception:
-            # Unexpected error - fail gracefully
-            return self.fallback_language
+            return self.fallback_language, 0.0
 
 
 @dataclass

@@ -84,6 +84,12 @@ class UnifiedDetectionEngine:
     custom_recognizers: list[Any] = field(default_factory=list)
     transformer_model_id: str | None = None
     transformer_device: int = -1
+    # Remote transformers configuration
+    transformer_use_remote: bool = False
+    transformer_remote_url: str | None = None
+    transformer_remote_api_key: str | None = None
+    transformer_remote_timeout: float = 30.0
+    transformer_batch_size: int = 8
     gliner_model_id: str = "knowledgator/gliner-pii-base-v1.0"
     opf_checkpoint: str | None = None
     
@@ -94,6 +100,10 @@ class UnifiedDetectionEngine:
     _gliner_engine: Any = field(default=None, init=False, repr=False)
     _transformer_engines: dict[str, Any] = field(default_factory=dict, init=False, repr=False)
     _linguistic_filters: dict[str, Any] = field(default_factory=dict, init=False, repr=False)
+
+    # Minimum confidence required to accept a thread-level language switch.
+    # This prevents the cache from flipping on short or ambiguous messages.
+    _LANG_SWITCH_MIN_CONFIDENCE: float = 0.70
     
     def __post_init__(self) -> None:
         supported_backends = {"regex", "presidio", "opf", "gliner", "nemotron", "transformers", "hybrid"}
@@ -127,6 +137,7 @@ class UnifiedDetectionEngine:
         language: str | None = None,
         thread_id: str | None = None,
         context_words: list[str] | None = None,
+        skip_profile_filter: bool = False,
     ) -> tuple[list[Entity], str]:
         """Detect all entities in text.
         
@@ -235,7 +246,7 @@ class UnifiedDetectionEngine:
 
         # Step 8: Filter by profile (only keep entities the profile cares about)
         before_profile = len(entities)
-        entities = self._filter_by_profile(entities)
+        entities = self._filter_by_profile(entities, skip_profile_filter=skip_profile_filter)
         _logger.info("[profile_filter] %d -> %d entities (final): %s",
                      before_profile, len(entities),
                      [(e.entity_type, repr(e.text), round(e.confidence, 3)) for e in entities])
@@ -247,20 +258,32 @@ class UnifiedDetectionEngine:
         if language is not None:
             return language
         
-        # Check cache first
-        if thread_id and self.language_cache:
-            cached = self.language_cache.get(thread_id)
-            if cached:
-                return cached
-        
-        # Detect language
-        detected = self.language_detector.detect(text)
-        
-        # Cache for thread
-        if thread_id and self.language_cache:
-            self.language_cache.set(thread_id, detected)
-        
-        return detected
+        cached = (
+            self.language_cache.get(thread_id)
+            if thread_id and self.language_cache
+            else None
+        )
+
+        if self.language_detector is None:
+            return cached or self.language_router.get_config("en").language_code
+
+        detected, confidence = self.language_detector.detect_with_confidence(text)
+
+        if detected == cached or cached is None:
+            if thread_id and self.language_cache:
+                self.language_cache.set(thread_id, detected)
+            return detected
+
+        if confidence >= self._LANG_SWITCH_MIN_CONFIDENCE:
+            _logger.info(
+                "Language switch detected for thread %s: %s -> %s (confidence=%.2f)",
+                thread_id, cached, detected, confidence,
+            )
+            if thread_id and self.language_cache:
+                self.language_cache.set(thread_id, detected)
+            return detected
+
+        return cached
     
     def _detect_with_patterns(self, text: str, locale: str) -> list[Entity]:
         """Detect entities using pattern catalog."""
@@ -861,13 +884,18 @@ class UnifiedDetectionEngine:
 
         return self._linguistic_filters[language]
     
-    def _filter_by_profile(self, entities: list[Entity]) -> list[Entity]:
+    def _filter_by_profile(
+        self, entities: list[Entity], skip_profile_filter: bool = False
+    ) -> list[Entity]:
         """Filter entities based on profile dispositions.
         
         Only keep entities that:
         - Have a disposition defined in the profile
         - Meet the confidence threshold
         """
+        if skip_profile_filter:
+            return list(entities)
+
         filtered = []
         
         for entity in entities:
@@ -937,16 +965,33 @@ class UnifiedDetectionEngine:
         because spaCy already covers PERSON/LOCATION/ORG with equivalent accuracy.
         """
         import warnings
-        from .transformers_ner import get_model_for_domain, DomainTransformerNEREngine
+        from .transformers_ner import get_model_for_domain, DomainTransformerNEREngine, RemoteTransformerNEREngine
         from .transformers_ner.models import get_required_model_domains
 
-        # Pinned model: honour the caller's explicit choice (testing / custom deployments).
-        if self.transformer_model_id:
+        if self.transformer_model_id and not self.transformer_use_remote:
             return [DomainTransformerNEREngine(
                 model_name=self.transformer_model_id,
                 device=self.transformer_device,
                 domain="general",
             )]
+
+        # If the user requests remote transformer inference, create remote engines.
+        if self.transformer_use_remote:
+            if not self.transformer_remote_url:
+                raise ValueError(
+                    "transformer_use_remote=True requires transformer_remote_url to be configured."
+                )
+
+            if self.transformer_model_id:
+                return [RemoteTransformerNEREngine(
+                    model_name=self.transformer_model_id,
+                    device=self.transformer_device,
+                    domain="general",
+                    remote_url=self.transformer_remote_url,
+                    api_key=self.transformer_remote_api_key,
+                    timeout=self.transformer_remote_timeout,
+                    batch_size=self.transformer_batch_size,
+                )]
 
         # Derive specialized domains from profile dispositions (no profile coupling
         # inside models.py — the dict is passed directly).
@@ -960,6 +1005,43 @@ class UnifiedDetectionEngine:
         # entity that both models agree on.
         if self.detector_backend != "presidio":
             required_domains.add("general")
+
+        if self.transformer_use_remote:
+            engines = []
+            loaded_model_ids: set[str] = set()
+            for domain in sorted(required_domains):
+                try:
+                    model_config = get_model_for_domain(domain, language)
+                except ValueError:
+                    warnings.warn(
+                        f"No transformer model available for domain '{domain}' "
+                        f"and language '{language}' — skipping.",
+                        stacklevel=2,
+                    )
+                    continue
+
+                model_name = self.transformer_model_id or model_config.model_id
+
+                if model_name in loaded_model_ids:
+                    _logger.debug(
+                        "Skipping remote domain '%s': model %r already loaded for another domain.",
+                        domain,
+                        model_name,
+                    )
+                    continue
+
+                loaded_model_ids.add(model_name)
+                engines.append(RemoteTransformerNEREngine(
+                    model_name=model_name,
+                    device=self.transformer_device,
+                    domain=domain,
+                    remote_url=self.transformer_remote_url,
+                    api_key=self.transformer_remote_api_key,
+                    timeout=self.transformer_remote_timeout,
+                    batch_size=self.transformer_batch_size,
+                ))
+
+            return engines
 
         engines = []
         loaded_model_ids: set[str] = set()  # prevents loading the same weights twice

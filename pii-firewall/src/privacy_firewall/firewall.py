@@ -50,6 +50,40 @@ def apply_defensive_cleanup(text: str, max_iterations: int = 3) -> tuple[str, li
 
 @dataclass
 class PrivacyFirewall:
+    """Privacy firewall for anonymizing PII in text using multiple detection backends.
+    
+    Orchestrates pattern-based, regex, and NLP-based entity detection, applies profile-based
+    anonymization policies, and maintains reversible mappings for rehydration.
+    
+    Attributes:
+        profile: Domain profile (determines entities to detect and anonymization actions)
+        vault: Mapping storage for pseudonymized values (default: in-memory)
+        llm_client: LLM client for secure_call workflow (optional)
+        resolver: Entity resolver for context-aware disambiguation (optional)
+        language_detector: Auto language detection (optional; requires langdetect)
+        language_cache: Thread-level language caching for multi-turn consistency
+        language_router: Routes language to NLP engines and pattern locales
+        pattern_catalog: Regex pattern catalog for locale-aware detection
+        
+        detector_backend: Detection method - "regex", "presidio", "transformers", "hybrid", etc.
+        custom_recognizers: Custom Presidio recognizers to add to registry
+        
+        transformer_model_id: HuggingFace model for transformer backend (e.g., "dslim/bert-base-NER")
+        transformer_device: Torch device index (-1=CPU, 0+=GPU)
+        
+        transformer_use_remote: Enable remote HTTP inference instead of local model
+        transformer_remote_url: Remote inference endpoint URL (required if transformer_use_remote=True)
+            Example: "https://api-inference.huggingface.co/models/dslim/bert-base-NER"
+        transformer_remote_api_key: API key for remote endpoint (sent as Authorization: Bearer {key})
+        transformer_remote_timeout: Request timeout in seconds (default 30.0)
+        transformer_batch_size: Batch size for remote requests (passed in payload)
+        
+        gliner_model_id: GLiNER PII model for zero-shot detection
+        opf_checkpoint: OpenAI Privacy Filter checkpoint (for opf backend)
+        
+        manual_language: Fixed language code (disables auto-detection if set)
+        enable_defensive_cleanup: Enable iterative cleanup for residual PII patterns
+    """
     profile: DomainProfile
     vault: MappingVaultProtocol | None = None
     llm_client: Any = None
@@ -63,6 +97,12 @@ class PrivacyFirewall:
     custom_recognizers: list[Any] | None = None
     transformer_model_id: str | None = None
     transformer_device: int = -1
+    # Transformer remote inference configuration
+    transformer_use_remote: bool = False
+    transformer_remote_url: str | None = None
+    transformer_remote_api_key: str | None = None
+    transformer_remote_timeout: float = 30.0
+    transformer_batch_size: int = 8
     gliner_model_id: str = "knowledgator/gliner-pii-base-v1.0"
     opf_checkpoint: str | None = None
 
@@ -112,6 +152,11 @@ class PrivacyFirewall:
             custom_recognizers=self.custom_recognizers,
             transformer_model_id=self.transformer_model_id,
             transformer_device=self.transformer_device,
+            transformer_use_remote=self.transformer_use_remote,
+            transformer_remote_url=self.transformer_remote_url,
+            transformer_remote_api_key=self.transformer_remote_api_key,
+            transformer_remote_timeout=self.transformer_remote_timeout,
+            transformer_batch_size=self.transformer_batch_size,
             gliner_model_id=self.gliner_model_id,
             opf_checkpoint=self.opf_checkpoint,
         )
@@ -332,6 +377,53 @@ def create_firewall(
     token_scope: str | None = None,
     **kwargs,
 ) -> PrivacyFirewall:
+    """Create and configure a privacy firewall instance.
+    
+    Factory function that instantiates a PrivacyFirewall with preset or custom profile.
+    
+    Args:
+        domain: Preset domain profile ('generic', 'healthcare', 'finance', 'legal')
+        profile: Custom DomainProfile (overrides domain if provided)
+        language: Manual language code (disables auto-detection; e.g., 'en', 'es', 'fr')
+        detector_backend: Detection method - 'regex', 'presidio', 'transformers', 'hybrid', 'gliner', 'opf', 'nemotron'
+        token_scope: Override profile token scope ('thread', 'case', 'tenant')
+        **kwargs: Additional PrivacyFirewall parameters, including transformer options
+    
+    Returns:
+        Configured PrivacyFirewall instance
+    
+    Raises:
+        ValueError: If transformer_use_remote=True but transformer_remote_url is missing
+    
+    Examples:
+        # Basic regex-based anonymization
+        firewall = create_firewall(domain='generic')
+        
+        # Local transformer NER with GPU
+        firewall = create_firewall(
+            domain='generic',
+            detector_backend='transformers',
+            transformer_model_id='dslim/bert-base-NER',
+            transformer_device=0,  # GPU device 0
+        )
+        
+        # Remote transformer inference via HuggingFace API
+        firewall = create_firewall(
+            domain='healthcare',
+            detector_backend='transformers',
+            transformer_use_remote=True,
+            transformer_remote_url='https://api-inference.huggingface.co/models/dslim/bert-base-NER',
+            transformer_remote_api_key='hf_xxxxxxxxxxxxxxxxx',
+            transformer_remote_timeout=60.0,
+        )
+        
+        # Healthcare with custom token scope
+        firewall = create_firewall(
+            domain='healthcare',
+            detector_backend='hybrid',
+            token_scope='tenant',  # tokens per tenant, not per case
+        )
+    """
     from .profiles import get_preset_profile
 
     base_profile = profile if profile is not None else get_preset_profile(domain)

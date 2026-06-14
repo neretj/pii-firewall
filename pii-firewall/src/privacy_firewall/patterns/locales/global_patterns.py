@@ -80,6 +80,38 @@ GLOBAL_MAC_ADDRESS = EntityPattern(
 
 
 # =============================================================================
+# API KEYS / SECRETS
+# =============================================================================
+
+# JWT tokens — start with base64-encoded `{` (eyJ) and have 3 dot-separated parts
+GLOBAL_JWT = EntityPattern(
+    entity_type=ET.SECRET,
+    locale="GLOBAL",
+    pattern=re.compile(r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b"),
+    confidence=0.99,
+    description="JSON Web Token (JWT) — three base64url parts",
+)
+
+# GitHub personal access tokens (classic ghp_, ghs_, gho_, ghr_, ghu_ prefixes)
+GLOBAL_GITHUB_TOKEN = EntityPattern(
+    entity_type=ET.SECRET,
+    locale="GLOBAL",
+    pattern=re.compile(r"\bgh[psorhtu]_[A-Za-z0-9]{36,}\b"),
+    confidence=0.99,
+    description="GitHub personal/fine-grained access token",
+)
+
+# AWS Access Key ID — always AKIA prefix followed by 16 uppercase alphanumeric chars
+GLOBAL_AWS_ACCESS_KEY = EntityPattern(
+    entity_type=ET.SECRET,
+    locale="GLOBAL",
+    pattern=re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    confidence=1.0,
+    description="AWS access key ID (AKIA…)",
+)
+
+
+# =============================================================================
 # DOI  (Digital Object Identifier)
 # Bibliographic reference — must NOT be anonymized in academic/health contexts.
 # Format: 10.<registrant>/<suffix>
@@ -130,6 +162,9 @@ GLOBAL_PATTERNS = [
     GLOBAL_CREDIT_CARD,
     GLOBAL_URL,
     GLOBAL_MAC_ADDRESS,
+    GLOBAL_JWT,
+    GLOBAL_GITHUB_TOKEN,
+    GLOBAL_AWS_ACCESS_KEY,
     GLOBAL_DOI,
     GLOBAL_PMID,
 ]

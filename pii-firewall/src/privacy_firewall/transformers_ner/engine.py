@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import logging
+import urllib.error
+import urllib.request
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -219,3 +222,148 @@ class DomainTransformerNEREngine(TransformerNEREngine):
         if upper in non_pii_labels:
             return ""  # sentinel: caller must drop entities with empty type
         return mapping.get(upper, upper)
+
+
+@dataclass
+class RemoteTransformerNEREngine(DomainTransformerNEREngine):
+    """Remote transformer NER engine using an external inference endpoint.
+    
+    Offloads NER inference to an HTTP API (e.g., HuggingFace Inference API, local inference servers).
+    Useful for:
+    - Avoiding GPU memory constraints on client side
+    - Scaling across multiple inference servers
+    - Using managed ML services (Hugging Face, Replicate, etc.)
+    - Keeping model updates centralized
+    
+    Inherits domain-aware label normalization from DomainTransformerNEREngine.
+    Supports flexible response formats from different API providers.
+    
+    Attributes:
+        model_name: HuggingFace model ID or custom model identifier
+        domain: Model domain ('general' for CoNLL, 'medical' for biomedical entities)
+        aggregation_strategy: Token aggregation strategy passed to remote API
+        device: Torch device (ignored for remote; kept for API compatibility)
+        remote_url: HTTP endpoint URL for NER inference
+            Example: 'https://api-inference.huggingface.co/models/dslim/bert-base-NER'
+        api_key: Authentication key sent as 'Authorization: Bearer {api_key}'
+        timeout: Request timeout in seconds (default 30.0)
+        batch_size: Batch size for inference (passed in request payload)
+    
+    Request format:
+        POST {remote_url}
+        Headers: Content-Type: application/json, Authorization: Bearer {api_key}
+        Body: {
+            "model_id": "dslim/bert-base-NER",
+            "task": "ner",
+            "text": "Hello, my name is Ana Garcia.",
+            "aggregation_strategy": "first",
+            "batch_size": 8
+        }
+    
+    Response format (flexible parsing):
+        - predictions: [{"entity_group": "PER", "word": "Ana Garcia", "start": 18, "end": 28, "score": 0.99}]
+        - results: [{"entity_group": "PER", "word": "Ana Garcia", "start": 18, "end": 28, "score": 0.99}]
+        - Direct array: [{"entity_group": "PER", "word": "Ana Garcia", "start": 18, "end": 28, "score": 0.99}]
+        - Alternative fields: label, text, confidence (auto-mapped to entity_group, word, score)
+    """
+
+    remote_url: str | None = None
+    api_key: str | None = None
+    timeout: float = 30.0
+    batch_size: int = 8
+
+    def _ensure_pipeline(self) -> None:
+        # Remote engines do not instantiate a local HF pipeline.
+        return
+
+    def analyze(self, text: str) -> list[Entity]:
+        """Detect NER entities in text via remote HTTP inference.
+        
+        Args:
+            text: Input text to analyze for named entities
+        
+        Returns:
+            List of Entity objects with type, text span, and confidence
+        
+        Raises:
+            ValueError: If transformer_remote_url is not configured
+            RuntimeError: If HTTP request fails or response is malformed
+        
+        Logs:
+            - Request URL, timeout, and auth header (debug)
+            - Raw predictions before normalization (debug)
+            - Mapped entity types and filtering decisions (debug)
+            - Final entity list (info)
+        """
+        payload = {
+            "model_id": self.model_name,
+            "task": "ner",
+            "text": text,
+            "aggregation_strategy": self.aggregation_strategy,
+            "batch_size": self.batch_size,
+        }
+        headers = {
+            "Content-Type": "application/json",
+        }
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
+        request = urllib.request.Request(
+            self.remote_url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                body = response.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            raise RuntimeError(
+                f"Remote transformer request failed: {exc.code} {exc.reason}"
+            ) from exc
+        except urllib.error.URLError as exc:
+            raise RuntimeError(
+                f"Remote transformer request failed: {exc.reason}"
+            ) from exc
+
+        try:
+            result = json.loads(body)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError("Remote transformer returned invalid JSON") from exc
+
+        if isinstance(result, dict):
+            predictions = result.get("predictions") or result.get("results") or []
+        else:
+            predictions = result
+
+        if not isinstance(predictions, list):
+            raise RuntimeError("Remote transformer returned unexpected payload")
+
+        entities: list[Entity] = []
+        for item in predictions:
+            raw_label = str(item.get("entity_group") or item.get("label") or "").strip()
+            word = str(item.get("word") or item.get("text") or "").strip()
+            score = float(item.get("score", item.get("confidence", 0.0)))
+            start = item.get("start")
+            end = item.get("end")
+
+            if raw_label == "" or not word or start is None or end is None:
+                continue
+
+            normalized = self._normalize_entity_type(raw_label)
+            if not normalized:
+                continue
+
+            entities.append(
+                Entity(
+                    text=word,
+                    entity_type=normalized,
+                    start=int(start),
+                    end=int(end),
+                    confidence=score,
+                    source=f"transformer_remote:{self.model_name}",
+                )
+            )
+
+        return entities
