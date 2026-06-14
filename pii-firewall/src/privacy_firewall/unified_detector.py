@@ -85,6 +85,9 @@ class UnifiedDetectionEngine:
     transformer_model_id: str | None = None
     transformer_model_ids: list[str] | None = None
     transformer_device: int = -1
+    # User-defined label remappings applied after built-in normalization.
+    transformer_label_map: dict[str, str] | None = None
+    gliner_label_map: dict[str, str] | None = None
     # Remote transformers configuration
     transformer_use_remote: bool = False
     transformer_remote_url: str | None = None
@@ -593,16 +596,20 @@ class UnifiedDetectionEngine:
         if self._gliner_engine is None:
             self._gliner_engine = self._init_gliner_engine()
 
+        effective_gliner_map = GLINER_LABEL_TO_ENTITY
+        if self.gliner_label_map:
+            effective_gliner_map = {**GLINER_LABEL_TO_ENTITY, **self.gliner_label_map}
+
         predictions = self._gliner_engine.predict_entities(
             text,
-            list(GLINER_LABEL_TO_ENTITY.keys()),
+            list(effective_gliner_map.keys()),
             threshold=0.3,
         )
 
         entities: list[Entity] = []
         for prediction in predictions:
             label = str(prediction.get("label", "")).strip().lower()
-            mapped_type = self._map_gliner_label(label)
+            mapped_type = effective_gliner_map.get(label)
             if mapped_type is None:
                 continue
 
@@ -989,6 +996,7 @@ class UnifiedDetectionEngine:
                         model_name=model_id,
                         device=self.transformer_device,
                         domain=domain,
+                        label_map=self.transformer_label_map,
                         remote_url=self.transformer_remote_url,
                         api_key=self.transformer_remote_api_key,
                         timeout=self.transformer_remote_timeout,
@@ -999,6 +1007,7 @@ class UnifiedDetectionEngine:
                         model_name=model_id,
                         device=self.transformer_device,
                         domain=domain,
+                        label_map=self.transformer_label_map,
                     ))
             return engines
 
@@ -1007,6 +1016,7 @@ class UnifiedDetectionEngine:
                 model_name=self.transformer_model_id,
                 device=self.transformer_device,
                 domain="general",
+                label_map=self.transformer_label_map,
             )]
 
         # If the user requests remote transformer inference, create remote engines.
@@ -1021,6 +1031,7 @@ class UnifiedDetectionEngine:
                     model_name=self.transformer_model_id,
                     device=self.transformer_device,
                     domain="general",
+                    label_map=self.transformer_label_map,
                     remote_url=self.transformer_remote_url,
                     api_key=self.transformer_remote_api_key,
                     timeout=self.transformer_remote_timeout,
@@ -1069,6 +1080,7 @@ class UnifiedDetectionEngine:
                     model_name=model_name,
                     device=self.transformer_device,
                     domain=domain,
+                    label_map=self.transformer_label_map,
                     remote_url=self.transformer_remote_url,
                     api_key=self.transformer_remote_api_key,
                     timeout=self.transformer_remote_timeout,
@@ -1121,6 +1133,7 @@ class UnifiedDetectionEngine:
                 model_name=model_name,
                 device=self.transformer_device,
                 domain=domain,
+                label_map=self.transformer_label_map,
             ))
 
         return engines

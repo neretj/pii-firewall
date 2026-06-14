@@ -35,7 +35,9 @@ class TransformerNEREngine:
     aggregation_strategy: str = "first"  # merges subword tokens into word spans
     device: int = -1  # CPU by default
     use_fast_tokenizer: bool = True
-    
+    # User-defined overrides applied after built-in normalization (normalized label → target type).
+    label_map: dict[str, str] | None = None
+
     _pipeline: Any = field(default=None, init=False, repr=False)
     
     def __post_init__(self) -> None:
@@ -116,6 +118,8 @@ class TransformerNEREngine:
                     self.model_name, raw_label, score, word,
                 )
                 continue
+            if self.label_map and normalized in self.label_map:
+                normalized = self.label_map[normalized]
             _logger.info(
                 "  [transformer:%s] label %r -> %r  score=%.3f  word=%r",
                 self.model_name, raw_label, normalized, score, word,

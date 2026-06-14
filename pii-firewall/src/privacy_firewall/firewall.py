@@ -98,6 +98,8 @@ class PrivacyFirewall:
     transformer_model_id: str | None = None
     transformer_model_ids: list[str] | None = None
     transformer_device: int = -1
+    transformer_label_map: dict[str, str] | None = None
+    gliner_label_map: dict[str, str] | None = None
     # Transformer remote inference configuration
     transformer_use_remote: bool = False
     transformer_remote_url: str | None = None
@@ -154,6 +156,8 @@ class PrivacyFirewall:
             transformer_model_id=self.transformer_model_id,
             transformer_model_ids=self.transformer_model_ids,
             transformer_device=self.transformer_device,
+            transformer_label_map=self.transformer_label_map,
+            gliner_label_map=self.gliner_label_map,
             transformer_use_remote=self.transformer_use_remote,
             transformer_remote_url=self.transformer_remote_url,
             transformer_remote_api_key=self.transformer_remote_api_key,
