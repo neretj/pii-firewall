@@ -4,11 +4,11 @@ WORKDIR /app
 
 COPY . .
 
-# Install the "web" extra only (FastAPI + uvicorn). This is the regex-only,
-# no-ML install: it deliberately leaves out the presidio/transformers/gliner
-# extras so the image stays small and needs no model downloads. The default
-# detector_backend is "regex", which requires nothing beyond the base package.
-RUN pip install --no-cache-dir -e ".[web]"
+# Install web + presidio (brings spaCy) + langdetect. The pipeline primes a
+# spaCy linguistic filter for every request regardless of detector_backend, so
+# presidio + the en_core_web_sm model are required even for the regex default.
+RUN pip install --no-cache-dir -e ".[web,presidio,langdetect]" \
+    && python -m spacy download en_core_web_sm
 
 EXPOSE 8080
 
