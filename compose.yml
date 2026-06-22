@@ -1,0 +1,19 @@
+services:
+  backend:
+    build: ./pii-firewall
+    ports:
+      - "8080:8080"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8080"
+
+  frontend:
+    build: ./pii-web-next
+    ports:
+      - "3010:3010"
+    environment:
+      # Must be the backend service name, not localhost: the frontend proxies
+      # requests server-side from inside the frontend container.
+      PII_API_BASE_URL: http://backend:8080
+    depends_on:
+      - backend

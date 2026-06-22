@@ -12,6 +12,7 @@ Frontend (separate): http://localhost:3000 (run from pii-web-next)
 
 from privacy_firewall.web import create_app
 from pathlib import Path
+import os
 
 
 def main() -> None:
@@ -51,7 +52,9 @@ def main() -> None:
     print()
 
     app = create_app()
-    uvicorn.run(app, host="127.0.0.1", port=8080, log_level="info")
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", "8080"))
+    uvicorn.run(app, host=host, port=port, log_level="info")
 
 
 if __name__ == "__main__":
